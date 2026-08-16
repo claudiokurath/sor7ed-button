@@ -28,6 +28,30 @@ const GOOGLE_OAUTH_CONFIG = {
   tokenPath: "/oauth2/v4/token",
 };
 
+/** Shared cookie options. When web (Vercel) and api (Fly) sit on sibling
+ *  subdomains (sor7ed.com + api.sor7ed.com), set COOKIE_DOMAIN=.sor7ed.com
+ *  so the browser sends sor7ed_session on both hosts. Leave unset for
+ *  localhost / same-origin proxy setups. */
+function cookieBase(maxAge: number) {
+  const opts: {
+    path: string;
+    httpOnly: boolean;
+    secure: boolean;
+    sameSite: "lax";
+    maxAge: number;
+    domain?: string;
+  } = {
+    path: "/",
+    httpOnly: true,
+    secure: process.env["NODE_ENV"] === "production",
+    sameSite: "lax",
+    maxAge,
+  };
+  const domain = process.env["COOKIE_DOMAIN"];
+  if (domain) opts.domain = domain;
+  return opts;
+}
+
 export async function authRoutes(app: FastifyInstance) {
   await app.register(oauthPlugin, {
     name: "googleOAuth2",
@@ -49,12 +73,7 @@ export async function authRoutes(app: FastifyInstance) {
   // auto-generated redirect route.
   app.get<{ Querystring: { returnTo?: string } }>("/api/auth/login", async (req, reply) => {
     if (req.query.returnTo) {
-      reply.setCookie("returnTo", req.query.returnTo, {
-        path: "/",
-        httpOnly: true,
-        sameSite: "lax",
-        maxAge: 600,
-      });
+      reply.setCookie("returnTo", req.query.returnTo, cookieBase(600));
     }
     return reply.redirect("/api/auth/google");
   });
@@ -78,16 +97,10 @@ export async function authRoutes(app: FastifyInstance) {
     if (!user) return reply.code(500).send({ error: "Failed to upsert user" });
 
     const sessionToken = await reply.jwtSign({ sub: user.id });
-    reply.setCookie("sor7ed_session", sessionToken, {
-      path: "/",
-      httpOnly: true,
-      secure: process.env["NODE_ENV"] === "production",
-      sameSite: "lax",
-      maxAge: 60 * 60 * 24 * 30,
-    });
+    reply.setCookie("sor7ed_session", sessionToken, cookieBase(60 * 60 * 24 * 30));
 
     const returnTo = req.cookies["returnTo"] ?? process.env["WEB_ORIGIN"] ?? "http://localhost:3000";
-    reply.clearCookie("returnTo", { path: "/" });
+    reply.clearCookie("returnTo", cookieBase(0));
     return reply.redirect(returnTo);
   });
 
@@ -102,7 +115,7 @@ export async function authRoutes(app: FastifyInstance) {
   });
 
   app.post("/api/auth/signout", async (_req, reply) => {
-    reply.clearCookie("sor7ed_session", { path: "/" });
+    reply.clearCookie("sor7ed_session", cookieBase(0));
     return reply.send({ ok: true });
   });
 }

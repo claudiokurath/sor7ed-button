@@ -86,35 +86,39 @@ Template URL button base must match `BASE_URL` (e.g. `https://sor7ed.com/`).
 
 ## Production deploy
 
+**Full step-by-step:** see **[DEPLOY.md](./DEPLOY.md)** (Vercel + Fly.io + Neon + Upstash).
+
 ### Recommended split
 
 | Piece | Host |
 |---|---|
-| `web` | Vercel (or any Next host) → `sor7ed.com` |
-| `api` + `worker` | Docker / Fly / Railway / any Node host |
-| Postgres | Managed Postgres **with pgvector** |
-| Redis | Managed Redis |
-| Uploads | Today: local disk volume shared by api+worker. Swap `core/src/storage.ts` for S3/R2 before multi-instance scale. |
+| `web` | Vercel → `sor7ed.com` (`web/vercel.json`) |
+| `api` | Fly.io → `api.sor7ed.com` (`fly.api.toml`) |
+| `worker` | Fly.io background (`fly.worker.toml`) |
+| Postgres | Neon (pgvector enabled) |
+| Redis | Upstash |
+| Uploads | Local disk volume on API for MVP; swap `core/src/storage.ts` → R2/S3 before multi-instance |
 
 ```bash
-# API + worker + infra
-docker compose up -d --build
+# API
+fly deploy -c fly.api.toml --app sor7ed-button-api
 
-# Web (Vercel)
-# Root directory: web/
-# Env: NEXT_PUBLIC_*, API_INTERNAL_URL (server-side to api)
+# Worker
+fly deploy -c fly.worker.toml --app sor7ed-button-worker
+
+# Web — import repo in Vercel, Root Directory = web
 ```
 
 ### Required production env
 
-See `.env.example`. Fail-fast checks run at api/worker boot when `NODE_ENV=production`.
+See `.env.example` and the env matrix in DEPLOY.md. Fail-fast checks run at api/worker boot when `NODE_ENV=production`.
 
 Critical:
 
 - `DATABASE_URL`, `REDIS_URL`, `JWT_SECRET`
 - `BASE_URL` (public web), `API_BASE_URL` (public api — Meta must fetch images)
 - Full Meta set + Google OAuth (authorized redirect: `{API_BASE_URL}/api/auth/google/callback`)
-- Cookie domain: web and api must share a parent domain (or proxy api under same host) so `sor7ed_session` works cross-subdomain — set cookie `domain` if you split hosts.
+- `COOKIE_DOMAIN=.sor7ed.com` when web + api are sibling subdomains (so `sor7ed_session` is shared)
 
 ### Google OAuth
 

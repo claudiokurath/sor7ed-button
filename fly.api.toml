@@ -1,0 +1,38 @@
+# Fly.io — SOR7ED BUTTON API
+# Deploy:  fly deploy -c fly.api.toml --app sor7ed-button-api
+# Secrets: fly secrets set -a sor7ed-button-api KEY=value ...
+# First-time: fly apps create sor7ed-button-api
+
+app = "sor7ed-button-api"
+primary_region = "lhr"
+
+[build]
+  dockerfile = "Dockerfile.api"
+
+[env]
+  NODE_ENV = "production"
+  PORT = "8080"
+
+[http_service]
+  internal_port = 8080
+  force_https = true
+  auto_stop_machines = "off"
+  auto_start_machines = true
+  min_machines_running = 1
+
+  [[http_service.checks]]
+    interval = "15s"
+    timeout = "5s"
+    grace_period = "20s"
+    method = "GET"
+    path = "/health"
+
+[[vm]]
+  size = "shared-cpu-1x"
+  memory = "512mb"
+
+# Persistent volume for /app/uploads (local-disk storage).
+# Create once: fly volumes create sor7ed_uploads --region lhr --size 3 -a sor7ed-button-api
+[mounts]
+  source = "sor7ed_uploads"
+  destination = "/app/uploads"
