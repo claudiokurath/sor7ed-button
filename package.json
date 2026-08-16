@@ -1,0 +1,26 @@
+{
+  "name": "sor7ed-button",
+  "private": true,
+  "description": "SOR7ED BUTTON — partner Save-to-WhatsApp product (standalone)",
+  "workspaces": [
+    "api",
+    "web",
+    "worker",
+    "types",
+    "core"
+  ],
+  "scripts": {
+    "dev:api": "npm run dev --workspace=api",
+    "dev:web": "npm run dev --workspace=web",
+    "dev:worker": "npm run dev --workspace=worker",
+    "dev:infra": "docker compose up -d postgres redis",
+    "build": "npm run build --workspaces --if-present",
+    "typecheck": "npm run typecheck --workspaces --if-present",
+    "db:generate": "npm run db:generate --workspace=core",
+    "db:migrate": "npm run db:migrate --workspace=core",
+    "db:studio": "npm run db:studio --workspace=core"
+  },
+  "engines": {
+    "node": ">=20"
+  }
+}

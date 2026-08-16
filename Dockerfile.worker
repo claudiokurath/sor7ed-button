@@ -1,0 +1,19 @@
+# See Dockerfile.api for why this runs via tsx from source rather than a
+# compiled build.
+FROM node:20-alpine
+WORKDIR /app
+RUN apk add --no-cache vips-dev
+
+COPY package*.json ./
+COPY worker/package.json ./worker/
+COPY core/package.json ./core/
+COPY types/package.json ./types/
+RUN npm ci
+
+COPY worker ./worker
+COPY core ./core
+COPY types ./types
+COPY tsconfig.base.json ./
+
+ENV NODE_ENV=production
+CMD ["npx", "tsx", "worker/src/index.ts"]

@@ -1,0 +1,30 @@
+# Runs production via tsx directly from TypeScript source, matching how
+# development already runs it — @sor7ed/core's package.json points "main"
+# at src/index.ts (not a compiled dist/), so a compiled api/dist/index.js
+# trying to `import { db } from "@sor7ed/core"` would follow the workspace
+# symlink and fail loading a .ts file as plain JS. Running everything
+# through tsx sidesteps that entirely: nothing ever gets compiled.
+FROM node:20-alpine
+WORKDIR /app
+
+# sharp's prebuilt Alpine binaries usually cover this already on recent
+# versions, but installing vips-dev is a cheap, defensive fallback against
+# any native-build surprises.
+RUN apk add --no-cache vips-dev
+
+COPY package*.json ./
+COPY api/package.json ./api/
+COPY core/package.json ./core/
+COPY types/package.json ./types/
+RUN npm ci
+
+COPY api ./api
+COPY core ./core
+COPY types ./types
+COPY tsconfig.base.json ./
+
+ENV NODE_ENV=production
+ENV PORT=8080
+EXPOSE 8080
+
+CMD ["npx", "tsx", "api/src/index.ts"]
