@@ -1,0 +1,170 @@
+<!-- ============================================================
+     SOR7ED save button — v9
+     Drop-in: paste the <style>, the markup, and the <script>.
+     Only dependency: tangle.png (same folder) + JetBrains Mono.
+     Remap the six --sb-* variables to your host app's tokens.
+     ============================================================ -->
+
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500&display=swap">
+
+<style>
+  .sb {
+    /* ── remap these to your app's tokens ── */
+    --sb-ink: #221e18;        /* the tangle / primary ink */
+    --sb-accent: #2f6b50;     /* the tick + confirmed text */
+    --sb-muted: #897f6e;      /* rest-state labels */
+    --sb-line: #e1d8c6;       /* hairline rules */
+    --sb-ease: cubic-bezier(0.16, 1, 0.3, 1);
+    --sb-mark: 84px;          /* mark size; hit target is mark + 20px */
+
+    --t: 0;                   /* progress 0 → 1, driven by JS */
+    --td: 0;                  /* delayed progress for the tick */
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 24px;
+    padding: 28px 0;
+    border-top: 1px solid var(--sb-line);
+    border-bottom: 1px solid var(--sb-line);
+    font-family: 'JetBrains Mono', ui-monospace, monospace;
+  }
+
+  .sb__label {
+    font-size: 11px;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    min-width: 15ch;
+    color: color-mix(in oklab, var(--sb-muted), var(--sb-accent) calc(var(--td) * 100%));
+    transition: color 0.32s var(--sb-ease);
+  }
+  .sb__label--lead { text-align: right; }
+
+  .sb__btn {
+    appearance: none;
+    width: calc(var(--sb-mark) + 20px);
+    height: calc(var(--sb-mark) + 20px);
+    padding: 0;
+    border: none;
+    background: transparent;
+    border-radius: 50%;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    -webkit-tap-highlight-color: transparent;
+    transition: transform 0.2s var(--sb-ease);
+  }
+  .sb__btn:active { transform: scale(0.96); }
+  .sb__btn:focus-visible { outline: 1px solid var(--sb-accent); outline-offset: 3px; }
+
+  .sb__mark {
+    position: relative;
+    display: block;
+    width: var(--sb-mark);
+    height: var(--sb-mark);
+    transition: transform 0.6s var(--sb-ease);
+  }
+  .sb__mark:hover { transform: rotate(-3deg) scale(1.03); }
+
+  /* rest layer: the hand-drawn tangle, fading + winding down as --t rises */
+  .sb__tangle {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    transform-origin: 52% 54%;
+    opacity: calc(1 - var(--t));
+    transform: scale(calc(1 - 0.12 * var(--t))) rotate(calc(var(--t) * -8deg));
+  }
+
+  /* confirmed layer: the tick, drawing itself in on the delayed clock */
+  .sb__tick {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    overflow: visible;
+    opacity: var(--td);
+  }
+  .sb__tick path {
+    fill: none;
+    stroke: var(--sb-accent);
+    stroke-width: 2.6;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+    stroke-dasharray: 46;
+    stroke-dashoffset: calc(46px * (1 - var(--td)));
+  }
+</style>
+
+<div class="sb" id="sb">
+  <span class="sb__label sb__label--lead" data-sb-lead>Save this piece</span>
+
+  <button type="button" class="sb__btn" aria-label="Save — SOR7ED">
+    <span class="sb__mark">
+      <img class="sb__tangle" src="tangle.png" alt="" draggable="false">
+      <svg class="sb__tick" viewBox="-24 -24 48 48" aria-hidden="true">
+        <path d="M -13 1 L -3 11 L 15 -11"></path>
+      </svg>
+    </span>
+  </button>
+
+  <span class="sb__label" data-sb-trail>tap the mark</span>
+</div>
+
+<script>
+/* One progress value drives both layers, so the tangle's exit and the tick's
+   draw-in stay locked to the same beat. Tick starts at 28%. */
+(function () {
+  var COPY = {
+    rest:  { lead: 'Save this piece',    trail: 'tap the mark' },
+    done:  { lead: 'Saved to your chat', trail: 'sorted.' }
+  };
+  var IN = 620, OUT = 420, HOLD = 2400, TICK_AT = 0.28;
+
+  function ease(p) { return 1 - Math.pow(1 - p, 3.2); } // ≈ cubic-bezier(.16,1,.3,1)
+
+  document.querySelectorAll('.sb').forEach(function (root) {
+    var btn = root.querySelector('.sb__btn');
+    var lead = root.querySelector('[data-sb-lead]');
+    var trail = root.querySelector('[data-sb-trail]');
+    var reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
+    var t = 0, done = false, raf, timer;
+
+    function paint(v) {
+      t = v;
+      var td = Math.max(0, Math.min(1, (v - TICK_AT) / (1 - TICK_AT)));
+      root.style.setProperty('--t', v.toFixed(3));
+      root.style.setProperty('--td', td.toFixed(3));
+    }
+
+    function run(to) {
+      cancelAnimationFrame(raf);
+      if (reduce) return paint(to);
+      var from = t, dur = to > from ? IN : OUT, start = performance.now();
+      (function step(now) {
+        var p = Math.min(1, (now - start) / dur);
+        paint(from + (to - from) * ease(p));
+        if (p < 1) raf = requestAnimationFrame(step);
+      })(performance.now());
+    }
+
+    function setCopy(state) {
+      lead.textContent = COPY[state].lead;
+      trail.textContent = COPY[state].trail;
+    }
+
+    btn.addEventListener('click', function () {
+      clearTimeout(timer);
+      done = !done;
+      setCopy(done ? 'done' : 'rest');
+      run(done ? 1 : 0);
+      // ── fire the real save-to-chat call here ──
+      if (done) {
+        timer = setTimeout(function () { done = false; setCopy('rest'); run(0); }, HOLD);
+      }
+    });
+  });
+})();
+</script>
