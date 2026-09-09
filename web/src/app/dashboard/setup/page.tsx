@@ -7,6 +7,7 @@ const API_BASE = process.env.NEXT_PUBLIC_API_BASE_URL ?? "http://localhost:3001"
 export default function SetupPage() {
   const router = useRouter();
   const [name, setName] = useState("");
+  const [domain, setDomain] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
 
@@ -18,11 +19,17 @@ export default function SetupPage() {
     }
     setLoading(true);
     try {
+      // Bare hostname only (no scheme/path) — matches what the API's
+      // allowedDomains check expects (see core/src/domain-check.ts).
+      // Stripping any pasted scheme/path here is a convenience for the
+      // partner, not a security boundary — the API re-validates the
+      // shape itself regardless of what this sends.
+      const cleanedDomain = domain.trim().replace(/^https?:\/\//i, "").split("/")[0]?.toLowerCase();
       const res = await fetch(`${API_BASE}/api/partner`, {
         method: "POST",
         credentials: "include",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ name: name.trim() }),
+        body: JSON.stringify({ name: name.trim(), allowedDomains: cleanedDomain ? [cleanedDomain] : [] }),
       });
       if (!res.ok) {
         const body = (await res.json().catch(() => ({}))) as { error?: string };
@@ -47,6 +54,15 @@ export default function SetupPage() {
           required
           style={{ width: "100%", padding: "10px 12px", border: "1px solid #ddd", borderRadius: 6, fontSize: 15, marginBottom: 16, boxSizing: "border-box" }}
         />
+        <input
+          value={domain}
+          onChange={(e) => setDomain(e.target.value)}
+          placeholder="example.com (your site's domain)"
+          style={{ width: "100%", padding: "10px 12px", border: "1px solid #ddd", borderRadius: 6, fontSize: 15, marginBottom: 4, boxSizing: "border-box" }}
+        />
+        <p style={{ color: "#999", fontSize: 12, marginBottom: 16 }}>
+          Your embed key only works for saves from this domain (and its subdomains). Leave blank to skip for now — you can add it later from the dashboard, but saves won&apos;t be restricted until you do.
+        </p>
         {error && <p style={{ color: "#c00", marginBottom: 16 }}>{error}</p>}
         <button
           type="submit"

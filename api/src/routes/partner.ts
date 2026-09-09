@@ -1,11 +1,9 @@
 import type { FastifyInstance } from "fastify";
 import { sql } from "drizzle-orm";
+import { eq } from "drizzle-orm";
 import { db, partners, partnerMembers, getPartnerForUser, getPartnerAnalytics } from "@sor7ed/core";
-
-interface CreatePartnerBody {
-  name: string;
-  brandName?: string;
-}
+import { createPartnerBodySchema, updateAllowedDomainsBodySchema } from "../schemas/partner.js";
+import { parseBody } from "../schemas/validate.js";
 
 interface RotatedKeyRow extends Record<string, unknown> {
   apiKey: string;
@@ -24,16 +22,17 @@ export async function partnerRoutes(app: FastifyInstance) {
   // enforces this at the database level too, so a genuine race between two
   // duplicate requests fails with a clean constraint violation, not a
   // silent double-insert.
-  app.post<{ Body: CreatePartnerBody }>("/api/partner", { preHandler: app.requireAuth }, async (req, reply) => {
+  app.post("/api/partner", { preHandler: app.requireAuth }, async (req, reply) => {
     const existing = await getPartnerForUser(req.userId!);
     if (existing) return reply.code(409).send({ error: "You already have a partner account" });
 
-    const { name, brandName } = req.body ?? {};
-    if (!name?.trim()) return reply.code(400).send({ error: "name is required" });
+    const body = parseBody(createPartnerBodySchema, req.body, reply);
+    if (!body) return;
+    const { name, brandName, allowedDomains } = body;
 
     const [partner] = await db
       .insert(partners)
-      .values({ name: name.trim(), brandName: brandName?.trim() ?? null })
+      .values({ name, brandName: brandName ?? null, allowedDomains: allowedDomains ?? [] })
       .returning();
     if (!partner) return reply.code(500).send({ error: "Failed to create partner" });
 
@@ -43,6 +42,17 @@ export async function partnerRoutes(app: FastifyInstance) {
 
   app.get("/api/partner/analytics", { preHandler: app.requirePartnerAuth }, async (req, reply) => {
     return reply.send(await getPartnerAnalytics(req.partnerId!));
+  });
+
+  // Replaces the full list rather than appending — the dashboard sends
+  // its complete current list on every save, same pattern as apiKey
+  // rotation below (single source of truth, no partial-update ambiguity).
+  app.put("/api/partner/allowed-domains", { preHandler: app.requirePartnerAuth }, async (req, reply) => {
+    const body = parseBody(updateAllowedDomainsBodySchema, req.body, reply);
+    if (!body) return;
+
+    await db.update(partners).set({ allowedDomains: body.allowedDomains }).where(eq(partners.id, req.partnerId!));
+    return reply.send({ allowedDomains: body.allowedDomains });
   });
 
   // Single atomic statement — avoids a window where neither the old nor

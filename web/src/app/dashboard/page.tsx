@@ -1,6 +1,7 @@
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import { PartnerKeyPanel } from "./partner-key-panel";
+import { AllowedDomainsPanel } from "./allowed-domains-panel";
 
 const API = process.env["API_INTERNAL_URL"] ?? "http://localhost:3001";
 const API_PUBLIC = process.env["NEXT_PUBLIC_API_BASE_URL"] ?? API;
@@ -15,6 +16,7 @@ interface Partner {
   plan: string;
   monthlySaveLimit: number;
   savesThisMonth: number;
+  allowedDomains: string[];
 }
 interface Analytics {
   totalSaves: number;
@@ -104,9 +106,17 @@ export default async function DashboardPage() {
         </div>
       )}
 
-      <div>
+      <div style={{ marginBottom: 32 }}>
         <div style={{ fontSize: 14, fontWeight: 600, marginBottom: 12 }}>Your embed snippet</div>
         <PartnerKeyPanel initialApiKey={partner.apiKey} buttonLabel={partner.buttonLabel} />
+      </div>
+
+      <div>
+        <div style={{ fontSize: 14, fontWeight: 600, marginBottom: 4 }}>Allowed domains</div>
+        <p style={{ color: "#666", fontSize: 13, marginBottom: 12 }}>
+          Your embed key only works for saves from these domains (and their subdomains).
+        </p>
+        <AllowedDomainsPanel initialDomains={partner.allowedDomains} />
       </div>
     </main>
   );
