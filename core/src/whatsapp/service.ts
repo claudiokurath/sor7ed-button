@@ -1,7 +1,7 @@
 // Every outbound send should go through this file, not client.ts directly —
 // this is what enforces the 24h session-window rule in exactly one place.
 import { sendText, sendTemplate, type TemplateComponent } from "./client.js";
-import { isWhatsAppSessionOpen } from "../queries.js";
+import { isWhatsAppSessionOpen, isWhatsAppOptedOut } from "../queries.js";
 
 // Deliberately narrower than the shared SavedItem DTO (@sor7ed/types),
 // which models the JSON-over-the-wire shape consumed by the web app
@@ -45,6 +45,11 @@ export async function sendSaveCard(
   item: SaveCardItem,
   partnerName: string
 ): Promise<void> {
+  // Checked first and unconditionally — an opted-out user gets nothing
+  // sent regardless of session-window state, which only affects *how*
+  // a message would be sent, not *whether* one should be.
+  if (await isWhatsAppOptedOut(userId)) return;
+
   const sessionOpen = await isWhatsAppSessionOpen(userId);
 
   if (sessionOpen) {
@@ -76,7 +81,14 @@ const REMINDER_TEMPLATE = "sor7ed_reminder";
 // function duplicate sendSaveCard's session-check branching for a
 // condition that will always resolve the same way, it's named for exactly
 // what it does: always sends the approved template, no branching.
-export async function sendReminder(userPhone: string, item: { title: string; shortId: string }): Promise<void> {
+//
+// userId is required (not just userPhone) specifically for the opt-out
+// check below — a reminder is scheduled well before send time, so the
+// user may have opted out in the interim; this is the only place that's
+// actually re-checked before the message goes out.
+export async function sendReminder(userId: string, userPhone: string, item: { title: string; shortId: string }): Promise<void> {
+  if (await isWhatsAppOptedOut(userId)) return;
+
   const base = requireBaseUrl();
   const components: TemplateComponent[] = [
     {

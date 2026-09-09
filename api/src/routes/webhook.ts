@@ -1,7 +1,7 @@
 import type { FastifyInstance } from "fastify";
 import crypto from "node:crypto";
 import { eq, desc } from "drizzle-orm";
-import { db, users, savedItems, updateLastInbound, verifyConnectionRequest, getRecentSaves, searchSavedItems, sendText } from "@sor7ed/core";
+import { db, users, savedItems, updateLastInbound, verifyConnectionRequest, getRecentSaves, searchSavedItems, sendText, setWhatsAppOptOut } from "@sor7ed/core";
 
 interface InboundMessage {
   from: string;
@@ -150,8 +150,26 @@ async function handleInboundMessage(app: FastifyInstance, message: InboundMessag
     return;
   }
 
+  // Required by Meta's WhatsApp Business Platform policy: opt-outs must
+  // be honored. This only stops *business-initiated* sends (sendSaveCard,
+  // sendReminder — both check isWhatsAppOptedOut before dispatching); it
+  // deliberately does NOT stop replying here, since this reply is itself
+  // user-initiated (a direct response to the command that triggered it),
+  // not a proactive message.
+  if (command === "STOP" || command === "UNSUBSCRIBE" || command === "OPT OUT" || command === "OPTOUT") {
+    await setWhatsAppOptOut(from, true);
+    await sendText(from, "You're unsubscribed — you won't receive save cards or reminders. Reply START to turn them back on.");
+    return;
+  }
+
+  if (command === "START" || command === "SUBSCRIBE") {
+    await setWhatsAppOptOut(from, false);
+    await sendText(from, "✓ You're resubscribed. Saves and reminders will land here again.");
+    return;
+  }
+
   if (command === "HELP") {
-    await sendText(from, "Reply LIBRARY to see your last 5 saves, or LIBRARY <word> to search them.");
+    await sendText(from, "Reply LIBRARY to see your last 5 saves, LIBRARY <word> to search them, or STOP to unsubscribe.");
     return;
   }
 
