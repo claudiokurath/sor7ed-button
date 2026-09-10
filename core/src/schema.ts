@@ -23,6 +23,11 @@ export const users = pgTable(
     googleId: text("google_id").unique(),
     whatsappNumber: text("whatsapp_number").unique(),
     whatsappVerified: boolean("whatsapp_verified").default(false).notNull(),
+    // Set when the user texts STOP/UNSUBSCRIBE, cleared on START. Every
+    // outbound send (sendSaveCard, sendReminder) must check this — Meta's
+    // WhatsApp Business Platform policy requires honoring opt-outs, and
+    // ignoring them risks the WABA itself being flagged.
+    whatsappOptedOutAt: timestamp("whatsapp_opted_out_at", { withTimezone: true }),
     lastInboundMessageAt: timestamp("last_inbound_message_at", { withTimezone: true }),
     createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
   },
@@ -42,6 +47,12 @@ export const partners = pgTable("partners", {
   plan: text("plan").default("free").notNull(),
   monthlySaveLimit: integer("monthly_save_limit").default(100).notNull(),
   savesThisMonth: integer("saves_this_month").default(0).notNull(),
+  // Registered hostnames (bare, lowercase, no scheme/port — e.g.
+  // "example.com"), used to validate that a /api/saves request is saving
+  // a URL the partner actually owns, since apiKey itself is public
+  // (printed in the embed snippet) and carries no secrecy on its own.
+  // Empty array = unrestricted (dev/setup default; tighten before go-live).
+  allowedDomains: text("allowed_domains").array().default(sql`'{}'`).notNull(),
   createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
 });
 

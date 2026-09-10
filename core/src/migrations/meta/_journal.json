@@ -15,6 +15,13 @@
       "when": 1785929850994,
       "tag": "0001_orange_storm",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1788989877957,
+      "tag": "0002_add_opt_out_and_allowed_domains",
+      "breakpoints": true
     }
   ]
 }

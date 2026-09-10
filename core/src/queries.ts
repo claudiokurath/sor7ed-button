@@ -25,6 +25,27 @@ export async function updateLastInbound(whatsappNumber: string): Promise<void> {
     .where(eq(users.whatsappNumber, whatsappNumber));
 }
 
+// Single point of truth for opt-out state, mirroring isWhatsAppSessionOpen
+// above — every outbound send must check this before dispatching (see
+// whatsapp/service.ts). Meta's WhatsApp Business Platform policy requires
+// honoring STOP/UNSUBSCRIBE; skipping this check risks the WABA itself
+// being flagged, which is a total-outage risk for every partner at once.
+export async function isWhatsAppOptedOut(userId: string): Promise<boolean> {
+  const [row] = await db
+    .select({ optedOutAt: users.whatsappOptedOutAt })
+    .from(users)
+    .where(eq(users.id, userId))
+    .limit(1);
+  return row?.optedOutAt != null;
+}
+
+export async function setWhatsAppOptOut(whatsappNumber: string, optedOut: boolean): Promise<void> {
+  await db
+    .update(users)
+    .set({ whatsappOptedOutAt: optedOut ? new Date() : null })
+    .where(eq(users.whatsappNumber, whatsappNumber));
+}
+
 export async function getRecentSaves(userId: string, limit = 5) {
   return db
     .select({
@@ -107,6 +128,7 @@ export async function getPartnerForUser(userId: string) {
       plan: partners.plan,
       monthlySaveLimit: partners.monthlySaveLimit,
       savesThisMonth: partners.savesThisMonth,
+      allowedDomains: partners.allowedDomains,
     })
     .from(partnerMembers)
     .innerJoin(partners, eq(partnerMembers.partnerId, partners.id))

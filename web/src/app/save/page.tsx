@@ -120,9 +120,17 @@ function SaveFlow() {
       {stage === "LOADING" && <p style={{ textAlign: "center", color: "#999" }}>Checking your account…</p>}
 
       {stage === "PREVIEW_SIGNED_OUT" && (
-        <button onClick={handleGoogleLogin} style={btnStyle("#4285F4")}>
-          Continue with Google to Save
-        </button>
+        <div>
+          <button onClick={handleGoogleLogin} style={btnStyle("#4285F4")}>
+            Continue with Google to Save
+          </button>
+          <p style={{ color: "#999", fontSize: 12, marginTop: 12, textAlign: "center", lineHeight: 1.5 }}>
+            By continuing, you agree to receive this item and future reminders via WhatsApp at the
+            number you connect. We only use your Google email to identify your account and never
+            post on your behalf. You can stop WhatsApp messages anytime by replying{" "}
+            <strong>STOP</strong>.
+          </p>
+        </div>
       )}
 
       {stage === "PREVIEW_NEEDS_WHATSAPP" && (

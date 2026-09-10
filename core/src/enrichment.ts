@@ -14,6 +14,7 @@ import { db } from "./client.js";
 import { savedItems } from "./schema.js";
 import { uploadImage } from "./storage.js";
 import { callOpenAi, generateEmbedding } from "./ai.js";
+import { safeFetch } from "./ssrf-guard.js";
 
 interface OgData {
   title: string | null;
@@ -23,7 +24,10 @@ interface OgData {
 
 async function scrapeOg(url: string): Promise<OgData> {
   try {
-    const res = await fetch(url, {
+    // safeFetch (not plain fetch) — url comes from a saved item, i.e.
+    // ultimately from a partner's page or a raw /api/saves call. See
+    // ssrf-guard.ts for why this can't be a plain fetch server-side.
+    const res = await safeFetch(url, {
       headers: { "User-Agent": "SOR7EDBot/1.0 (+https://sor7ed.com/bot)" },
       signal: AbortSignal.timeout(8_000),
     });
@@ -40,7 +44,9 @@ async function scrapeOg(url: string): Promise<OgData> {
 
 async function fetchAndResizeImage(imageUrl: string): Promise<Buffer | null> {
   try {
-    const res = await fetch(imageUrl, { signal: AbortSignal.timeout(10_000) });
+    // safeFetch — see scrapeOg's comment above; same SSRF exposure applies
+    // to og:image / partner-supplied imageUrl values.
+    const res = await safeFetch(imageUrl, { signal: AbortSignal.timeout(10_000) });
     if (!res.ok) return null;
     const buffer = Buffer.from(await res.arrayBuffer());
     // 1200×630 is the canonical OG image size; "cover" avoids letterboxing.

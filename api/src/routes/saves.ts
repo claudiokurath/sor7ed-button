@@ -1,14 +1,8 @@
 import type { FastifyInstance } from "fastify";
 import { eq, sql } from "drizzle-orm";
-import { db, savedItems, partners, users, enqueueEnrichment, sendSaveCard } from "@sor7ed/core";
-
-interface SaveBody {
-  partnerApiKey: string;
-  url: string;
-  title: string;
-  description?: string;
-  imageUrl?: string;
-}
+import { db, savedItems, partners, users, enqueueEnrichment, sendSaveCard, isUrlAllowedForPartner } from "@sor7ed/core";
+import { saveBodySchema } from "../schemas/saves.js";
+import { parseBody } from "../schemas/validate.js";
 
 interface PartnerRow extends Record<string, unknown> {
   id: string;
@@ -17,7 +11,7 @@ interface PartnerRow extends Record<string, unknown> {
 }
 
 export async function saveRoutes(app: FastifyInstance) {
-  app.post<{ Body: SaveBody }>(
+  app.post(
     "/api/saves",
     {
       preHandler: app.requireAuth,
@@ -43,9 +37,28 @@ export async function saveRoutes(app: FastifyInstance) {
     async (req, reply) => {
       const userId = req.userId!; // guaranteed non-null by requireAuth
 
-      const { partnerApiKey, url, title, description, imageUrl } = req.body ?? {};
-      if (!url || !title || !partnerApiKey) {
-        return reply.code(400).send({ error: "url, title, and partnerApiKey are required" });
+      const body = parseBody(saveBodySchema, req.body, reply);
+      if (!body) return;
+      const { partnerApiKey, url, title, description, imageUrl } = body;
+
+      // Domain ownership check runs BEFORE the atomic quota increment
+      // below, and as a separate, non-mutating lookup — a request that
+      // fails this check must not cost the partner any quota. apiKey
+      // itself is public (printed in the embed snippet every partner
+      // pastes into their own site), so it carries no secrecy on its
+      // own; this is what actually stops someone who's read a partner's
+      // page source from submitting saves under that partner's account
+      // for URLs that partner never served. See domain-check.ts.
+      const [partnerForDomainCheck] = await db
+        .select({ allowedDomains: partners.allowedDomains })
+        .from(partners)
+        .where(eq(partners.apiKey, partnerApiKey))
+        .limit(1);
+      if (!partnerForDomainCheck) {
+        return reply.code(403).send({ error: "Invalid partner API key" });
+      }
+      if (!isUrlAllowedForPartner(url, partnerForDomainCheck.allowedDomains)) {
+        return reply.code(403).send({ error: "This URL's domain is not registered to this partner account" });
       }
 
       // Atomic check-and-increment — avoids the read/update race of checking
