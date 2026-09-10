@@ -61,7 +61,13 @@ export async function assertSafeToFetch(rawUrl: string): Promise<void> {
     throw new Error(`Blocked scheme: ${url.protocol}`);
   }
 
-  const hostname = url.hostname.toLowerCase();
+  // WHATWG URL keeps the [...] brackets in .hostname for IPv6 literals
+  // (e.g. "[::1]") — net.isIP() rejects the bracketed form outright (returns
+  // 0, "not an IP"), which would let a bracketed IPv6 literal fall through
+  // to the DNS-lookup branch below instead of being range-checked directly,
+  // and then fail there with ENOTFOUND rather than the intended block.
+  // Stripping brackets before every check closes that gap.
+  const hostname = url.hostname.toLowerCase().replace(/^\[|\]$/g, "");
   if (BLOCKED_HOSTNAMES.has(hostname)) {
     throw new Error(`Blocked hostname: ${hostname}`);
   }

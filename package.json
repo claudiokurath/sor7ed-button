@@ -16,6 +16,7 @@
     "dev:infra": "docker compose up -d postgres redis",
     "build": "npm run build --workspaces --if-present",
     "typecheck": "npm run typecheck --workspaces --if-present",
+    "test": "npm run test --workspaces --if-present",
     "db:generate": "npm run db:generate --workspace=core",
     "db:migrate": "npm run db:migrate --workspace=core",
     "db:studio": "npm run db:studio --workspace=core"
