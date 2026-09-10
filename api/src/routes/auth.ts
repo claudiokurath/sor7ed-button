@@ -71,12 +71,28 @@ export async function authRoutes(app: FastifyInstance) {
   // (query params and all — title, description, image, apiKey, url) in a
   // short-lived cookie, then hands off to the oauth2 plugin's own
   // auto-generated redirect route.
-  app.get<{ Querystring: { returnTo?: string } }>("/api/auth/login", async (req, reply) => {
-    if (req.query.returnTo) {
-      reply.setCookie("returnTo", req.query.returnTo, cookieBase(600));
+  app.get<{ Querystring: { returnTo?: string } }>(
+    "/api/auth/login",
+    {
+      config: {
+        rateLimit: {
+          // No session yet at this point — keyed by IP, not userId.
+          // Generous limit: this is a plain redirect, but it's also the
+          // one unauthenticated entry point that writes a cookie and
+          // kicks off an OAuth round-trip per call, so it still shouldn't
+          // be hammered.
+          max: 20,
+          timeWindow: "1 minute",
+        },
+      },
+    },
+    async (req, reply) => {
+      if (req.query.returnTo) {
+        reply.setCookie("returnTo", req.query.returnTo, cookieBase(600));
+      }
+      return reply.redirect("/api/auth/google");
     }
-    return reply.redirect("/api/auth/google");
-  });
+  );
 
   app.get("/api/auth/google/callback", async (req, reply) => {
     const { token } = await app.googleOAuth2.getAccessTokenFromAuthorizationCodeFlow(req);
