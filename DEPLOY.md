@@ -64,7 +64,7 @@ Confirm tables: `users`, `partners`, `saved_items`, `whatsapp_connection_request
 # once per machine
 fly auth login
 fly apps create sor7ed-button-api
-fly volumes create sor7ed_uploads --region lhr --size 3 -a sor7ed-button-api
+# No volume needed — uploads go to R2 (see "Uploads storage" below), not local disk.
 
 # set secrets (never commit these)
 fly secrets set -a sor7ed-button-api \
@@ -82,12 +82,17 @@ fly secrets set -a sor7ed-button-api \
   META_WHATSAPP_DISPLAY_NUMBER="447…" \
   GOOGLE_CLIENT_ID="….apps.googleusercontent.com" \
   GOOGLE_CLIENT_SECRET="…" \
-  OPENAI_API_KEY="sk-…"
+  OPENAI_API_KEY="sk-…" \
+  R2_BUCKET="sor7ed-uploads" \
+  R2_ACCOUNT_ID="…" \
+  R2_ACCESS_KEY_ID="…" \
+  R2_SECRET_ACCESS_KEY="…" \
+  R2_PUBLIC_URL="https://uploads.sor7ed.com"
 
 fly deploy -c fly.api.toml --app sor7ed-button-api
 ```
 
-Health check: `curl https://sor7ed-button-api.fly.dev/health` → `{"status":"ok"}`.
+Health check: `curl https://sor7ed-button-api.fly.dev/health` → `{"status":"ok","database":"ok","redis":"ok"}`. Returns HTTP 503 with `"status":"degraded"` if either dependency is unreachable — this endpoint pings both for real, it does not just return a static "ok".
 
 ### Custom domain `api.sor7ed.com`
 
@@ -115,26 +120,33 @@ fly secrets set -a sor7ed-button-worker \
   META_WHATSAPP_PHONE_ID="…" \
   META_APP_SECRET="…" \
   META_WHATSAPP_DISPLAY_NUMBER="447…" \
-  OPENAI_API_KEY="sk-…"
+  OPENAI_API_KEY="sk-…" \
+  R2_BUCKET="sor7ed-uploads" \
+  R2_ACCOUNT_ID="…" \
+  R2_ACCESS_KEY_ID="…" \
+  R2_SECRET_ACCESS_KEY="…" \
+  R2_PUBLIC_URL="https://uploads.sor7ed.com"
 
 fly deploy -c fly.worker.toml --app sor7ed-button-worker
 fly logs -a sor7ed-button-worker
 # expect: "SOR7ED BUTTON worker running (enrichment + reminders + monthly reset)"
 ```
 
-### Uploads caveat (important)
+### Uploads storage (Cloudflare R2)
 
-`core/src/storage.ts` writes to **local disk**. API and worker are separate Fly apps → separate disks.
+`core/src/storage.ts` uploads images to **Cloudflare R2** (S3-compatible) in production, and refuses to boot with `NODE_ENV=production` unless `R2_BUCKET` is set. This is required because api and worker are separate Fly apps with separate disks — a previous local-disk-only implementation silently lost images written by the worker (enrichment) since the api process (which serves `/uploads/*`) never saw them.
 
-**MVP options (pick one):**
+Setup:
 
-| Option | Effort | Notes |
-|---|---|---|
-| **A. Skip fancy images first** | none | Saves still work; cards use OG fallback / partner image URL until you add object storage |
-| **B. R2/S3** | ~1 hr | Swap `uploadImage` in `storage.ts`; both processes write to the same bucket. **Recommended before scale** |
-| **C. Single combined process** | medium | Run worker in the same machine as API (not in default compose) |
+```bash
+# Create the bucket once, in the Cloudflare dashboard or via wrangler:
+npx wrangler r2 bucket create sor7ed-uploads
+# Enable public access on the bucket (or front it with a custom domain / Worker),
+# then set R2_PUBLIC_URL to that public base URL.
+# Create an R2 API token (Account → R2 → Manage API Tokens) for R2_ACCESS_KEY_ID / R2_SECRET_ACCESS_KEY.
+```
 
-Do **not** expect worker-written files to appear on `api.sor7ed.com/uploads/*` until B or C.
+Local development does **not** need R2 — if `R2_BUCKET` is unset, `storage.ts` falls back to writing under `core/uploads/` (dev-only; this fallback is disabled outside `NODE_ENV=production` checks failing, i.e. it throws instead of silently degrading in prod).
 
 ---
 

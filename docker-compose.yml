@@ -35,6 +35,11 @@ services:
       NODE_ENV: production
     ports:
       - "3001:8080"
+    # NOTE: NODE_ENV=production above means core/src/storage.ts now REQUIRES
+    # R2_BUCKET (+ the other R2_* vars) to be set in .env, or the container
+    # will exit on boot. This volume is kept only as a scratch mount; it is
+    # NOT read by storage.ts once R2 is configured, and is not a substitute
+    # for R2 if you ever split api/worker across separate hosts.
     volumes:
       - uploads_data:/app/uploads
     depends_on:

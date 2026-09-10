@@ -11,6 +11,7 @@
     "db:studio": "drizzle-kit studio"
   },
   "dependencies": {
+    "@aws-sdk/client-s3": "^3.1129.0",
     "@sor7ed/types": "*",
     "drizzle-orm": "^0.36.4",
     "pg": "^8.13.1",

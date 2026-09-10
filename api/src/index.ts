@@ -10,7 +10,8 @@ import { connectRoutes } from "./routes/connect.js";
 import { saveRoutes } from "./routes/saves.js";
 import { itemLookupRoutes } from "./routes/item-lookup.js";
 import { partnerRoutes } from "./routes/partner.js";
-import { UPLOAD_DIR, assertRequiredEnv } from "@sor7ed/core";
+import { UPLOAD_DIR, isUsingLocalDiskUploads, assertRequiredEnv, db } from "@sor7ed/core";
+import { sql } from "drizzle-orm";
 
 assertRequiredEnv("api");
 
@@ -58,9 +59,11 @@ await app.register(cors, {
   credentials: true,
 });
 
+const redisClient = new Redis(process.env["REDIS_URL"] ?? "redis://localhost:6379");
+
 await app.register(rateLimit, {
   global: false, // opt-in per route — the webhook endpoint should NOT be limited the same way
-  redis: new Redis(process.env["REDIS_URL"] ?? "redis://localhost:6379"),
+  redis: redisClient,
   // @fastify/rate-limit throws whatever this returns and reads a
   // .statusCode property off it to set the response status — its own
   // default implementation returns an Error with statusCode explicitly
@@ -75,12 +78,32 @@ await app.register(rateLimit, {
     }),
 });
 
-// UPLOAD_DIR comes from @sor7ed/core rather than process.cwd() here — it's
-// anchored to the repo root, matching the same path enrichSavedItem writes
-// to in the worker process (see core/src/storage.ts).
-await app.register(fastifyStatic, { root: UPLOAD_DIR, prefix: "/uploads/" });
+// UPLOAD_DIR / this route only exist in the dev fallback (no R2_BUCKET
+// configured) — see core/src/storage.ts. Registering fastifyStatic
+// against a directory that's never written to in production is harmless,
+// but skipping it entirely when R2 is in use avoids a static route that
+// would just 404 forever, and makes the two storage modes visibly
+// distinct rather than one silently vestigial.
+if (isUsingLocalDiskUploads) {
+  await app.register(fastifyStatic, { root: UPLOAD_DIR, prefix: "/uploads/" });
+}
 
-app.get("/health", async () => ({ status: "ok" }));
+// Actually checks dependencies rather than returning a static "ok" —
+// a prior version of this returned {status:"ok"} unconditionally, which
+// would report healthy while the DB or Redis were both down. Fly/any
+// orchestrator polling this for restart decisions needs the real signal.
+app.get("/health", async (_req, reply) => {
+  const checks = await Promise.allSettled([db.execute(sql`SELECT 1`), redisClient.ping()]);
+  const [dbCheck, redisCheck] = checks;
+  const healthy = dbCheck.status === "fulfilled" && redisCheck.status === "fulfilled";
+
+  const body = {
+    status: healthy ? "ok" : "degraded",
+    database: dbCheck.status === "fulfilled" ? "ok" : "error",
+    redis: redisCheck.status === "fulfilled" ? "ok" : "error",
+  };
+  return reply.code(healthy ? 200 : 503).send(body);
+});
 await app.register(authRoutes);
 await app.register(webhookRoutes);
 await app.register(connectRoutes);
