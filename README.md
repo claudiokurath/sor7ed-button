@@ -14,8 +14,15 @@
 3. Google sign-in → one-time WhatsApp `CONNECT-<token>` → save lands in chat  
 4. Worker enriches the card (1200×630 image, AI summary/tags, embeddings)  
 5. Visitor can text `LIBRARY`, `LIBRARY <word>`, `REMIND tomorrow`, `HELP`
+   - `REMIND` resolves to the exact card if it's sent as a WhatsApp
+     swipe-reply to that card's save message; otherwise falls back to
+     "most recently saved."
+6. `/s/[shortId]` records a return-visit click (crawlers excluded) before
+   redirecting back to the partner's page — this is the real ROI signal.
 
-Partner dashboard: analytics, monthly save limits, API key + rotate, embed snippet.
+Partner dashboard: analytics (incl. return-visit/conversion rate),
+monthly save limits, API key + rotate, allowed-domains lock (with a
+top-of-page warning when unrestricted), embed snippet.
 
 ---
 
