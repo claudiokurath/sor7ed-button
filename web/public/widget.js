@@ -81,9 +81,18 @@
   }
 
   function getPartnerMeta() {
-    var script = document.currentScript || document.querySelector("script[data-api-key]");
+    // querySelector's fallback also matches data-demo, not just
+    // data-api-key, so a demo embed (which deliberately carries no real
+    // apiKey) is still found the same way a normal partner embed is.
+    var script = document.currentScript || document.querySelector("script[data-api-key],script[data-demo]");
     return {
       apiKey: script ? script.getAttribute("data-api-key") : null,
+      // Lets a prospect try the entire save->WhatsApp loop with zero
+      // signup, zero real WhatsApp number, and no partner account —
+      // routes to /save/demo instead of /save (see buildSaveUrl below),
+      // which simulates the flow client-side with no backend calls at
+      // all. Marketing/sales entry point, not a real partner feature.
+      isDemo: script ? script.getAttribute("data-demo") === "true" : false,
       leadLabel: script ? (script.getAttribute("data-label") || "Save this piece") : "Save this piece",
       accentColor: script ? (script.getAttribute("data-color") || "#25D366") : "#25D366"
     };
@@ -101,7 +110,7 @@
 
   function buildSaveUrl(partnerMeta, pageMeta) {
     var p = new URLSearchParams({ apiKey: partnerMeta.apiKey || "", url: pageMeta.url, title: pageMeta.title, description: pageMeta.description, image: pageMeta.image });
-    return BASE + "/save?" + p.toString();
+    return BASE + (partnerMeta.isDemo ? "/save/demo?" : "/save?") + p.toString();
   }
 
   // Only one save flow is ever in flight per widget instance at a time —
@@ -272,7 +281,7 @@
 
   function injectButton(target) {
     var partnerMeta = getPartnerMeta();
-    if (!partnerMeta.apiKey) return;
+    if (!partnerMeta.apiKey && !partnerMeta.isDemo) return;
     var pageMeta = getPageMeta(target);
     var widget = createWidget(partnerMeta, pageMeta);
     (target || document.body).appendChild(widget);

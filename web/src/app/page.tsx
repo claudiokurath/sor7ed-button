@@ -11,12 +11,27 @@ export default function HomePage() {
       </p>
       <div style={{ display: "flex", gap: 12, flexWrap: "wrap" }}>
         <a
-          href="/dashboard"
+          href="/demo"
           style={{
             display: "inline-block",
             padding: "12px 20px",
             background: "#25D366",
             color: "#fff",
+            borderRadius: 8,
+            fontWeight: 700,
+            textDecoration: "none",
+          }}
+        >
+          Try the live demo →
+        </a>
+        <a
+          href="/dashboard"
+          style={{
+            display: "inline-block",
+            padding: "12px 20px",
+            background: "#fff",
+            color: "#111",
+            border: "1px solid #ddd",
             borderRadius: 8,
             fontWeight: 700,
             textDecoration: "none",
