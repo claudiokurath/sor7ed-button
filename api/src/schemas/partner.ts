@@ -31,3 +31,9 @@ export const updateAllowedDomainsBodySchema = z.object({
 });
 
 export type UpdateAllowedDomainsBody = z.infer<typeof updateAllowedDomainsBodySchema>;
+
+export const createInviteBodySchema = z.object({
+  email: z.string().trim().toLowerCase().email().max(320),
+});
+
+export type CreateInviteBody = z.infer<typeof createInviteBodySchema>;

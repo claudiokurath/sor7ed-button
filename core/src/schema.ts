@@ -188,3 +188,36 @@ export const partnerMembers = pgTable(
   // violation rather than silently inserting a second row.
   (t) => [uniqueIndex("partner_members_user_partner_idx").on(t.userId, t.partnerId)]
 );
+
+// Lets an existing dashboard admin bring a teammate onto their partner
+// account. There's no outbound email infrastructure anywhere else in this
+// product (auth is Google OAuth only), so this follows the same pattern
+// already used for WhatsApp connection: mint a random token, hand back a
+// shareable link, and let the recipient complete the flow by visiting it
+// signed in. The inviter is responsible for actually sending the link
+// (Slack, email client, etc.) — this table just tracks its lifecycle.
+export const partnerInvites = pgTable(
+  "partner_invites",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    partnerId: uuid("partner_id")
+      .notNull()
+      .references(() => partners.id, { onDelete: "cascade" }),
+    // Recorded for display ("invited alice@x.com") but NOT enforced as a
+    // gate on acceptance — whoever holds the link and is signed in with
+    // any Google account can accept it, same trust model as the
+    // WhatsApp CONNECT-<token> link. A stricter version could require
+    // the accepting user's email match this field; not worth the
+    // complexity for an MVP team feature.
+    email: text("email").notNull(),
+    token: text("token").unique().notNull(),
+    invitedByUserId: uuid("invited_by_user_id").references(() => users.id, { onDelete: "set null" }),
+    status: text("status").default("pending").notNull(), // pending | accepted | revoked
+    expiresAt: timestamp("expires_at", { withTimezone: true })
+      .notNull()
+      .default(sql`NOW() + INTERVAL '7 days'`),
+    acceptedAt: timestamp("accepted_at", { withTimezone: true }),
+    createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+  },
+  (t) => [uniqueIndex("partner_invites_token_idx").on(t.token), index("partner_invites_partner_idx").on(t.partnerId)]
+);

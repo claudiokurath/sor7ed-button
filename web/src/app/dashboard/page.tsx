@@ -2,6 +2,7 @@ import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import { PartnerKeyPanel } from "./partner-key-panel";
 import { AllowedDomainsPanel } from "./allowed-domains-panel";
+import { TeamPanel } from "./team-panel";
 
 const API = process.env["API_INTERNAL_URL"] ?? "http://localhost:3001";
 const API_PUBLIC = process.env["NEXT_PUBLIC_API_BASE_URL"] ?? API;
@@ -24,6 +25,18 @@ interface Analytics {
   savesToday: number;
   topPages: Array<{ url: string; title: string; saves: number }>;
   returnVisits: { itemsClicked: number; totalClicks: number; conversionRate: number };
+}
+interface Member {
+  id: string;
+  userId: string;
+  email: string | null;
+  role: string;
+  createdAt: string;
+}
+interface Invite {
+  id: string;
+  email: string;
+  createdAt: string;
 }
 
 async function serverFetch<T>(path: string): Promise<{ ok: true; data: T } | { ok: false }> {
@@ -61,6 +74,10 @@ export default async function DashboardPage() {
 
   const analyticsResult = await serverFetch<Analytics>("/api/partner/analytics");
   const analytics = analyticsResult.ok ? analyticsResult.data : null;
+
+  const membersResult = await serverFetch<{ members: Member[]; invites: Invite[] }>("/api/partner/members");
+  const members = membersResult.ok ? membersResult.data.members : [];
+  const invites = membersResult.ok ? membersResult.data.invites : [];
 
   const usagePercent = partner.monthlySaveLimit > 0 ? Math.min(100, Math.round((partner.savesThisMonth / partner.monthlySaveLimit) * 100)) : 0;
 
@@ -172,12 +189,20 @@ export default async function DashboardPage() {
         <PartnerKeyPanel initialApiKey={partner.apiKey} buttonLabel={partner.buttonLabel} />
       </div>
 
-      <div id="allowed-domains">
+      <div id="allowed-domains" style={{ marginBottom: 32 }}>
         <div style={{ fontSize: 14, fontWeight: 600, marginBottom: 4 }}>Allowed domains</div>
         <p style={{ color: "#666", fontSize: 13, marginBottom: 12 }}>
           Your embed key only works for saves from these domains (and their subdomains).
         </p>
         <AllowedDomainsPanel initialDomains={partner.allowedDomains} />
+      </div>
+
+      <div>
+        <div style={{ fontSize: 14, fontWeight: 600, marginBottom: 4 }}>Team</div>
+        <p style={{ color: "#666", fontSize: 13, marginBottom: 12 }}>
+          Anyone listed here can sign in and manage this dashboard.
+        </p>
+        <TeamPanel initialMembers={members} initialInvites={invites} currentUserId={me.data.id} />
       </div>
     </main>
   );

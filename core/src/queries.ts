@@ -2,7 +2,15 @@
 // compliance-critical session-window check lives in exactly one place —
 // this is what the WhatsApp service calls before every outbound send.
 import { db } from "./client.js";
-import { users, savedItems, whatsappConnectionRequests, partners, partnerMembers, savedItemClicks } from "./schema.js";
+import {
+  users,
+  savedItems,
+  whatsappConnectionRequests,
+  partners,
+  partnerMembers,
+  savedItemClicks,
+  partnerInvites,
+} from "./schema.js";
 import { eq, desc, and, lt, gte, isNotNull, sql, count, countDistinct } from "drizzle-orm";
 import { generateEmbedding } from "./ai.js";
 
@@ -174,6 +182,106 @@ export async function getPartnerForUser(userId: string) {
     .where(eq(partnerMembers.userId, userId))
     .limit(1);
   return row ?? null;
+}
+
+// Everyone who can currently log into this partner's dashboard, plus who
+// invited whom and when — the roster shown on the dashboard's team panel.
+export async function listPartnerMembers(partnerId: string) {
+  return db
+    .select({
+      id: partnerMembers.id,
+      userId: partnerMembers.userId,
+      email: users.email,
+      role: partnerMembers.role,
+      createdAt: partnerMembers.createdAt,
+    })
+    .from(partnerMembers)
+    .innerJoin(users, eq(partnerMembers.userId, users.id))
+    .where(eq(partnerMembers.partnerId, partnerId))
+    .orderBy(partnerMembers.createdAt);
+}
+
+// Only pending, non-expired invites — accepted/revoked/expired ones are
+// noise on the "who's outstanding" list the dashboard shows alongside
+// the member roster.
+export async function listPendingInvites(partnerId: string) {
+  return db
+    .select({ id: partnerInvites.id, email: partnerInvites.email, createdAt: partnerInvites.createdAt })
+    .from(partnerInvites)
+    .where(
+      and(eq(partnerInvites.partnerId, partnerId), eq(partnerInvites.status, "pending"), sql`expires_at > NOW()`)
+    )
+    .orderBy(desc(partnerInvites.createdAt));
+}
+
+export async function createPartnerInvite(
+  partnerId: string,
+  email: string,
+  invitedByUserId: string,
+  token: string
+): Promise<void> {
+  await db.insert(partnerInvites).values({ partnerId, email, invitedByUserId, token });
+}
+
+export async function revokePartnerInvite(partnerId: string, inviteId: string): Promise<void> {
+  await db
+    .update(partnerInvites)
+    .set({ status: "revoked" })
+    .where(and(eq(partnerInvites.id, inviteId), eq(partnerInvites.partnerId, partnerId)));
+}
+
+// Accepts an invite for the currently-signed-in user. Transactional for
+// the same reason as verifyConnectionRequest above: marking the invite
+// used and creating the membership must succeed or fail together, so a
+// duplicate webhook-style retry can never leave a used-but-memberless
+// invite, or a membership with no corresponding consumed invite.
+// onConflictDoNothing on the membership insert covers the case where the
+// invited user is, unusually, already a member (e.g. they left and were
+// re-invited then double-clicked) — acceptance should still succeed
+// rather than throwing on the unique index.
+export async function acceptPartnerInvite(
+  token: string,
+  userId: string
+): Promise<{ partnerId: string; partnerName: string } | { error: "not_found" | "expired" }> {
+  return db.transaction(async (tx) => {
+    const [invite] = await tx
+      .select({
+        id: partnerInvites.id,
+        partnerId: partnerInvites.partnerId,
+        status: partnerInvites.status,
+        expiresAt: partnerInvites.expiresAt,
+      })
+      .from(partnerInvites)
+      .where(eq(partnerInvites.token, token))
+      .limit(1);
+
+    if (!invite) return { error: "not_found" };
+    if (invite.status !== "pending" || invite.expiresAt.getTime() <= Date.now()) return { error: "expired" };
+
+    await tx
+      .update(partnerInvites)
+      .set({ status: "accepted", acceptedAt: new Date() })
+      .where(eq(partnerInvites.id, invite.id));
+
+    await tx
+      .insert(partnerMembers)
+      .values({ userId, partnerId: invite.partnerId, role: "admin" })
+      .onConflictDoNothing();
+
+    const [partner] = await tx
+      .select({ name: partners.name })
+      .from(partners)
+      .where(eq(partners.id, invite.partnerId))
+      .limit(1);
+
+    return { partnerId: invite.partnerId, partnerName: partner?.name ?? "this account" };
+  });
+}
+
+export async function removePartnerMember(partnerId: string, memberId: string): Promise<void> {
+  await db
+    .delete(partnerMembers)
+    .where(and(eq(partnerMembers.id, memberId), eq(partnerMembers.partnerId, partnerId)));
 }
 
 // count()/countDistinct() apply .mapWith(Number) internally, converting
