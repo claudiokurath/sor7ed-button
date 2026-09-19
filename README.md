@@ -22,7 +22,15 @@
 
 Partner dashboard: analytics (incl. return-visit/conversion rate),
 monthly save limits, API key + rotate, allowed-domains lock (with a
-top-of-page warning when unrestricted), embed snippet.
+top-of-page warning when unrestricted), embed snippet, team management
+(invite/remove dashboard admins via shareable link — see
+`/dashboard/invite/[token]`).
+
+**No-signup demo**: `/demo` embeds the real widget with
+`data-demo="true"` — routes to `/save/demo`, a fully client-side
+simulation (no account, no real WhatsApp send, nothing written to the
+DB) ending in a mockup of the WhatsApp card a real visitor would
+receive. Sales/marketing entry point only.
 
 ---
 
