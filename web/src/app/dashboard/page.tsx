@@ -23,6 +23,7 @@ interface Analytics {
   uniqueSavers: number;
   savesToday: number;
   topPages: Array<{ url: string; title: string; saves: number }>;
+  returnVisits: { itemsClicked: number; totalClicks: number; conversionRate: number };
 }
 
 async function serverFetch<T>(path: string): Promise<{ ok: true; data: T } | { ok: false }> {
@@ -67,6 +68,37 @@ export default async function DashboardPage() {
     <main style={{ fontFamily: "system-ui,sans-serif", maxWidth: 900, margin: "0 auto", padding: "40px 24px" }}>
       <h1 style={{ margin: "0 0 24px" }}>{partner.brandName ?? partner.name}</h1>
 
+      {partner.allowedDomains.length === 0 && (
+        // Surfaced at the very top, not just inside the panel further down the
+        // page, because an unrestricted embed key is a real exposure: anyone
+        // who copies the <script> tag's data-api-key can embed the button on
+        // an unrelated site and consume this partner's monthly save quota.
+        <div
+          style={{
+            display: "flex",
+            alignItems: "center",
+            gap: 12,
+            background: "#fff7e6",
+            border: "1px solid #f5c56b",
+            borderRadius: 8,
+            padding: "12px 16px",
+            marginBottom: 24,
+            fontSize: 14,
+          }}
+        >
+          <span style={{ fontSize: 18 }} aria-hidden="true">
+            ⚠️
+          </span>
+          <span style={{ flex: 1 }}>
+            <strong>Your embed key isn&apos;t locked to a domain yet</strong> — anyone with your snippet could embed it
+            anywhere and use up your monthly saves.
+          </span>
+          <a href="#allowed-domains" style={{ color: "#8a5a00", fontWeight: 600, whiteSpace: "nowrap" }}>
+            Lock it down →
+          </a>
+        </div>
+      )}
+
       <div style={{ display: "flex", gap: 16, flexWrap: "wrap", marginBottom: 32 }}>
         <StatCard label="Total saves" value={analytics?.totalSaves ?? 0} />
         <StatCard label="Saves today" value={analytics?.savesToday ?? 0} />
@@ -80,6 +112,35 @@ export default async function DashboardPage() {
           <div style={{ height: "100%", width: `${usagePercent}%`, background: usagePercent >= 90 ? "#e55" : "#25D366" }} />
         </div>
       </div>
+
+      {analytics && analytics.totalSaves > 0 && (
+        // The actual ROI signal, surfaced prominently rather than buried in
+        // a table: of everything saved, how many came back? A save that's
+        // never reopened is just a bookmark; the conversion rate below is
+        // proof the WhatsApp nudge is working, not just that the button
+        // gets clicked.
+        <div
+          style={{
+            display: "flex",
+            alignItems: "center",
+            gap: 20,
+            background: "#eefcf3",
+            border: "1px solid #b8ecc9",
+            borderRadius: 10,
+            padding: "18px 24px",
+            marginBottom: 32,
+          }}
+        >
+          <div style={{ fontSize: 32, fontWeight: 700, color: "#1a7a3d" }}>{analytics.returnVisits.conversionRate}%</div>
+          <div style={{ fontSize: 13, color: "#356b48", lineHeight: 1.5 }}>
+            <strong>return-visit rate</strong> — {analytics.returnVisits.itemsClicked} of {analytics.totalSaves} saved
+            items were reopened via WhatsApp{" "}
+            {analytics.returnVisits.totalClicks > analytics.returnVisits.itemsClicked
+              ? `(${analytics.returnVisits.totalClicks} total reopens)`
+              : ""}
+          </div>
+        </div>
+      )}
 
       {analytics && analytics.topPages.length > 0 && (
         <div style={{ marginBottom: 32 }}>
@@ -111,7 +172,7 @@ export default async function DashboardPage() {
         <PartnerKeyPanel initialApiKey={partner.apiKey} buttonLabel={partner.buttonLabel} />
       </div>
 
-      <div>
+      <div id="allowed-domains">
         <div style={{ fontSize: 14, fontWeight: 600, marginBottom: 4 }}>Allowed domains</div>
         <p style={{ color: "#666", fontSize: 13, marginBottom: 12 }}>
           Your embed key only works for saves from these domains (and their subdomains).

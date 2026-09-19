@@ -2,7 +2,7 @@
 // compliance-critical session-window check lives in exactly one place —
 // this is what the WhatsApp service calls before every outbound send.
 import { db } from "./client.js";
-import { users, savedItems, whatsappConnectionRequests, partners, partnerMembers } from "./schema.js";
+import { users, savedItems, whatsappConnectionRequests, partners, partnerMembers, savedItemClicks } from "./schema.js";
 import { eq, desc, and, lt, gte, isNotNull, sql, count, countDistinct } from "drizzle-orm";
 import { generateEmbedding } from "./ai.js";
 
@@ -44,6 +44,45 @@ export async function setWhatsAppOptOut(whatsappNumber: string, optedOut: boolea
     .update(users)
     .set({ whatsappOptedOutAt: optedOut ? new Date() : null })
     .where(eq(users.whatsappNumber, whatsappNumber));
+}
+
+// Called right after sendSaveCard returns, so a later quote-reply to this
+// exact WhatsApp message (see resolveItemFromQuotedMessage below) can be
+// traced back to the item it concerns. Best-effort: a null messageId
+// (opt-out, or Meta's response didn't include one) is written as-is —
+// REMIND's fallback to "most recently saved" already covers that case.
+export async function setSavedItemMessageId(itemId: string, messageId: string | null): Promise<void> {
+  await db.update(savedItems).set({ whatsappMessageId: messageId }).where(eq(savedItems.id, itemId));
+}
+
+// Resolves a WhatsApp quote-reply's context.id (the message id being
+// replied to) back to the specific saved item it was sent for — the
+// mechanism that lets REMIND target "the item I'm actually swiping-reply
+// to" instead of guessing at "whichever was saved most recently." Scoped
+// to userId as well as the message id so one user can never accidentally
+// (or maliciously, given message ids are not secret) resolve into another
+// user's saved item.
+export async function resolveItemFromQuotedMessage(
+  userId: string,
+  quotedMessageId: string
+): Promise<{ id: string; title: string } | null> {
+  const [row] = await db
+    .select({ id: savedItems.id, title: savedItems.title })
+    .from(savedItems)
+    .where(and(eq(savedItems.userId, userId), eq(savedItems.whatsappMessageId, quotedMessageId)))
+    .limit(1);
+  return row ?? null;
+}
+
+// Records a genuine return visit: a person opening a saved item's short
+// link (via WhatsApp, days after the original save) and being redirected
+// back to the partner's page. Called from the /s/[shortId] lookup route
+// only when the request is confirmed NOT to be a link-preview crawler —
+// see web/src/app/s/[shortId]/page.tsx for that check. partnerId is
+// denormalized onto the click row at write time so analytics never needs
+// to join back through saved_items.
+export async function recordSavedItemClick(savedItemId: string, partnerId: string | null): Promise<void> {
+  await db.insert(savedItemClicks).values({ savedItemId, partnerId });
 }
 
 export async function getRecentSaves(userId: string, limit = 5) {
@@ -159,6 +198,19 @@ export async function getPartnerAnalytics(partnerId: string) {
     .from(savedItems)
     .where(and(eq(savedItems.partnerId, partnerId), gte(savedItems.createdAt, todayStart)));
 
+  // The actual "does this thing work" number for a partner: of everything
+  // saved, how many were ever re-opened via the WhatsApp link later? A
+  // save with zero clicks is indistinguishable from a bookmark nobody
+  // returns to; a click is a person coming back to the partner's site
+  // days later specifically because SOR7ED nudged them.
+  const [clickTotals] = await db
+    .select({
+      totalClicks: count(savedItemClicks.id),
+      itemsClicked: countDistinct(savedItemClicks.savedItemId),
+    })
+    .from(savedItemClicks)
+    .where(eq(savedItemClicks.partnerId, partnerId));
+
   // Grouping by url and title (rather than a separate page-metadata table)
   // is fine at this stage — if a partner's page title changes later, older
   // saves will show the old title, which is an acceptable MVP trade-off.
@@ -170,11 +222,23 @@ export async function getPartnerAnalytics(partnerId: string) {
     .orderBy(desc(count(savedItems.id)))
     .limit(10);
 
+  const totalSaves = totals?.totalSaves ?? 0;
+  const itemsClicked = clickTotals?.itemsClicked ?? 0;
+
   return {
-    totalSaves: totals?.totalSaves ?? 0,
+    totalSaves,
     uniqueSavers: totals?.uniqueSavers ?? 0,
     savesToday: todayRow?.savesToday ?? 0,
     topPages,
+    // Return-visit signal: how many distinct saved items were ever
+    // reopened, how many times in total (repeat opens count), and the
+    // resulting conversion rate. Rounded to 1dp for display; 0 when
+    // there's nothing saved yet rather than NaN from a 0/0 division.
+    returnVisits: {
+      itemsClicked,
+      totalClicks: clickTotals?.totalClicks ?? 0,
+      conversionRate: totalSaves > 0 ? Math.round((itemsClicked / totalSaves) * 1000) / 10 : 0,
+    },
   };
 }
 

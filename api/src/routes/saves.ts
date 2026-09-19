@@ -1,6 +1,15 @@
 import type { FastifyInstance } from "fastify";
 import { eq, sql } from "drizzle-orm";
-import { db, savedItems, partners, users, enqueueEnrichment, sendSaveCard, isUrlAllowedForPartner } from "@sor7ed/core";
+import {
+  db,
+  savedItems,
+  partners,
+  users,
+  enqueueEnrichment,
+  sendSaveCard,
+  isUrlAllowedForPartner,
+  setSavedItemMessageId,
+} from "@sor7ed/core";
 import { saveBodySchema } from "../schemas/saves.js";
 import { parseBody } from "../schemas/validate.js";
 
@@ -96,9 +105,16 @@ export async function saveRoutes(app: FastifyInstance) {
       await enqueueEnrichment(item.id).catch((err) => app.log.error({ err }, "Failed to enqueue enrichment job"));
 
       if (user.whatsappVerified && user.whatsappNumber) {
-        await sendSaveCard(userId, user.whatsappNumber, item, partner.brand_name ?? partner.name).catch((err) =>
-          app.log.error({ err }, "Failed to send WhatsApp save card")
-        );
+        try {
+          const messageId = await sendSaveCard(userId, user.whatsappNumber, item, partner.brand_name ?? partner.name);
+          // Persisted regardless of whether messageId came back — records
+          // the attempt happened, and lets REMIND's quote-reply lookup
+          // (see webhook.ts) resolve back to this item if the user swipes
+          // to reply to the card Meta just delivered.
+          if (messageId) await setSavedItemMessageId(item.id, messageId);
+        } catch (err) {
+          app.log.error({ err }, "Failed to send WhatsApp save card");
+        }
       }
 
       return reply.code(201).send({ shortId: item.shortId, cardUrl: `${process.env["BASE_URL"]}/s/${item.shortId}` });

@@ -98,11 +98,22 @@ export const savedItems = pgTable(
     embedding: vector("embedding", { dimensions: 1536 }),
     reminderAt: timestamp("reminder_at", { withTimezone: true }),
     reminderSent: boolean("reminder_sent").default(false).notNull(),
+    // Meta's message id (the "wamid...." string) for the save-card message
+    // this item was delivered in — either the free-form text sent inside
+    // the 24h session window, or the approved template sent outside it.
+    // Lets a WhatsApp quote-reply (REMIND, swiped as a reply to a specific
+    // card) be matched back to the exact item, instead of always assuming
+    // "the most recently saved one." Null for items saved before this
+    // column existed, or where the WhatsApp send failed/was skipped
+    // (opted-out user, unverified number) — REMIND falls back to
+    // most-recent in that case, same as the original MVP behaviour.
+    whatsappMessageId: text("whatsapp_message_id"),
     createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
   },
   (t) => [
     index("saved_items_user_idx").on(t.userId),
     index("saved_items_user_created_idx").on(t.userId, t.createdAt),
+    index("saved_items_wa_message_idx").on(t.whatsappMessageId),
   ]
 );
 
@@ -125,6 +136,33 @@ export const whatsappConnectionRequests = pgTable(
     createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
   },
   (t) => [uniqueIndex("wa_conn_token_idx").on(t.token)]
+);
+
+// One row per time a saved item's /s/[shortId] link is actually opened by
+// a person (not a crawler fetching OG tags for a link preview) and they
+// get redirected back to the partner's original page. This is the
+// concrete "return visit" signal partners need to see ROI from the
+// product — a save that's never re-opened is just a bookmark; a save
+// that IS re-opened is a person coming back to the partner's site days
+// (or weeks) later because SOR7ED reminded them via WhatsApp.
+export const savedItemClicks = pgTable(
+  "saved_item_clicks",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    savedItemId: uuid("saved_item_id")
+      .notNull()
+      .references(() => savedItems.id, { onDelete: "cascade" }),
+    // Denormalized from saved_items.partner_id at click time, purely so
+    // getPartnerAnalytics can aggregate clicks with a single indexed
+    // lookup instead of joining through saved_items for every query.
+    partnerId: uuid("partner_id").references(() => partners.id, { onDelete: "set null" }),
+    clickedAt: timestamp("clicked_at", { withTimezone: true }).defaultNow().notNull(),
+  },
+  (t) => [
+    index("saved_item_clicks_item_idx").on(t.savedItemId),
+    index("saved_item_clicks_partner_idx").on(t.partnerId),
+    index("saved_item_clicks_partner_clicked_idx").on(t.partnerId, t.clickedAt),
+  ]
 );
 
 // Links a dashboard user to the partner account(s) they administer. Named

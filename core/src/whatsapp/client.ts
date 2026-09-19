@@ -11,7 +11,15 @@ function requireEnv(name: string): string {
   return value;
 }
 
-async function callMetaApi(body: unknown): Promise<unknown> {
+// Meta's send response shape: { messages: [{ id: "wamid...." }], ... }.
+// Extracted defensively (optional chaining all the way through) rather
+// than asserted, since this is a third-party API response — a shape
+// change there should degrade to "no message id captured", not throw.
+interface MetaSendResponse {
+  messages?: Array<{ id?: string }>;
+}
+
+async function callMetaApi(body: unknown): Promise<MetaSendResponse> {
   const phoneId = requireEnv("META_WHATSAPP_PHONE_ID");
   const token = requireEnv("META_WHATSAPP_TOKEN");
 
@@ -24,7 +32,7 @@ async function callMetaApi(body: unknown): Promise<unknown> {
     body: JSON.stringify(body),
   });
 
-  const json = await res.json();
+  const json = (await res.json()) as MetaSendResponse;
 
   if (!res.ok) {
     // Meta returns a structured error body even on failure. Surfacing it
@@ -42,14 +50,20 @@ async function callMetaApi(body: unknown): Promise<unknown> {
   return json;
 }
 
-export async function sendText(to: string, body: string): Promise<void> {
-  await callMetaApi({
+// Returns Meta's message id for the sent message (undefined if the
+// response shape didn't include one) — callers that need to correlate a
+// later quote-reply back to this specific message (see
+// whatsapp/service.ts's sendSaveCard) persist this against the row it
+// concerns.
+export async function sendText(to: string, body: string): Promise<string | undefined> {
+  const res = await callMetaApi({
     messaging_product: "whatsapp",
     recipient_type: "individual",
     to,
     type: "text",
     text: { body, preview_url: true },
   });
+  return res.messages?.[0]?.id;
 }
 
 export type TemplateComponent =
@@ -62,11 +76,12 @@ export async function sendTemplate(
   templateName: string,
   languageCode: string,
   components: TemplateComponent[]
-): Promise<void> {
-  await callMetaApi({
+): Promise<string | undefined> {
+  const res = await callMetaApi({
     messaging_product: "whatsapp",
     to,
     type: "template",
     template: { name: templateName, language: { code: languageCode }, components },
   });
+  return res.messages?.[0]?.id;
 }

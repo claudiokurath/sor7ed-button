@@ -31,6 +31,20 @@ async function getItem(shortId: string): Promise<SaveCardItem | null> {
   return res.json() as Promise<SaveCardItem>;
 }
 
+// Deliberately separate from getItem above (which is cached via
+// revalidate:60 and also served to link-preview crawlers) — this must run
+// on every real visit, uncached, and never for a crawler. Best-effort: a
+// failed click record must never stop the redirect back to the partner's
+// page, so errors are swallowed rather than thrown.
+async function recordClick(shortId: string): Promise<void> {
+  const base = process.env["API_INTERNAL_URL"] ?? "http://localhost:3001";
+  try {
+    await fetch(`${base}/api/saves/${shortId}/click`, { method: "POST", cache: "no-store" });
+  } catch {
+    // Analytics is non-critical — the redirect must proceed either way.
+  }
+}
+
 export async function generateMetadata({ params }: SaveCardPageProps) {
   const { shortId } = await params;
   const item = await getItem(shortId);
@@ -53,6 +67,7 @@ export default async function SaveCardPage({ params }: SaveCardPageProps) {
   if (!item) redirect("/");
 
   if (!(await isCrawlerRequest())) {
+    await recordClick(shortId);
     redirect(item.url);
   }
 

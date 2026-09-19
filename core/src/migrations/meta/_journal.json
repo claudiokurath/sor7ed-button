@@ -22,6 +22,20 @@
       "when": 1788989877957,
       "tag": "0002_add_opt_out_and_allowed_domains",
       "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "7",
+      "when": 1789821748020,
+      "tag": "0003_add_whatsapp_message_id",
+      "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "7",
+      "when": 1789822033835,
+      "tag": "0004_add_saved_item_clicks",
+      "breakpoints": true
     }
   ]
 }

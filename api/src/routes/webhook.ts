@@ -1,12 +1,28 @@
 import type { FastifyInstance } from "fastify";
 import crypto from "node:crypto";
 import { eq, desc } from "drizzle-orm";
-import { db, users, savedItems, updateLastInbound, verifyConnectionRequest, getRecentSaves, searchSavedItems, sendText, setWhatsAppOptOut } from "@sor7ed/core";
+import {
+  db,
+  users,
+  savedItems,
+  updateLastInbound,
+  verifyConnectionRequest,
+  getRecentSaves,
+  searchSavedItems,
+  sendText,
+  setWhatsAppOptOut,
+  resolveItemFromQuotedMessage,
+} from "@sor7ed/core";
 
 interface InboundMessage {
   from: string;
   type: string;
   text?: { body: string };
+  // Present when the inbound message is a WhatsApp "swipe to reply" quote
+  // of an earlier message — context.id is that earlier message's own
+  // wamid. This is what lets REMIND resolve to the exact card being
+  // replied to, rather than assuming "whichever was saved most recently."
+  context?: { id?: string };
 }
 
 interface WebhookPayload {
@@ -214,17 +230,25 @@ async function handleInboundMessage(app: FastifyInstance, message: InboundMessag
       return;
     }
 
-    // MVP simplification: applies to the most recently saved item, since a
-    // plain-text reply carries no reference to which specific card it's
-    // about. A more complete version would read WhatsApp's quoted-message
-    // context to target a specific save — worth adding once this basic
-    // version is proven, not before.
-    const [recent] = await db
-      .select({ id: savedItems.id, title: savedItems.title })
-      .from(savedItems)
-      .where(eq(savedItems.userId, user.id))
-      .orderBy(desc(savedItems.createdAt))
-      .limit(1);
+    // Prefer the item the user actually swipe-replied to (message.context.id
+    // is the wamid of the message being quoted — set on outbound save cards
+    // via setSavedItemMessageId). Scoped by userId so a guessed/observed
+    // message id from another account can never be targeted. Falls back to
+    // "most recently saved" for a plain REMIND with no quote context, which
+    // preserves the original MVP behaviour.
+    const quotedId = message.context?.id;
+    const target = quotedId ? await resolveItemFromQuotedMessage(user.id, quotedId) : null;
+
+    const recent =
+      target ??
+      (
+        await db
+          .select({ id: savedItems.id, title: savedItems.title })
+          .from(savedItems)
+          .where(eq(savedItems.userId, user.id))
+          .orderBy(desc(savedItems.createdAt))
+          .limit(1)
+      )[0];
 
     if (!recent) {
       await sendText(from, "You don't have any saves yet.");

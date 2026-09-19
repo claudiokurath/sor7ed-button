@@ -39,24 +39,29 @@ function resolveHeaderImage(item: SaveCardItem): string {
   return item.cachedImageUrl ?? `${requireBaseUrl()}/og-fallback.png`;
 }
 
+// Returns the WhatsApp message id the card was sent as (undefined if
+// skipped due to opt-out, or if Meta's response didn't include one) — the
+// caller (api/src/routes/saves.ts) persists this on the saved_items row so
+// a later quote-reply to this exact message (e.g. REMIND) can be resolved
+// back to the item it's about, instead of guessing "whichever was saved
+// most recently." See webhook.ts's REMIND handler.
 export async function sendSaveCard(
   userId: string,
   userPhone: string,
   item: SaveCardItem,
   partnerName: string
-): Promise<void> {
+): Promise<string | undefined> {
   // Checked first and unconditionally — an opted-out user gets nothing
   // sent regardless of session-window state, which only affects *how*
   // a message would be sent, not *whether* one should be.
-  if (await isWhatsAppOptedOut(userId)) return;
+  if (await isWhatsAppOptedOut(userId)) return undefined;
 
   const sessionOpen = await isWhatsAppSessionOpen(userId);
 
   if (sessionOpen) {
     const summary = item.aiSummary ? `\n${item.aiSummary}\n` : "";
-    const text = `Saved from ${partnerName} ✓\n\n*${item.title}*${summary}\n${requireBaseUrl()}/s/${item.shortId}`;
-    await sendText(userPhone, text);
-    return;
+    const text = `Saved from ${partnerName} ✓\n\n*${item.title}*${summary}\n${requireBaseUrl()}/s/${item.shortId}\n\n_Reply REMIND tomorrow (or REMIND friday 10am) to get nudged about this later._`;
+    return sendText(userPhone, text);
   }
 
   const components: TemplateComponent[] = [
@@ -70,7 +75,7 @@ export async function sendSaveCard(
     { type: "button", sub_type: "url", index: "0", parameters: [{ type: "text", text: `s/${item.shortId}` }] },
   ];
 
-  await sendTemplate(userPhone, SAVE_CARD_TEMPLATE, LANGUAGE_CODE, components);
+  return sendTemplate(userPhone, SAVE_CARD_TEMPLATE, LANGUAGE_CODE, components);
 }
 
 const REMINDER_TEMPLATE = "sor7ed_reminder";
