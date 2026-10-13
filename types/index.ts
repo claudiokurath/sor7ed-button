@@ -25,3 +25,14 @@ export interface Partner {
   name: string;
   domain: string;
 }
+
+/** Provider acceptance is not proof of delivery to the recipient's device. */
+export type SaveDeliveryStatus = 'pending' | 'accepted' | 'failed' | 'skipped' | 'unknown';
+
+export interface SaveResponse {
+  shortId: string;
+  cardUrl: string;
+  saveStatus: 'saved';
+  deliveryStatus: SaveDeliveryStatus;
+  deliveryReason: string | null;
+}

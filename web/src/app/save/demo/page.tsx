@@ -31,15 +31,20 @@ function DemoFlow() {
   const image = params.get("image") ?? "";
   const url = params.get("url") ?? "";
   const host = fmtHost(url);
+  const flowId = params.get("flowId");
+  const openerOrigin = params.get("openerOrigin");
 
   const [stage, setStage] = useState<Stage>("INTRO");
   const [isPopup, setIsPopup] = useState(false);
+  const [ready, setReady] = useState(false);
 
   useEffect(() => {
     setIsPopup(Boolean(window.opener));
+    setReady(true);
   }, []);
 
   function runDemoSave() {
+    if (stage !== "INTRO") return;
     setStage("SAVING");
     // A brief simulated delay reads as "something happened" — instant
     // would look broken, a real network round-trip would be dishonest
@@ -47,9 +52,12 @@ function DemoFlow() {
     setTimeout(() => {
       setStage("SAVED");
       try {
-        window.opener?.postMessage({ source: "sor7ed-widget", type: "saved" }, "*");
+        const origin = new URL(openerOrigin ?? "");
+        if (origin.origin === openerOrigin && (origin.protocol === "http:" || origin.protocol === "https:") && flowId && /^[A-Za-z0-9_-]{16,100}$/.test(flowId)) {
+          window.opener?.postMessage({ source: "sor7ed-widget", type: "saved", flowId, demo: true, deliveryStatus: "accepted" }, origin.origin);
+        }
       } catch {
-        // See save/page.tsx's notifyOpenerOfSave for why this is safe to swallow.
+        // A blocked or absent opener does not affect the simulation.
       }
       if (window.opener) setTimeout(() => window.close(), AUTO_CLOSE_MS);
     }, 900);
@@ -83,8 +91,9 @@ function DemoFlow() {
           <h2 style={{ fontSize: 18, margin: "0 0 8px" }}>{title}</h2>
           {description && <p style={{ color: "#555", fontSize: 14, margin: "0 0 24px" }}>{description}</p>}
           <button
+            disabled={!ready}
             onClick={runDemoSave}
-            style={{ width: "100%", padding: "14px 0", background: "#25D366", color: "#fff", border: "none", borderRadius: 8, fontSize: 16, fontWeight: 700, cursor: "pointer" }}
+            style={{ width: "100%", padding: "14px 0", background: "#25D366", color: "#12331e", border: "none", borderRadius: 8, fontSize: 16, fontWeight: 700, cursor: ready ? "pointer" : "wait" }}
           >
             Simulate: Save to WhatsApp
           </button>

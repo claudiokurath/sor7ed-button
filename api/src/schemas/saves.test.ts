@@ -2,6 +2,21 @@ import { describe, it, expect } from "vitest";
 import { saveBodySchema } from "./saves.js";
 
 describe("saveBodySchema", () => {
+  it('accepts a stable action key and omits missing artwork from old widgets', () => {
+    const result = saveBodySchema.parse({
+      partnerApiKey: 'pk_public', url: 'https://example.com/page', title: 'Page',
+      idempotencyKey: 'action_0123456789012345', imageUrl: '',
+    });
+    expect(result.idempotencyKey).toBe('action_0123456789012345');
+    expect(result.imageUrl).toBeUndefined();
+  });
+
+  it('rejects malformed action keys rather than silently disabling deduplication', () => {
+    expect(saveBodySchema.safeParse({
+      partnerApiKey: 'pk_public', url: 'https://example.com/page', title: 'Page',
+      idempotencyKey: 'short',
+    }).success).toBe(false);
+  });
   it("accepts a minimal valid body", () => {
     const result = saveBodySchema.safeParse({
       partnerApiKey: "pk_live_abc123",

@@ -5,9 +5,20 @@
 
 const META_API_VERSION = "v21.0"; // check Meta's changelog periodically; this drifts over time
 
+export class WhatsAppSendError extends Error {
+  constructor(
+    message: string,
+    public readonly outcome: 'failed' | 'unknown',
+    public readonly status?: number
+  ) {
+    super(message);
+    this.name = 'WhatsAppSendError';
+  }
+}
+
 function requireEnv(name: string): string {
   const value = process.env[name];
-  if (!value) throw new Error(`${name} is not set`);
+  if (!value) throw new WhatsAppSendError('WhatsApp sending is not configured.', 'failed');
   return value;
 }
 
@@ -23,31 +34,38 @@ async function callMetaApi(body: unknown): Promise<MetaSendResponse> {
   const phoneId = requireEnv("META_WHATSAPP_PHONE_ID");
   const token = requireEnv("META_WHATSAPP_TOKEN");
 
-  const res = await fetch(`https://graph.facebook.com/${META_API_VERSION}/${phoneId}/messages`, {
-    method: "POST",
-    headers: {
-      Authorization: `Bearer ${token}`,
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify(body),
-  });
-
-  const json = (await res.json()) as MetaSendResponse;
-
-  if (!res.ok) {
-    // Meta returns a structured error body even on failure. Surfacing it
-    // (rather than a generic fetch error) matters here specifically: error
-    // 131047 means "more than 24 hours since the customer's last message" —
-    // the exact condition sendSaveCard's session check exists to avoid.
-    // Check Meta's own error-code reference for the full, current list
-    // rather than treating any fixed set as exhaustive.
-    throw Object.assign(new Error(`Meta API error (${res.status})`), {
-      status: res.status,
-      metaResponse: json,
+  let res: Response;
+  try {
+    res = await fetch(`https://graph.facebook.com/${META_API_VERSION}/${phoneId}/messages`, {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${token}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(body),
+      signal: AbortSignal.timeout(15_000),
     });
+  } catch {
+    // A timeout can happen after Meta accepted a request. Do not silently
+    // retry or tell the caller it definitely failed to reach WhatsApp.
+    throw new WhatsAppSendError('WhatsApp sending could not be confirmed.', 'unknown');
   }
 
-  return json;
+  if (!res.ok) {
+    // Keep provider details out of user-facing responses. A definite
+    // rejection differs from a timeout/server failure with uncertain outcome.
+    throw new WhatsAppSendError(
+      'WhatsApp did not confirm the message.',
+      res.status >= 500 || res.status === 408 ? 'unknown' : 'failed',
+      res.status
+    );
+  }
+
+  try {
+    return (await res.json()) as MetaSendResponse;
+  } catch {
+    throw new WhatsAppSendError('WhatsApp sending could not be confirmed.', 'unknown');
+  }
 }
 
 // Returns Meta's message id for the sent message (undefined if the
