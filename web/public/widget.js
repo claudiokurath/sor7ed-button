@@ -4,17 +4,18 @@
 //
 // Visual design: hand-drawn "tangle" mark that resolves into a tick on
 // save, ported from sorted-button/sorted-button.html (v9). The animation
-// only plays on a REAL confirmed save (via postMessage from the /save
-// popup) — it does not fire optimistically on click, so the on-page state
-// always reflects whether the save actually completed.
+// only plays after WhatsApp accepts a message (or an explicitly labelled
+// simulation). Provider acceptance is not a delivery receipt.
 (function () {
   "use strict";
+
+  var WIDGET_SCRIPT = document.currentScript || document.querySelector("script[data-api-key],script[data-demo]");
 
   // Derived from the <script> tag's own src so the popup + assets always
   // target wherever this widget was loaded from (production, staging, or
   // a local dev server) instead of a hardcoded host.
   var BASE = (function () {
-    var script = document.currentScript || document.querySelector("script[data-api-key]");
+    var script = WIDGET_SCRIPT;
     if (script && script.src) {
       try {
         return new URL(script.src).origin;
@@ -62,7 +63,10 @@
       ".s7-widget__tick path{fill:none;stroke:var(--s7-accent);stroke-width:2.6;stroke-linecap:round;",
       "stroke-linejoin:round;stroke-dasharray:46;stroke-dashoffset:calc(46px*(1 - var(--s7-td)));}",
       ".s7-widget__sr{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;",
-      "clip:rect(0,0,0,0);white-space:nowrap;border:0;}"
+      "clip:rect(0,0,0,0);white-space:nowrap;border:0;}",
+      "@media(prefers-reduced-motion:reduce){.s7-widget .s7-widget__mark,",
+      ".s7-widget .s7-widget__btn,.s7-widget .s7-widget__label{transition:none;}",
+      ".s7-widget .s7-widget__mark:hover,.s7-widget .s7-widget__btn:active{transform:none;}}"
     ].join("");
     document.head.appendChild(style);
   }
@@ -84,7 +88,7 @@
     // querySelector's fallback also matches data-demo, not just
     // data-api-key, so a demo embed (which deliberately carries no real
     // apiKey) is still found the same way a normal partner embed is.
-    var script = document.currentScript || document.querySelector("script[data-api-key],script[data-demo]");
+    var script = WIDGET_SCRIPT;
     return {
       apiKey: script ? script.getAttribute("data-api-key") : null,
       // Lets a prospect try the entire save->WhatsApp loop with zero
@@ -100,31 +104,50 @@
 
   function getPageMeta(target) {
     var get = function (attr) { return target ? target.getAttribute("data-" + attr) : null; };
+    function webUrl(value, fallback) {
+      try {
+        var parsed = new URL(value, window.location.href);
+        if (parsed.protocol === "https:" || parsed.protocol === "http:") return parsed.href;
+      } catch (e) {}
+      return fallback;
+    }
+    var rawImage = get("image") || document.querySelector("meta[property='og:image']")?.getAttribute("content") || "";
     return {
       title: get("title") || document.querySelector("meta[property='og:title']")?.getAttribute("content") || document.title,
-      url: get("url") || document.querySelector("meta[property='og:url']")?.getAttribute("content") || window.location.href,
+      url: webUrl(get("url") || document.querySelector("meta[property='og:url']")?.getAttribute("content") || window.location.href, window.location.href),
       description: get("description") || document.querySelector("meta[property='og:description']")?.getAttribute("content") || "",
-      image: get("image") || document.querySelector("meta[property='og:image']")?.getAttribute("content") || ""
+      image: rawImage ? webUrl(rawImage, "") : ""
     };
   }
 
-  function buildSaveUrl(partnerMeta, pageMeta) {
-    var p = new URLSearchParams({ apiKey: partnerMeta.apiKey || "", url: pageMeta.url, title: pageMeta.title, description: pageMeta.description, image: pageMeta.image });
+  function buildSaveUrl(partnerMeta, pageMeta, flowId) {
+    var p = new URLSearchParams({ apiKey: partnerMeta.apiKey || "", url: pageMeta.url, title: pageMeta.title, description: pageMeta.description, image: pageMeta.image, flowId: flowId, openerOrigin: window.location.origin });
     return BASE + (partnerMeta.isDemo ? "/save/demo?" : "/save?") + p.toString();
+  }
+
+  function newFlowId() {
+    if (crypto.randomUUID) return crypto.randomUUID();
+    var bytes = new Uint8Array(16);
+    crypto.getRandomValues(bytes);
+    return Array.from(bytes, function (byte) { return byte.toString(16).padStart(2, "0"); }).join("");
   }
 
   // Only one save flow is ever in flight per widget instance at a time —
   // tracked per-button so multiple buttons on one page don't cross-wire
   // their popups or animations.
-  function attachSaveFlow(root, btn, saveUrl) {
-    var state = { popup: null, pollTimer: null, messageHandler: null };
+  function attachSaveFlow(root, btn, partnerMeta, target) {
+    var state = { popup: null, pollTimer: null, messageHandler: null, flowId: null, contentKey: null };
 
-    function cleanup() {
+    function cleanup(completed) {
       if (state.pollTimer) clearInterval(state.pollTimer);
       if (state.messageHandler) window.removeEventListener("message", state.messageHandler);
       state.popup = null;
       state.pollTimer = null;
       state.messageHandler = null;
+      // Keep an interrupted action stable if the popup was closed before
+      // confirmation. Reopening checks that action rather than charging
+      // for and sending a second save after a lost response.
+      if (completed) { state.flowId = null; state.contentKey = null; }
       btn.removeAttribute("aria-busy");
     }
 
@@ -136,9 +159,19 @@
         return;
       }
 
+      // Read metadata now: SPA navigation or per-item attributes may have
+      // changed since the script initially mounted this button.
+      var pageMeta = getPageMeta(target);
+      var contentKey = JSON.stringify(pageMeta);
+      if (!state.flowId || state.contentKey !== contentKey) {
+        state.flowId = newFlowId();
+        state.contentKey = contentKey;
+      }
+      var saveUrl = buildSaveUrl(partnerMeta, pageMeta, state.flowId);
+
       var w = 420, h = 640;
       var left = Math.max(0, (window.screen.width - w) / 2), top = Math.max(0, (window.screen.height - h) / 2);
-      var popup = window.open(saveUrl, "sor7ed_save", "width=" + w + ",height=" + h + ",left=" + left + ",top=" + top + ",resizable=yes");
+      var popup = window.open(saveUrl, "sor7ed_save_" + state.flowId, "width=" + w + ",height=" + h + ",left=" + left + ",top=" + top + ",resizable=yes");
 
       // Popup blocked (rare on a direct click handler, but possible under
       // aggressive blocker settings) — fall back to a plain new-tab
@@ -160,9 +193,16 @@
       btn.setAttribute("aria-busy", "true");
 
       state.messageHandler = function (event) {
-        if (!event.data || event.data.source !== "sor7ed-widget" || event.data.type !== "saved") return;
-        runDoneAnimation(root);
-        cleanup();
+        if (event.origin !== BASE || event.source !== state.popup) return;
+        if (!event.data || event.data.source !== "sor7ed-widget" || (event.data.type !== "saved" && event.data.type !== "save-status")) return;
+        if (event.data.flowId !== state.flowId) return;
+        if (Boolean(event.data.demo) !== partnerMeta.isDemo) return;
+        if (event.data.deliveryStatus === "accepted") {
+          runDoneAnimation(root, partnerMeta.isDemo);
+          cleanup(true);
+        } else if (["pending", "failed", "skipped", "unknown"].indexOf(event.data.deliveryStatus) !== -1) {
+          showSaveStatus(root, event.data.deliveryStatus);
+        }
       };
       window.addEventListener("message", state.messageHandler);
 
@@ -176,7 +216,17 @@
     });
   }
 
-  function runDoneAnimation(root) {
+  function showSaveStatus(root, status) {
+    var lead = root.querySelector("[data-s7-lead]");
+    var trail = root.querySelector("[data-s7-trail]");
+    var live = root.querySelector("[data-s7-live]");
+    var detail = status === "pending" ? "sending…" : status === "failed" ? "send failed" : status === "skipped" ? "not sent" : "send unconfirmed";
+    lead.textContent = "Saved in your library";
+    trail.textContent = detail;
+    if (live) live.textContent = "Saved in your library. WhatsApp " + detail + ".";
+  }
+
+  function runDoneAnimation(root, isDemo) {
     var lead = root.querySelector("[data-s7-lead]");
     var trail = root.querySelector("[data-s7-trail]");
     var live = root.querySelector("[data-s7-live]");
@@ -201,9 +251,9 @@
       })(performance.now());
     }
 
-    lead.textContent = "Saved to your chat";
+    lead.textContent = isDemo ? "Demo: message sent" : "Message sent";
     trail.textContent = "sorted.";
-    if (live) live.textContent = "Saved to your WhatsApp chat";
+    if (live) live.textContent = isDemo ? "Demo simulation complete. Nothing was saved or sent." : "WhatsApp accepted your message. Delivery is not yet confirmed.";
 
     run(1, 0, IN, function () {
       setTimeout(function () {
@@ -215,7 +265,7 @@
     });
   }
 
-  function createWidget(partnerMeta, pageMeta) {
+  function createWidget(partnerMeta, target) {
     injectStylesOnce();
     injectFontOnce();
 
@@ -274,7 +324,7 @@
     root.appendChild(trail);
     root.appendChild(live);
 
-    attachSaveFlow(root, btn, buildSaveUrl(partnerMeta, pageMeta));
+    attachSaveFlow(root, btn, partnerMeta, target);
 
     return root;
   }
@@ -282,8 +332,7 @@
   function injectButton(target) {
     var partnerMeta = getPartnerMeta();
     if (!partnerMeta.apiKey && !partnerMeta.isDemo) return;
-    var pageMeta = getPageMeta(target);
-    var widget = createWidget(partnerMeta, pageMeta);
+    var widget = createWidget(partnerMeta, target);
     (target || document.body).appendChild(widget);
   }
 

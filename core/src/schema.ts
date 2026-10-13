@@ -8,8 +8,11 @@ import {
   vector,
   index,
   uniqueIndex,
+  check,
 } from "drizzle-orm/pg-core";
 import { sql } from "drizzle-orm";
+
+export type SaveDeliveryStatus = "pending" | "accepted" | "failed" | "skipped" | "unknown";
 
 // last_inbound_message_at drives the WhatsApp 24h session-window check:
 // every outbound send compares this against ~23h to decide free-form
@@ -108,12 +111,24 @@ export const savedItems = pgTable(
     // (opted-out user, unverified number) — REMIND falls back to
     // most-recent in that case, same as the original MVP behaviour.
     whatsappMessageId: text("whatsapp_message_id"),
+    // A browser action, rather than the content URL, is the deduplication
+    // boundary: intentionally saving a resource again is still allowed.
+    // Null keys/hashes preserve saves made before action idempotency existed.
+    idempotencyKey: text("idempotency_key"),
+    requestHash: text("request_hash"),
+    // "accepted" means Meta returned a message id, NOT proof of delivery.
+    // Historical saves stay unknown; a newly claimed action starts pending.
+    deliveryStatus: text("delivery_status").$type<SaveDeliveryStatus>().default("unknown").notNull(),
+    deliveryReason: text("delivery_reason"),
+    deliveryUpdatedAt: timestamp("delivery_updated_at", { withTimezone: true }).defaultNow().notNull(),
     createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
   },
   (t) => [
     index("saved_items_user_idx").on(t.userId),
     index("saved_items_user_created_idx").on(t.userId, t.createdAt),
     index("saved_items_wa_message_idx").on(t.whatsappMessageId),
+    uniqueIndex("saved_items_action_idx").on(t.userId, t.partnerId, t.idempotencyKey),
+    check("saved_items_delivery_status_check", sql`${t.deliveryStatus} IN ('pending', 'accepted', 'failed', 'skipped', 'unknown')`),
   ]
 );
 

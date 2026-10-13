@@ -13,6 +13,7 @@ import {
 } from "./schema.js";
 import { eq, desc, and, lt, gte, isNotNull, sql, count, countDistinct } from "drizzle-orm";
 import { generateEmbedding } from "./ai.js";
+import crypto from "node:crypto";
 
 export async function isWhatsAppSessionOpen(userId: string): Promise<boolean> {
   const [row] = await db
@@ -127,33 +128,93 @@ export async function getPendingReminders() {
     .limit(50);
 }
 
-// Atomic: marks the token used AND writes the phone number in one
-// transaction, so a duplicate webhook delivery can't double-process it.
+// Reuse the current link instead of minting a new token on every request.
+// Issuance, explicit refresh and verification all lock the user first, so
+// they cannot race to create several live links or deadlock on opposite
+// user/token lock ordering. No process-local mutex is needed across APIs.
+export async function createOrReuseConnectionRequest(
+  userId: string,
+  refresh = false
+): Promise<{ token: string; expiresAt: Date }> {
+  return db.transaction(async (tx) => {
+    const [user] = await tx.select({ id: users.id }).from(users).where(eq(users.id, userId)).for("update");
+    if (!user) throw new Error("Account is no longer available");
+
+    const [pending] = refresh ? [] : await tx
+      .select({ id: whatsappConnectionRequests.id, token: whatsappConnectionRequests.token, expiresAt: whatsappConnectionRequests.expiresAt })
+      .from(whatsappConnectionRequests)
+      .where(and(
+        eq(whatsappConnectionRequests.userId, userId),
+        eq(whatsappConnectionRequests.status, "pending"),
+        sql`${whatsappConnectionRequests.expiresAt} > clock_timestamp()`
+      ))
+      .orderBy(desc(whatsappConnectionRequests.createdAt), desc(whatsappConnectionRequests.id))
+      .limit(1);
+
+    // Clear legacy duplicate/expired requests too. Only the link returned
+    // by this transaction remains usable; refresh invalidates every old one.
+    await tx.update(whatsappConnectionRequests).set({ status: "expired" }).where(and(
+      eq(whatsappConnectionRequests.userId, userId),
+      eq(whatsappConnectionRequests.status, "pending"),
+      pending ? sql`${whatsappConnectionRequests.id} <> ${pending.id}` : sql`TRUE`
+    ));
+
+    if (pending) return { token: pending.token, expiresAt: pending.expiresAt };
+
+    const [created] = await tx.insert(whatsappConnectionRequests).values({
+      userId,
+      token: crypto.randomBytes(8).toString("hex").toUpperCase(),
+      status: "pending",
+      expiresAt: sql`clock_timestamp() + INTERVAL '15 minutes'`,
+    }).returning({ token: whatsappConnectionRequests.token, expiresAt: whatsappConnectionRequests.expiresAt });
+    if (!created) throw new Error("Connection link could not be created");
+    return created;
+  });
+}
+
+// Claim exactly one pending, unexpired token AND link its user's number in
+// one transaction. A repeated/concurrent webhook returns null rather than
+// overwriting the number. A uniqueness failure rolls back the token claim.
 export async function verifyConnectionRequest(token: string, phoneNumber: string): Promise<string | null> {
   return db.transaction(async (tx) => {
-    const [request] = await tx
-      .select()
+    // This read only establishes lock order. The conditional UPDATE below
+    // decides whether the token is still live after any competing refresh.
+    const [owner] = await tx.select({ userId: whatsappConnectionRequests.userId })
       .from(whatsappConnectionRequests)
+      .where(eq(whatsappConnectionRequests.token, token))
+      .limit(1);
+    if (!owner) return null;
+
+    const [user] = await tx.select({ id: users.id }).from(users)
+      .where(eq(users.id, owner.userId)).for("update");
+    if (!user) return null;
+
+    const [request] = await tx
+      .update(whatsappConnectionRequests)
+      .set({ status: "verified", verifiedAt: sql`clock_timestamp()` })
       .where(
         and(
           eq(whatsappConnectionRequests.token, token),
           eq(whatsappConnectionRequests.status, "pending"),
-          sql`expires_at > NOW()`
+          sql`${whatsappConnectionRequests.expiresAt} > clock_timestamp()`
         )
       )
-      .limit(1);
+      .returning({ userId: whatsappConnectionRequests.userId });
 
     if (!request) return null;
-
-    await tx
-      .update(whatsappConnectionRequests)
-      .set({ status: "verified", verifiedAt: new Date() })
-      .where(eq(whatsappConnectionRequests.id, request.id));
 
     await tx
       .update(users)
       .set({ whatsappNumber: phoneNumber, whatsappVerified: true })
       .where(eq(users.id, request.userId));
+
+    // Old clients could create several pending links for the same user.
+    // Completing one connection invalidates every other link atomically,
+    // even if the new issuance flow has never cleaned them up.
+    await tx.update(whatsappConnectionRequests).set({ status: "expired" }).where(and(
+      eq(whatsappConnectionRequests.userId, request.userId),
+      eq(whatsappConnectionRequests.status, "pending")
+    ));
 
     return request.userId;
   });

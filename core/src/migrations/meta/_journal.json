@@ -43,6 +43,13 @@
       "when": 1789855035597,
       "tag": "0005_add_partner_invites",
       "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "7",
+      "when": 1791879279619,
+      "tag": "0006_save_action_delivery",
+      "breakpoints": true
     }
   ]
 }

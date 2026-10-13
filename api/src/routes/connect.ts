@@ -1,6 +1,9 @@
 import type { FastifyInstance } from "fastify";
-import crypto from "node:crypto";
-import { db, whatsappConnectionRequests, generateClickToChatUrl } from "@sor7ed/core";
+import { createOrReuseConnectionRequest, generateClickToChatUrl } from "@sor7ed/core";
+import { z } from "zod";
+import { parseBody } from "../schemas/validate.js";
+
+const connectBodySchema = z.object({ refresh: z.boolean().optional() }).strict();
 
 export async function connectRoutes(app: FastifyInstance) {
   app.post(
@@ -9,9 +12,8 @@ export async function connectRoutes(app: FastifyInstance) {
       preHandler: app.requireAuth,
       config: {
         rateLimit: {
-          // Each call mints a new pending connection-request token — an
-          // unbounded caller could otherwise flood whatsapp_connection_requests
-          // with rows. Same hook/keyGenerator pattern as /api/saves: fire on
+          // Reuse live links, but still bound explicit refresh/token creation.
+          // Same hook/keyGenerator pattern as /api/saves: fire on
           // preHandler (after requireAuth has set req.userId), not the
           // default onRequest hook, so the limit is keyed per-user rather
           // than per-IP.
@@ -24,13 +26,11 @@ export async function connectRoutes(app: FastifyInstance) {
     },
     async (req, reply) => {
       const userId = req.userId!; // guaranteed non-null by requireAuth
+      const body = parseBody(connectBodySchema, req.body ?? {}, reply);
+      if (!body) return;
+      const request = await createOrReuseConnectionRequest(userId, body.refresh === true);
 
-      // 8 random bytes = 16 hex chars = 64 bits of entropy — plenty for a
-      // token with a 15-minute expiry window (set by the schema default).
-      const token = crypto.randomBytes(8).toString("hex").toUpperCase();
-      await db.insert(whatsappConnectionRequests).values({ userId, token, status: "pending" });
-
-      return reply.send({ url: generateClickToChatUrl(token) });
+      return reply.send({ url: generateClickToChatUrl(request.token), expiresAt: request.expiresAt.toISOString() });
     }
   );
 }

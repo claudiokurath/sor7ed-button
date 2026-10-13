@@ -3,9 +3,9 @@
 // Returns null (and has already sent the 400) on failure — callers should
 // `if (!body) return;` immediately after calling this.
 import type { FastifyReply } from "fastify";
-import type { ZodSchema } from "zod";
+import type { ZodTypeAny, output } from "zod";
 
-export function parseBody<T>(schema: ZodSchema<T>, body: unknown, reply: FastifyReply): T | null {
+export function parseBody<Schema extends ZodTypeAny>(schema: Schema, body: unknown, reply: FastifyReply): output<Schema> | null {
   const result = schema.safeParse(body);
   if (result.success) return result.data;
 
