@@ -5,17 +5,11 @@ export function requireEnv(name: string): string {
   return value;
 }
 
-const REQUIRED_ALWAYS = ["DATABASE_URL", "REDIS_URL", "JWT_SECRET", "BASE_URL", "API_BASE_URL"] as const;
+const REQUIRED_ALWAYS = ["DATABASE_URL", "REDIS_URL", "BASE_URL", "API_BASE_URL"] as const;
 
 const REQUIRED_PRODUCTION = [
   "META_WHATSAPP_TOKEN",
   "META_WHATSAPP_PHONE_ID",
-  "META_WEBHOOK_VERIFY_TOKEN",
-  "META_APP_SECRET",
-  "META_WHATSAPP_DISPLAY_NUMBER",
-  "GOOGLE_CLIENT_ID",
-  "GOOGLE_CLIENT_SECRET",
-  "WEB_ORIGIN",
   // Required in production because api and worker run as separate processes
   // (separate disks) — local-disk uploads would silently split-brain without
   // a shared object store. See core/src/storage.ts.
@@ -26,22 +20,23 @@ const REQUIRED_PRODUCTION = [
   "R2_PUBLIC_URL",
 ] as const;
 
+const REQUIRED_API_PRODUCTION = [
+  "META_WEBHOOK_VERIFY_TOKEN",
+  "META_APP_SECRET",
+  "META_WHATSAPP_DISPLAY_NUMBER",
+  "GOOGLE_CLIENT_ID",
+  "GOOGLE_CLIENT_SECRET",
+  "WEB_ORIGIN",
+] as const;
+
 export function assertRequiredEnv(role: "api" | "worker" = "api"): void {
-  const missing: string[] = [];
-  for (const key of REQUIRED_ALWAYS) {
-    if (!process.env[key]) missing.push(key);
-  }
+  const required: string[] = [...REQUIRED_ALWAYS];
+  if (role === "api") required.push("JWT_SECRET");
   if (process.env["NODE_ENV"] === "production") {
-    for (const key of REQUIRED_PRODUCTION) {
-      if (!process.env[key]) missing.push(key);
-    }
+    required.push(...REQUIRED_PRODUCTION);
+    if (role === "api") required.push(...REQUIRED_API_PRODUCTION);
   }
-  // Worker does not need Google OAuth, but does need Meta for reminders.
-  if (role === "worker" && process.env["NODE_ENV"] === "production") {
-    for (const key of ["META_WHATSAPP_TOKEN", "META_WHATSAPP_PHONE_ID"] as const) {
-      if (!process.env[key] && !missing.includes(key)) missing.push(key);
-    }
-  }
+  const missing = required.filter((key) => !process.env[key]);
   if (missing.length > 0) {
     throw new Error(`Missing required environment variables: ${missing.join(", ")}`);
   }

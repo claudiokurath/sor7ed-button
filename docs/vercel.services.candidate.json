@@ -1,0 +1,77 @@
+{
+  "$schema": "https://openapi.vercel.sh/vercel.json",
+  "services": {
+    "api": {
+      "root": "api",
+      "framework": "fastify",
+      "entrypoint": "src/index.ts"
+    },
+    "web": {
+      "root": "web",
+      "framework": "nextjs",
+      "bindings": [
+        {
+          "type": "service",
+          "service": "api",
+          "format": "url",
+          "env": "API_INTERNAL_URL"
+        }
+      ]
+    }
+  },
+  "redirects": [
+    {
+      "source": "/go/:slug",
+      "has": [{ "type": "host", "value": "sor7ed.com" }],
+      "destination": "https://www.planetsorted.com/go/:slug",
+      "permanent": false
+    },
+    {
+      "source": "/go/:slug",
+      "has": [{ "type": "host", "value": "www.sor7ed.com" }],
+      "destination": "https://www.planetsorted.com/go/:slug",
+      "permanent": false
+    },
+    {
+      "source": "/r/:slug",
+      "has": [{ "type": "host", "value": "sor7ed.com" }],
+      "destination": "https://www.planetsorted.com/r/:slug",
+      "permanent": false
+    },
+    {
+      "source": "/r/:slug",
+      "has": [{ "type": "host", "value": "www.sor7ed.com" }],
+      "destination": "https://www.planetsorted.com/r/:slug",
+      "permanent": false
+    },
+    {
+      "source": "/auth/whatsapp-confirm",
+      "has": [{ "type": "host", "value": "sor7ed.com" }],
+      "destination": "https://www.planetsorted.com/auth/whatsapp-confirm",
+      "permanent": false
+    },
+    {
+      "source": "/auth/whatsapp-confirm",
+      "has": [{ "type": "host", "value": "www.sor7ed.com" }],
+      "destination": "https://www.planetsorted.com/auth/whatsapp-confirm",
+      "permanent": false
+    },
+    {
+      "source": "/:path*",
+      "has": [{ "type": "host", "value": "www.sor7ed.com" }],
+      "destination": "https://sor7ed.com/:path*",
+      "permanent": false
+    }
+  ],
+  "rewrites": [
+    {
+      "source": "/(.*)",
+      "has": [{ "type": "host", "value": "api.sor7ed.com" }],
+      "destination": { "service": "api" }
+    },
+    { "source": "/api/:path*", "destination": { "service": "api" } },
+    { "source": "/health", "destination": { "service": "api" } },
+    { "source": "/webhook/whatsapp", "destination": { "service": "api" } },
+    { "source": "/(.*)", "destination": { "service": "web" } }
+  ]
+}

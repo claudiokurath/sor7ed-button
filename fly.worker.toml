@@ -1,16 +1,10 @@
 # Fly.io — SOR7ED BUTTON worker (no public HTTP)
 # Deploy:  fly deploy -c fly.worker.toml --app sor7ed-button-worker
-# Secrets: same set as API (DATABASE_URL, REDIS_URL, Meta, OpenAI, …)
+# Secrets: worker subset in DEPLOY.md (DB, Redis, Meta sending, shared R2, …)
 # First-time: fly apps create sor7ed-button-worker
 #
-# IMPORTANT: worker must share the same uploads volume OR you must switch
-# storage.ts to S3/R2. For single-region MVP, attach a volume here too and
-# accept that api+worker each have their own disk (enrichment images only
-# land on the worker). Prefer R2 before multi-region.
-#
-# Practical MVP: run enrichment writes via API_BASE_URL publicly served
-# volume on the API only — worker uploads go to its own volume and need
-# either shared object storage or co-locating. See DEPLOY.md.
+# Production uploads use the same R2 bucket/public URL as the API.
+# Local-disk uploads are development-only; no Fly volume is needed.
 
 app = "sor7ed-button-worker"
 primary_region = "lhr"

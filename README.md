@@ -69,12 +69,12 @@ cp .env.example .env
 
 npm install
 npm run dev:infra          # postgres + redis
-npm run db:migrate         # drizzle migrations (pgvector + schema)
+DOTENV_CONFIG_PATH="$PWD/.env" npm run db:migrate  # pgvector + schema
 
 # three terminals
-npm run dev:api            # :3001
-npm run dev:web            # :3000
-npm run dev:worker
+node --env-file=.env --import tsx --watch api/src/index.ts  # :3001
+node --env-file=.env node_modules/next/dist/bin/next dev web # :3000
+node --env-file=.env --import tsx --watch worker/src/index.ts
 ```
 
 Open http://localhost:3000/dashboard → Google login → create partner → copy embed.
@@ -112,7 +112,7 @@ Template URL button base must match `BASE_URL` (e.g. `https://sor7ed.com/`).
 | `worker` | Fly.io background (`fly.worker.toml`) |
 | Postgres | Neon (pgvector enabled) |
 | Redis | Upstash |
-| Uploads | Local disk volume on API for MVP; swap `core/src/storage.ts` → R2/S3 before multi-instance |
+| Uploads | Shared Cloudflare R2 bucket/public URL for API and worker; local disk is development-only |
 
 ```bash
 # API
@@ -130,10 +130,10 @@ See `.env.example` and the env matrix in DEPLOY.md. Fail-fast checks run at api/
 
 Critical:
 
-- `DATABASE_URL`, `REDIS_URL`, `JWT_SECRET`
-- `BASE_URL` (public web), `API_BASE_URL` (public api — Meta must fetch images)
-- Full Meta set + Google OAuth (authorized redirect: `{API_BASE_URL}/api/auth/google/callback`)
-- `COOKIE_DOMAIN=.sor7ed.com` when web + api are sibling subdomains (so `sor7ed_session` is shared)
+- Both processes: `DATABASE_URL`, `REDIS_URL`, `BASE_URL` (public web), `API_BASE_URL` (public API), `META_WHATSAPP_TOKEN`, `META_WHATSAPP_PHONE_ID`
+- Both processes: `R2_BUCKET`, `R2_ACCOUNT_ID`, `R2_ACCESS_KEY_ID`, `R2_SECRET_ACCESS_KEY`, `R2_PUBLIC_URL`; use the same bucket and publicly reachable image URL
+- API: `JWT_SECRET`, `WEB_ORIGIN`, `META_WEBHOOK_VERIFY_TOKEN`, `META_APP_SECRET`, `META_WHATSAPP_DISPLAY_NUMBER`, Google OAuth (authorized redirect: `{API_BASE_URL}/api/auth/google/callback`)
+- API: `COOKIE_DOMAIN=.sor7ed.com` when web + api are sibling subdomains (so `sor7ed_session` is shared)
 
 ### Google OAuth
 

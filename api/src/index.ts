@@ -1,9 +1,9 @@
 import Fastify from "fastify";
-import cors from "@fastify/cors";
 import fastifyStatic from "@fastify/static";
 import rateLimit from "@fastify/rate-limit";
 import { Redis } from "ioredis";
 import authPlugin from "./plugins/auth.js";
+import { registerCors } from "./plugins/cors.js";
 import { authRoutes } from "./routes/auth.js";
 import { webhookRoutes } from "./routes/webhook.js";
 import { connectRoutes } from "./routes/connect.js";
@@ -53,11 +53,7 @@ app.addContentTypeParser<Buffer>("application/json", { parseAs: "buffer" }, (req
 // Must be registered before any route using requireAuth or reading/setting cookies.
 await app.register(authPlugin);
 
-await app.register(cors, {
-  origin: [process.env["WEB_ORIGIN"] ?? "http://localhost:3000"],
-  methods: ["GET", "POST"],
-  credentials: true,
-});
+await registerCors(app);
 
 const redisClient = new Redis(process.env["REDIS_URL"] ?? "redis://localhost:6379");
 
