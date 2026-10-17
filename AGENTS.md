@@ -25,4 +25,4 @@ If secrets appear in a zip or chat, treat as compromised and rotate.
 ## Deploy
 See **DEPLOY.md** (canonical). Quick map: web → Vercel; api+worker → Fly (`fly.api.toml` / `fly.worker.toml`); Postgres → Neon + pgvector; Redis → Upstash.
 When web/api are on sibling subdomains, `COOKIE_DOMAIN=.sor7ed.com` must be set on the API.
-Uploads are local-disk today — do not assume api and worker share a filesystem on Fly.
+Production uploads require shared R2 storage for api and worker. Local-disk uploads are development-only; do not add Fly upload volumes.

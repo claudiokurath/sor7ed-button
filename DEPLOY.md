@@ -39,15 +39,17 @@ openssl rand -hex 24   # META_WEBHOOK_VERIFY_TOKEN (any long random string)
 CREATE EXTENSION IF NOT EXISTS vector;
 ```
 
-3. From this repo (with `DATABASE_URL` in env):
+3. From the repo root, put this product's `DATABASE_URL` in `.env` and load it explicitly for the migration command:
 
 ```bash
 cp .env.example .env   # fill DATABASE_URL at least
 npm install
-npm run db:migrate
+DOTENV_CONFIG_PATH="$PWD/.env" npm run db:migrate
 ```
 
 Confirm tables: `users`, `partners`, `saved_items`, `whatsapp_connection_requests`, `partner_members`.
+
+The absolute dotenv path is needed because the migration command runs in the `core` workspace. Apply `0006_save_action_delivery` before deploying the updated API; `/health` checks database connectivity, not migration readiness.
 
 ---
 
@@ -109,17 +111,14 @@ fly certs show api.sor7ed.com -a sor7ed-button-api
 ```bash
 fly apps create sor7ed-button-worker
 
-# Same secrets as API (worker needs DB, Redis, Meta, OpenAI, BASE_URL, API_BASE_URL)
+# Worker needs DB, Redis, Meta sending, shared R2 and public origins.
 fly secrets set -a sor7ed-button-worker \
   DATABASE_URL="postgres://…" \
   REDIS_URL="rediss://…" \
-  JWT_SECRET="…" \
   BASE_URL="https://sor7ed.com" \
   API_BASE_URL="https://api.sor7ed.com" \
   META_WHATSAPP_TOKEN="…" \
   META_WHATSAPP_PHONE_ID="…" \
-  META_APP_SECRET="…" \
-  META_WHATSAPP_DISPLAY_NUMBER="447…" \
   OPENAI_API_KEY="sk-…" \
   R2_BUCKET="sor7ed-uploads" \
   R2_ACCOUNT_ID="…" \
@@ -146,7 +145,7 @@ npx wrangler r2 bucket create sor7ed-uploads
 # Create an R2 API token (Account → R2 → Manage API Tokens) for R2_ACCESS_KEY_ID / R2_SECRET_ACCESS_KEY.
 ```
 
-Local development does **not** need R2 — if `R2_BUCKET` is unset, `storage.ts` falls back to writing under `core/uploads/` (dev-only; this fallback is disabled outside `NODE_ENV=production` checks failing, i.e. it throws instead of silently degrading in prod).
+Set all five `R2_*` variables in both processes, using the same bucket and public URL. No upload volume is needed. Local development does **not** need R2 — if `R2_BUCKET` is unset, `storage.ts` writes under repository-root `uploads/`; production rejects this fallback.
 
 ---
 
@@ -286,6 +285,11 @@ META_APP_SECRET
 META_WHATSAPP_DISPLAY_NUMBER
 GOOGLE_CLIENT_ID
 GOOGLE_CLIENT_SECRET
+R2_BUCKET
+R2_ACCOUNT_ID
+R2_ACCESS_KEY_ID
+R2_SECRET_ACCESS_KEY
+R2_PUBLIC_URL
 OPENAI_API_KEY          # optional but recommended
 NODE_ENV=production     # set via fly.toml [env]
 PORT=8080               # set via fly.toml [env]
@@ -296,14 +300,16 @@ PORT=8080               # set via fly.toml [env]
 ```
 DATABASE_URL
 REDIS_URL
-JWT_SECRET
 BASE_URL=https://sor7ed.com
 API_BASE_URL=https://api.sor7ed.com
 META_WHATSAPP_TOKEN
 META_WHATSAPP_PHONE_ID
-META_APP_SECRET
-META_WHATSAPP_DISPLAY_NUMBER
-OPENAI_API_KEY
+R2_BUCKET
+R2_ACCOUNT_ID
+R2_ACCESS_KEY_ID
+R2_SECRET_ACCESS_KEY
+R2_PUBLIC_URL
+OPENAI_API_KEY          # optional but recommended
 NODE_ENV=production
 ```
 
@@ -336,11 +342,14 @@ API_INTERNAL_URL=https://api.sor7ed.com
 cp .env.example .env   # fill real-ish values; NODE_ENV=development for looser checks
 npm install
 npm run dev:infra
-npm run db:migrate
-npm run dev:api & npm run dev:web & npm run dev:worker
+DOTENV_CONFIG_PATH="$PWD/.env" npm run db:migrate
+# Three terminals, each from the repo root:
+node --env-file=.env --import tsx --watch api/src/index.ts
+node --env-file=.env node_modules/next/dist/bin/next dev web
+node --env-file=.env --import tsx --watch worker/src/index.ts
 ```
 
-Production fail-fast (`assertRequiredEnv`) only enforces the full Meta/Google set when `NODE_ENV=production`.
+Production fail-fast (`assertRequiredEnv`) enforces role-specific Meta requirements and shared R2 storage. Google OAuth, webhook verification and session secrets are API-only.
 
 ---
 

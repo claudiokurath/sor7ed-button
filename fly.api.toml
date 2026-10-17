@@ -30,9 +30,3 @@ primary_region = "lhr"
 [[vm]]
   size = "shared-cpu-1x"
   memory = "512mb"
-
-# Persistent volume for /app/uploads (local-disk storage).
-# Create once: fly volumes create sor7ed_uploads --region lhr --size 3 -a sor7ed-button-api
-[mounts]
-  source = "sor7ed_uploads"
-  destination = "/app/uploads"
