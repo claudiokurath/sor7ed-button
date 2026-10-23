@@ -365,6 +365,22 @@ fly deploy -c fly.api.toml --app sor7ed-button-api --image <previous-image>
 
 ## Related docs
 
+### Domain ownership and legacy website links
+
+`www.planetsorted.com` serves the content website; `www.sor7ed.com` serves
+the Button product. Vercel redirects each apex domain to its corresponding www
+host. Keep these domains assigned to their separate projects.
+
+The active `web/next.config.ts` redirects known legacy website paths on both
+Button hosts to Planet Sorted, preserving the path and query parameters. These
+are temporary 307 redirects so migration corrections remain reversible. The
+Button homepage, `/demo`, `/save`, `/s`, `/dashboard`, `/widget.js`, and `/api`
+namespace remain with the Button. Do not add a catch-all redirect: it would
+break saves and partner accounts. Preview deployment hosts are unaffected.
+
+These redirects work with the current web-only Vercel project; the candidate
+multi-service configuration is not required or activated.
+
 - [README.md](./README.md) — product + local dev
 - [AGENTS.md](./AGENTS.md) — invariants for AI/humans editing code
 - `.env.example` — every variable with comments
