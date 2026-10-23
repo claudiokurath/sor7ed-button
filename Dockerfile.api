@@ -4,19 +4,20 @@
 # trying to `import { db } from "@sor7ed/core"` would follow the workspace
 # symlink and fail loading a .ts file as plain JS. Running everything
 # through tsx sidesteps that entirely: nothing ever gets compiled.
-FROM node:20-alpine
+FROM node:22-alpine
 WORKDIR /app
 
-# sharp's prebuilt Alpine binaries usually cover this already on recent
-# versions, but installing vips-dev is a cheap, defensive fallback against
-# any native-build surprises.
-RUN apk add --no-cache vips-dev
+# sharp supplies prebuilt Alpine binaries through its locked optional packages.
 
 COPY package*.json ./
 COPY api/package.json ./api/
 COPY core/package.json ./core/
 COPY types/package.json ./types/
-RUN npm ci
+COPY web/package.json ./web/
+COPY worker/package.json ./worker/
+RUN --mount=type=secret,id=proxy_ca \
+    if [ -f /run/secrets/proxy_ca ]; then export NODE_EXTRA_CA_CERTS=/run/secrets/proxy_ca; fi; \
+    npm ci
 
 COPY api ./api
 COPY core ./core

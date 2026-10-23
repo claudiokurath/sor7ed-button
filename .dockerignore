@@ -1,0 +1,15 @@
+.git
+**/node_modules
+**/.next
+**/dist
+**/.env*
+**/*.log
+**/*.tsbuildinfo
+.vercel
+.fly
+Archive
+uploads
+**/uploads
+artifacts
+secrets_for_claude.txt
+all_notion_secrets.json

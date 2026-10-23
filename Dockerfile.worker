@@ -1,14 +1,17 @@
 # See Dockerfile.api for why this runs via tsx from source rather than a
 # compiled build.
-FROM node:20-alpine
+FROM node:22-alpine
 WORKDIR /app
-RUN apk add --no-cache vips-dev
 
 COPY package*.json ./
 COPY worker/package.json ./worker/
 COPY core/package.json ./core/
 COPY types/package.json ./types/
-RUN npm ci
+COPY web/package.json ./web/
+COPY api/package.json ./api/
+RUN --mount=type=secret,id=proxy_ca \
+    if [ -f /run/secrets/proxy_ca ]; then export NODE_EXTRA_CA_CERTS=/run/secrets/proxy_ca; fi; \
+    npm ci
 
 COPY worker ./worker
 COPY core ./core
