@@ -50,6 +50,13 @@
       "when": 1791879279619,
       "tag": "0006_save_action_delivery",
       "breakpoints": true
+    },
+    {
+      "idx": 7,
+      "version": "7",
+      "when": 1792781380381,
+      "tag": "0007_lean_rate_limits",
+      "breakpoints": true
     }
   ]
 }

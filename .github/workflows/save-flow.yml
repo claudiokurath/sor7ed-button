@@ -27,6 +27,7 @@ jobs:
       SOR7ED_TEST_DATABASE_URL: postgresql://sor7ed_test:local-test-only@127.0.0.1:5432/sor7ed_save_tests
       SOR7ED_CONNECTION_TEST_DATABASE_URL: postgresql://sor7ed_test:local-test-only@127.0.0.1:5432/sor7ed_connect_tests
       SOR7ED_API_TEST_DATABASE_URL: postgresql://sor7ed_test:local-test-only@127.0.0.1:5432/sor7ed_api_tests
+      SOR7ED_LEAN_TEST_DATABASE_URL: postgresql://sor7ed_test:local-test-only@127.0.0.1:5432/sor7ed_lean_tests
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
@@ -36,5 +37,6 @@ jobs:
       - run: npm ci
       - run: node scripts/create-save-test-databases.mjs
       - run: npm test
+      - run: npm run test:lean
       - run: npm run typecheck
       - run: npm run build

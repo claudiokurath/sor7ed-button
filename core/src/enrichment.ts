@@ -15,6 +15,7 @@ import { savedItems } from "./schema.js";
 import { uploadImage } from "./storage.js";
 import { callOpenAi, generateEmbedding } from "./ai.js";
 import { safeFetch } from "./ssrf-guard.js";
+import { isLeanMode } from "./mode.js";
 
 interface OgData {
   title: string | null;
@@ -80,6 +81,7 @@ async function generateTags(title: string, description: string | null): Promise<
 }
 
 export async function enrichSavedItem(itemId: string): Promise<void> {
+  if (isLeanMode()) return;
   const [item] = await db.select().from(savedItems).where(eq(savedItems.id, itemId)).limit(1);
   if (!item) return;
 

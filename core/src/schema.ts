@@ -50,6 +50,8 @@ export const partners = pgTable("partners", {
   plan: text("plan").default("free").notNull(),
   monthlySaveLimit: integer("monthly_save_limit").default(100).notNull(),
   savesThisMonth: integer("saves_this_month").default(0).notNull(),
+  quotaPeriodStart: timestamp("quota_period_start", { withTimezone: true })
+    .default(sql`date_trunc('month', now())`).notNull(),
   // Registered hostnames (bare, lowercase, no scheme/port — e.g.
   // "example.com"), used to validate that a /api/saves request is saving
   // a URL the partner actually owns, since apiKey itself is public
@@ -58,6 +60,13 @@ export const partners = pgTable("partners", {
   allowedDomains: text("allowed_domains").array().default(sql`'{}'`).notNull(),
   createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
 });
+
+// Short-lived, hashed per-route counters shared by serverless API instances.
+export const buttonRateLimits = pgTable("button_rate_limits", {
+  keyHash: text("key_hash").primaryKey(),
+  hits: integer("hits").notNull(),
+  expiresAt: timestamp("expires_at", { withTimezone: true }).notNull(),
+}, t => [index("button_rate_limits_expiry_idx").on(t.expiresAt)]);
 
 // Defined before saved_items because saved_items references it.
 export const collections = pgTable(

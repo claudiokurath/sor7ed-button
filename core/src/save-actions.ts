@@ -2,6 +2,7 @@ import { createHash } from "node:crypto";
 import { and, eq, sql } from "drizzle-orm";
 import { db } from "./client.js";
 import { isUrlAllowedForPartner } from "./domain-check.js";
+import { isLeanMode } from "./mode.js";
 import { partners, savedItems, users, type SaveDeliveryStatus } from "./schema.js";
 
 export class SaveActionError extends Error {
@@ -103,7 +104,15 @@ export async function claimSaveAction(input: SaveActionInput) {
     // Preserve the atomic SQL quota rule. Because this runs in the same
     // transaction as the INSERT, even an insertion/commit failure cannot
     // consume quota without a corresponding saved item.
-    const quota = await tx.execute<{ id: string }>(sql`
+    const quota = await tx.execute<{ id: string }>(isLeanMode() ? sql`
+      UPDATE partners SET
+        saves_this_month = CASE WHEN quota_period_start < date_trunc('month', now())
+          THEN 1 ELSE saves_this_month + 1 END,
+        quota_period_start = date_trunc('month', now())
+      WHERE id = ${partner.id} AND monthly_save_limit > 0 AND
+        (quota_period_start < date_trunc('month', now()) OR saves_this_month < monthly_save_limit)
+      RETURNING id
+    ` : sql`
       UPDATE partners
       SET saves_this_month = saves_this_month + 1
       WHERE id = ${partner.id} AND saves_this_month < monthly_save_limit

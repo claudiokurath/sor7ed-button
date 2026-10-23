@@ -1,3 +1,4 @@
+import { isLeanMode } from "./mode.js";
 /** Fail fast on missing required env vars. Call once at process boot. */
 export function requireEnv(name: string): string {
   const value = process.env[name];
@@ -30,10 +31,12 @@ const REQUIRED_API_PRODUCTION = [
 ] as const;
 
 export function assertRequiredEnv(role: "api" | "worker" = "api"): void {
-  const required: string[] = [...REQUIRED_ALWAYS];
+  const lean = isLeanMode();
+  if (lean && role === "worker") throw new Error("Lean mode does not run a background worker");
+  const required: string[] = REQUIRED_ALWAYS.filter(key => !lean || key !== "REDIS_URL");
   if (role === "api") required.push("JWT_SECRET");
   if (process.env["NODE_ENV"] === "production") {
-    required.push(...REQUIRED_PRODUCTION);
+    required.push(...REQUIRED_PRODUCTION.filter(key => !lean || !key.startsWith("R2_")));
     if (role === "api") required.push(...REQUIRED_API_PRODUCTION);
   }
   const missing = required.filter((key) => !process.env[key]);

@@ -11,7 +11,7 @@ if (!['localhost', '127.0.0.1'].includes(url.hostname)
 const client = new pg.Client({ connectionString: raw });
 await client.connect();
 try {
-  for (const name of ['sor7ed_save_tests', 'sor7ed_connect_tests', 'sor7ed_api_tests']) {
+  for (const name of ['sor7ed_save_tests', 'sor7ed_connect_tests', 'sor7ed_api_tests', 'sor7ed_lean_tests']) {
     // Names are fixed, not supplied by a caller. These fixtures are disposable.
     await client.query(`DROP DATABASE IF EXISTS "${name}" WITH (FORCE)`);
     await client.query(`CREATE DATABASE "${name}"`);

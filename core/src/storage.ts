@@ -19,11 +19,12 @@ import fs from "node:fs/promises";
 import crypto from "node:crypto";
 import { fileURLToPath } from "node:url";
 import { S3Client, PutObjectCommand } from "@aws-sdk/client-s3";
+import { isLeanMode } from "./mode.js";
 
 const bucket = process.env["R2_BUCKET"];
 const usingR2 = Boolean(bucket);
 
-if (!usingR2 && process.env["NODE_ENV"] === "production") {
+if (!isLeanMode() && !usingR2 && process.env["NODE_ENV"] === "production") {
   // Thrown at import time, not just logged — a production boot with no
   // R2_BUCKET set is exactly the split-brain-uploads bug reappearing, and
   // failing fast here is far cheaper than debugging silently-missing
@@ -55,9 +56,10 @@ const s3 = usingR2
 // rather than process.cwd() — see the historical note this replaces above.
 // Kept only as the dev-mode fallback.
 const UPLOAD_DIR = path.join(path.dirname(fileURLToPath(import.meta.url)), "..", "..", "uploads");
-if (!usingR2) await fs.mkdir(UPLOAD_DIR, { recursive: true });
+if (!isLeanMode() && !usingR2) await fs.mkdir(UPLOAD_DIR, { recursive: true });
 
 export async function uploadImage(buffer: Buffer, mimeType: string): Promise<string> {
+  if (isLeanMode()) throw new Error("Image uploads are disabled in lean mode");
   const ext = mimeType === "image/png" ? "png" : "jpg";
   const filename = `${crypto.randomBytes(8).toString("hex")}.${ext}`;
 
@@ -97,5 +99,5 @@ export function publicUrl(filename: string): string {
 // api/src/index.ts only registers the /uploads/* static route in the
 // local-disk case — exported so it can decide that without duplicating
 // the usingR2 check.
-export const isUsingLocalDiskUploads = !usingR2;
+export const isUsingLocalDiskUploads = !isLeanMode() && !usingR2;
 export { UPLOAD_DIR };
