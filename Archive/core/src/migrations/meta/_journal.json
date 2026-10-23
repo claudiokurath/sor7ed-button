@@ -1,0 +1,55 @@
+{
+  "version": "7",
+  "dialect": "postgresql",
+  "entries": [
+    {
+      "idx": 0,
+      "version": "7",
+      "when": 1785917751429,
+      "tag": "0000_low_violations",
+      "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1785929850994,
+      "tag": "0001_orange_storm",
+      "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1788989877957,
+      "tag": "0002_add_opt_out_and_allowed_domains",
+      "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "7",
+      "when": 1789821748020,
+      "tag": "0003_add_whatsapp_message_id",
+      "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "7",
+      "when": 1789822033835,
+      "tag": "0004_add_saved_item_clicks",
+      "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "7",
+      "when": 1789855035597,
+      "tag": "0005_add_partner_invites",
+      "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "7",
+      "when": 1791879279619,
+      "tag": "0006_save_action_delivery",
+      "breakpoints": true
+    }
+  ]
+}

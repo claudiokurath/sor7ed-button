@@ -1,0 +1,5 @@
+User-agent: *
+Allow: /s/
+Allow: /widget.js
+Disallow: /dashboard
+Disallow: /save

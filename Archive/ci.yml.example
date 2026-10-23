@@ -1,0 +1,35 @@
+# GitHub Actions CI — copy to .github/workflows/ci.yml once your
+# personal access token / GitHub App has the "workflows" permission.
+# The deploy App token used to publish this repo cannot create workflow files.
+#
+#   mkdir -p .github/workflows
+#   cp ci.yml.example .github/workflows/ci.yml
+#   git add .github/workflows/ci.yml && git commit -m "ci: typecheck" && git push
+
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  typecheck:
+    name: Typecheck
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: npm
+
+      - name: Install
+        run: npm ci
+
+      - name: Typecheck all workspaces
+        run: npm run typecheck
