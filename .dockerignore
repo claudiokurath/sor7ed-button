@@ -7,6 +7,9 @@
 **/*.tsbuildinfo
 .vercel
 .fly
+.neon
+.agents
+skills-lock.json
 Archive
 uploads
 **/uploads

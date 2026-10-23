@@ -5,7 +5,8 @@ export default defineConfig({
   out: "./src/migrations",
   dialect: "postgresql",
   dbCredentials: {
-    url: process.env["DATABASE_URL"] ?? "postgres://sor7ed:sor7ed@localhost:5432/sor7ed",
+    // Neon migrations require a direct connection; runtime queries use pooling.
+    url: process.env["DATABASE_URL_UNPOOLED"] ?? process.env["DATABASE_URL"] ?? "postgres://sor7ed:sor7ed@localhost:5432/sor7ed",
   },
   verbose: true,
   strict: true,

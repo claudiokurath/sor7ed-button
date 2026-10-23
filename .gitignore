@@ -12,3 +12,7 @@ all_notion_secrets.json
 tsconfig.tsbuildinfo
 *.tsbuildinfo
 .vercel
+.neon
+# Local Neon agent guidance; not part of the deployed application.
+.agents/skills/neon*/
+skills-lock.json
