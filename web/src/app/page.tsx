@@ -42,7 +42,7 @@ export default function HomePage() {
                 Come back when you're ready.
               </p>
               <div className="s7-ctas">
-                <a className="s7-btn s7-btn--primary" href="#demo">Try the demo</a>
+                <a className="s7-btn s7-btn--primary" href="/signin">Start with WhatsApp</a>
                 <a className="s7-btn s7-btn--secondary" href="#for-websites">For website owners</a>
               </div>
             </div>

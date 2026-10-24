@@ -22,6 +22,7 @@
             <a className="s7-navlink" href="#how-it-works">How it works</a>
             <a className="s7-navlink" href="#for-websites">For websites</a>
             <a className="s7-navlink" href="#demo">Try the demo</a>
+            <a className="s7-navlink" href="/signin">Sign in</a>
             <a className="s7-navlink s7-navlink--muted" href="https://www.planetsorted.com" rel="noopener">Planet Sorted ↗</a>
           </nav>
         </div>
@@ -33,7 +34,7 @@
     const items = [
       { n: '01', h: 'Find something worth keeping.', p: 'An article, a video, a guide: anything useful on a website that has the Button.' },
       { n: '02', h: 'Press Sorted on a participating website.', p: 'Look for the tangle mark. The first time, a small window lets you sign in with WhatsApp.' },
-      { n: '03', h: 'Receive the link in your WhatsApp thread once connected.', p: 'When live saving is available, SOR7ED asks WhatsApp to send the card. The Button distinguishes an accepted send from a pending, failed, not-sent or unconfirmed request. Acceptance does not confirm arrival on your phone.' },
+      { n: '03', h: 'Receive the link in your WhatsApp thread once connected.', p: 'SOR7ED asks WhatsApp to send the card. The Button distinguishes an accepted send from a pending, failed, not-sent or unconfirmed request. Acceptance does not confirm arrival on your phone.' },
     ];
     return (
       <section id="how-it-works" className="s7-section" aria-labelledby="how-title">
@@ -53,7 +54,7 @@
             First time only: open WhatsApp and send the prepared sign-in message. Enter the
             six-digit reply in the save window to verify your number. No Google account needed.
           </p>
-          <p className="s7-note">Live saving is not switched on yet. The demo above is a simulation.</p>
+          <p className="s7-note">The demo above is a simulation. <a href="/signin">Sign in with WhatsApp</a> to save pages to your own account.</p>
         </div>
       </section>
     );
@@ -70,6 +71,16 @@
             conversations, so useful things stay easy to return to, with no other app to install
             or manage.
           </p>
+          <h3 className="s7-h3" id="extension">Save from other websites</h3>
+          <p className="s7-prose">The desktop extension preview lets you choose a page in Chrome or Edge and open its SOR7ED save window. You review the page before sending. It does not continuously read your browsing history.</p>
+          <p className="s7-prose"><a href="/downloads/send-to-sorted-extension.zip" download>Download the extension preview (ZIP)</a></p>
+          <ol className="s7-facts">
+            <li>Extract the ZIP into a folder.</li>
+            <li>Open your browser's Extensions settings and enable Developer mode.</li>
+            <li>Choose Load unpacked, then select the extracted folder.</li>
+            <li>Open a web page and choose Save with Sorted from the extension or right-click menu.</li>
+          </ol>
+          <p className="s7-note">Preview version 0.1.0 for desktop Chrome and Edge. This is an unpacked test build, not a browser-store release. Sign in once at sor7ed.com; no Google account is required.</p>
         </div>
       </section>
     );
@@ -111,7 +122,7 @@
   const FAQ = [
     { q: 'How does WhatsApp get connected?', a: 'The first time, send the prepared sign-in message in WhatsApp and enter the six-digit reply in the save window. It expires after ten minutes and locks after five wrong codes. On phones the save flow uses the current tab; desktop browsers use a small window when allowed.' },
     { q: 'What gets saved?', a: 'The address, title, description and preview image that the website provides for the page you pressed Sorted on, linked to your account.' },
-    { q: 'Which websites take part?', a: 'Only websites whose owners have added the Button. It does not appear anywhere else. A browser extension is planned but not available.' },
+    { q: 'Which websites take part?', a: 'Website owners can add the Button to their pages. The optional desktop extension preview also lets you choose pages on other websites, without requiring the publisher to add a button. Some restricted or private pages only provide their address, so a preview image may be unavailable.' },
     { q: 'What happens to my data?', a: 'The privacy summary below explains the main points. The footer links to the Button privacy policy for details about saved links, WhatsApp, service providers and your rights.' },
     { q: 'What is the difference between the demo and live saving?', a: 'The demo on this page runs in your browser. It sends nothing, saves nothing and contacts no service. Live saving signs you in, connects WhatsApp and asks WhatsApp to send the card. WhatsApp accepting a message is not proof it arrived, so the Button also shows when sending is pending, failed, not sent or unconfirmed. If the conversation has become inactive, you may need to reopen it before a message can be sent.' },
   ];
@@ -142,7 +153,7 @@
           <p className="s7-eyebrow">Privacy</p>
           <h2 id="privacy-title" className="s7-h2">Privacy summary</h2>
           <ul className="s7-facts">
-            <li>Google sign-in identifies your account using your email address and Google ID.</li>
+            <li>WhatsApp sign-in verifies your number using a single-use code. If Google sign-in is enabled, it also provides your email address and Google ID.</li>
             <li>WhatsApp (Meta's WhatsApp Cloud API) connects your number and sends the card. Sending the connection message shares your number with SOR7ED.</li>
             <li>Saved items keep the page address, title, description and image link against your account, together with the send status and any WhatsApp message ID returned.</li>
             <li>SOR7ED keeps your WhatsApp opt-out status and the time of your last message to determine whether the conversation is active.</li>
@@ -167,6 +178,7 @@
             <a href="#demo">Try the demo</a>
             <a href="#for-websites">For website owners</a>
             <a href="#how-it-works">How it works</a>
+            <a href="/account">Your account</a>
             <a href="#privacy">Privacy summary</a>
             <a href="/privacy-policy">Privacy policy</a>
             <a href="https://www.planetsorted.com" rel="noopener">Planet Sorted: neurodivergent support and content ↗</a>
