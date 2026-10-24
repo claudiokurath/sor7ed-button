@@ -2,6 +2,7 @@
 
 import { useSearchParams } from "next/navigation";
 import { Suspense, useState, useEffect } from "react";
+import { widgetReturnUrl } from "../../../lib/widget-return";
 
 type Stage = "INTRO" | "SAVING" | "SAVED";
 
@@ -33,15 +34,17 @@ function DemoFlow() {
   const host = fmtHost(url);
   const flowId = params.get("flowId");
   const openerOrigin = params.get("openerOrigin");
+  const returnTo = widgetReturnUrl(params.get("returnTo"), openerOrigin);
+  const sameTab = params.get("navigation") === "redirect";
 
   const [stage, setStage] = useState<Stage>("INTRO");
   const [isPopup, setIsPopup] = useState(false);
   const [ready, setReady] = useState(false);
 
   useEffect(() => {
-    setIsPopup(Boolean(window.opener));
+    setIsPopup(!sameTab && Boolean(window.opener));
     setReady(true);
-  }, []);
+  }, [sameTab]);
 
   function runDemoSave() {
     if (stage !== "INTRO") return;
@@ -54,12 +57,12 @@ function DemoFlow() {
       try {
         const origin = new URL(openerOrigin ?? "");
         if (origin.origin === openerOrigin && (origin.protocol === "http:" || origin.protocol === "https:") && flowId && /^[A-Za-z0-9_-]{16,100}$/.test(flowId)) {
-          window.opener?.postMessage({ source: "sor7ed-widget", type: "saved", flowId, demo: true, deliveryStatus: "accepted" }, origin.origin);
+          if (!sameTab) window.opener?.postMessage({ source: "sor7ed-widget", type: "saved", flowId, demo: true, deliveryStatus: "accepted" }, origin.origin);
         }
       } catch {
         // A blocked or absent opener does not affect the simulation.
       }
-      if (window.opener) setTimeout(() => window.close(), AUTO_CLOSE_MS);
+      if (!sameTab && window.opener) setTimeout(() => window.close(), AUTO_CLOSE_MS);
     }, 900);
   }
 
@@ -98,7 +101,7 @@ function DemoFlow() {
             Simulate: Save to WhatsApp
           </button>
           <p style={{ color: "#999", fontSize: 12, marginTop: 16, textAlign: "center", lineHeight: 1.5 }}>
-            In the real product this step is Google sign-in + a one-tap WhatsApp connect. Skipped
+            In the real product you verify your number through WhatsApp. Skipped
             here so you can see the end result immediately.
           </p>
         </div>
@@ -122,8 +125,7 @@ function DemoFlow() {
               <div style={{ padding: "10px 12px" }}>
                 <div style={{ fontSize: 13, fontWeight: 700, color: "#111", marginBottom: 3 }}>{title}</div>
                 <div style={{ fontSize: 12, color: "#555", marginBottom: 6, lineHeight: 1.4 }}>
-                  Saved from {host} — I&apos;ll remind you if you ask, and you can search everything
-                  you&apos;ve saved anytime.
+                  Saved from {host}. This card is a simulation, not a delivered message.
                 </div>
                 <div style={{ fontSize: 11, color: "#25D366", wordBreak: "break-all" }}>sor7ed.com/s/abc123def456</div>
                 <div style={{ fontSize: 10, color: "#999", textAlign: "right", marginTop: 6 }}>12:34 PM ✓✓</div>
@@ -132,9 +134,7 @@ function DemoFlow() {
           </div>
 
           <p style={{ color: "#666", fontSize: 13, marginTop: 16, textAlign: "center", lineHeight: 1.6 }}>
-            Visitors can then text <strong>LIBRARY</strong> to see everything they&apos;ve saved,{" "}
-            <strong>REMIND tomorrow</strong> to get nudged about this specific item, or search by
-            keyword — all inside the same WhatsApp chat.
+            The live service can keep saved links in your WhatsApp thread. Lean mode has no scheduled reminders. This demo sends nothing.
           </p>
 
           <a
@@ -158,6 +158,7 @@ function DemoFlow() {
           {isPopup && <p style={{ color: "#999", fontSize: 12, marginTop: 12, textAlign: "center" }}>Closing this window…</p>}
         </div>
       )}
+      {returnTo && <p style={{ marginTop: 24 }}><a href={returnTo} rel="noreferrer" style={{ display: "inline-flex", alignItems: "center", minHeight: 44 }}>Back to {new URL(returnTo).hostname}</a></p>}
     </main>
   );
 }

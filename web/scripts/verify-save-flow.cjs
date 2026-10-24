@@ -138,10 +138,10 @@ async function main() {
     for (const authStatus of [401, 503]) {
       const { context, page, state } = await fixture(browser, { authStatus });
       const popup = await openPopup(page);
-      if (authStatus === 401) await popup.getByRole('button', { name: 'Continue with Google to Save' }).waitFor();
+      if (authStatus === 401) await popup.getByRole('button', { name: 'Continue with WhatsApp' }).waitFor();
       else {
         await popup.getByRole('button', { name: 'Try account check again' }).waitFor();
-        assert.equal(await popup.getByRole('button', { name: 'Continue with Google to Save' }).count(), 0);
+        assert.equal(await popup.getByRole('button', { name: 'Continue with WhatsApp' }).count(), 0);
       }
       assert.equal(state.saves.length, 0);
       assert.equal(state.connectCalls.length, 0);
@@ -189,16 +189,16 @@ async function main() {
       const direct = await context.newPage();
       const query = new URLSearchParams({ apiKey: 'fixture-publishable-key', url: `${host}/article`, title: 'OAuth title' });
       await direct.goto(`${web}/save?${query}`);
-      await direct.getByRole('button', { name: 'Continue with Google to Save' }).click();
-      await direct.getByText('OAuth fixture: no real login performed').waitFor();
-      const returnTo = new URL(state.loginUrls[0]).searchParams.get('returnTo');
+      await direct.getByRole('button', { name: 'Continue with WhatsApp' }).click();
+      await direct.waitForURL('**/signin?next=*');
+      const returnTo = new URL(new URL(direct.url()).searchParams.get('next'), web).href;
       const flowId = new URL(returnTo).searchParams.get('flowId');
       assert.match(flowId, /^[A-Za-z0-9_-]{16,100}$/);
       state.authStatus = 200;
       await direct.goto(returnTo);
       await direct.getByText('Saved — sending to WhatsApp', { exact: true }).waitFor();
-      assert.equal(state.saves[0].idempotencyKey, flowId, 'OAuth return carries the action ID');
-      console.log('PASS OAuth return preserves direct-link action identity');
+      assert.equal(state.saves[0].idempotencyKey, flowId, 'WhatsApp sign-in return carries the action ID');
+      console.log('PASS WhatsApp sign-in return preserves direct-link action identity');
       await context.close();
     }
 

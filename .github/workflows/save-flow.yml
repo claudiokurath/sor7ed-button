@@ -39,5 +39,6 @@ jobs:
       - run: npm test
       - run: npm run test:lean
       - run: npm run test:extension
+      - run: npm run test:widget
       - run: npm run typecheck
       - run: npm run build

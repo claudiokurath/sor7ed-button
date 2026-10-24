@@ -45,7 +45,7 @@
       "font-family:'JetBrains Mono',ui-monospace,'SFMono-Regular',Menlo,monospace;",
       "}",
       ".s7-widget__label{font-size:11px;letter-spacing:0.1em;text-transform:uppercase;",
-      "white-space:nowrap;color:color-mix(in oklab,var(--s7-muted),var(--s7-accent) calc(var(--s7-td)*100%));",
+      "white-space:nowrap;color:var(--s7-muted);color:color-mix(in oklab,var(--s7-muted),var(--s7-accent) calc(var(--s7-td)*100%));",
       "transition:color 0.32s var(--s7-ease);}",
       ".s7-widget__label--lead{text-align:right;}",
       ".s7-widget__btn{appearance:none;width:calc(var(--s7-mark) + 16px);height:calc(var(--s7-mark) + 16px);",
@@ -68,6 +68,7 @@
       ".s7-widget .s7-widget__btn,.s7-widget .s7-widget__label{transition:none;}",
       ".s7-widget .s7-widget__mark:hover,.s7-widget .s7-widget__btn:active{transform:none;}}"
     ].join("");
+    if (WIDGET_SCRIPT && WIDGET_SCRIPT.nonce) style.nonce = WIDGET_SCRIPT.nonce;
     document.head.appendChild(style);
   }
 
@@ -121,12 +122,13 @@
   }
 
   function buildSaveUrl(partnerMeta, pageMeta, flowId) {
-    var p = new URLSearchParams({ apiKey: partnerMeta.apiKey || "", url: pageMeta.url, title: pageMeta.title, description: pageMeta.description, image: pageMeta.image, flowId: flowId, openerOrigin: window.location.origin });
+    var p = new URLSearchParams({ apiKey: partnerMeta.apiKey || "", url: pageMeta.url, title: pageMeta.title, description: pageMeta.description, image: pageMeta.image, flowId: flowId, openerOrigin: window.location.origin, returnTo: window.location.href });
     return BASE + (partnerMeta.isDemo ? "/save/demo?" : "/save?") + p.toString();
   }
 
   function newFlowId() {
-    if (crypto.randomUUID) return crypto.randomUUID();
+    if (typeof crypto === "undefined" || typeof crypto.getRandomValues !== "function") return null;
+    if (typeof crypto.randomUUID === "function") return crypto.randomUUID();
     var bytes = new Uint8Array(16);
     crypto.getRandomValues(bytes);
     return Array.from(bytes, function (byte) { return byte.toString(16).padStart(2, "0"); }).join("");
@@ -136,13 +138,15 @@
   // tracked per-button so multiple buttons on one page don't cross-wire
   // their popups or animations.
   function attachSaveFlow(root, btn, partnerMeta, target) {
-    var state = { popup: null, pollTimer: null, messageHandler: null, flowId: null, contentKey: null };
+    var state = { popup: null, pollTimer: null, timeout: null, messageHandler: null, flowId: null, contentKey: null };
 
     function cleanup(completed) {
       if (state.pollTimer) clearInterval(state.pollTimer);
+      if (state.timeout) clearTimeout(state.timeout);
       if (state.messageHandler) window.removeEventListener("message", state.messageHandler);
       state.popup = null;
       state.pollTimer = null;
+      state.timeout = null;
       state.messageHandler = null;
       // Keep an interrupted action stable if the popup was closed before
       // confirmation. Reopening checks that action rather than charging
@@ -167,25 +171,31 @@
         state.flowId = newFlowId();
         state.contentKey = contentKey;
       }
+      if (!state.flowId) {
+        root.querySelector("[data-s7-live]").textContent = "This browser cannot start a secure save. Open this page in an up-to-date browser.";
+        root.querySelector("[data-s7-trail]").textContent = "Open in your browser";
+        return;
+      }
       var saveUrl = buildSaveUrl(partnerMeta, pageMeta, state.flowId);
+
+      // Mobile and in-app browsers use the current tab. Confirmation stays
+      // on /save, with an explicit return link rather than an opener animation.
+      function sameTab() {
+        window.location.assign(saveUrl + "&navigation=redirect");
+      }
+      if (window.matchMedia && (window.matchMedia("(max-width: 767px)").matches || window.matchMedia("(max-width: 1024px) and (pointer: coarse)").matches)) {
+        sameTab();
+        return;
+      }
 
       var w = 420, h = 640;
       var left = Math.max(0, (window.screen.width - w) / 2), top = Math.max(0, (window.screen.height - h) / 2);
-      var popup = window.open(saveUrl, "sor7ed_save_" + state.flowId, "width=" + w + ",height=" + h + ",left=" + left + ",top=" + top + ",resizable=yes");
+      var popup = null;
+      try { popup = window.open(saveUrl, "sor7ed_save_" + state.flowId, "width=" + w + ",height=" + h + ",left=" + left + ",top=" + top + ",resizable=yes"); } catch (e) { /* Use same-tab navigation below. */ }
 
-      // Popup blocked (rare on a direct click handler, but possible under
-      // aggressive blocker settings) — fall back to a plain new-tab
-      // navigation so the save flow still completes, just without the
-      // on-page confirmation animation (there's no window handle to
-      // listen on).
+      // A blocked popup uses the same reliable current-tab path as mobile.
       if (!popup) {
-        var a = document.createElement("a");
-        a.href = saveUrl;
-        a.target = "_blank";
-        a.rel = "noopener";
-        document.body.appendChild(a);
-        a.click();
-        document.body.removeChild(a);
+        sameTab();
         return;
       }
 
@@ -213,6 +223,11 @@
       state.pollTimer = setInterval(function () {
         if (state.popup && state.popup.closed) cleanup();
       }, 500);
+      state.timeout = setTimeout(function () {
+        cleanup();
+        root.querySelector("[data-s7-trail]").textContent = "Check the save window";
+        root.querySelector("[data-s7-live]").textContent = "Save confirmation timed out. Check the save window or your WhatsApp thread; no message was retried.";
+      }, 10 * 60 * 1000);
     });
   }
 

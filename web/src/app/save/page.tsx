@@ -3,6 +3,7 @@
 import { useSearchParams } from "next/navigation";
 import { Suspense, useState, useEffect, useCallback, useRef, type CSSProperties } from "react";
 import type { SaveResponse } from "@sor7ed/types";
+import { widgetReturnUrl } from "../../lib/widget-return";
 
 type Stage = "LOADING" | "PREVIEW_SIGNED_OUT" | "PREVIEW_NEEDS_WHATSAPP" | "SAVING" | "SAVED" | "ERROR";
 type ErrorAction = "session" | "save";
@@ -101,6 +102,8 @@ function SaveFlow() {
   const contentScope = JSON.stringify([apiKey, url, title, description, image ?? null]);
   const suppliedFlowId = params.get("flowId");
   const openerOrigin = params.get("openerOrigin");
+  const returnTo = widgetReturnUrl(params.get("returnTo"), openerOrigin);
+  const sameTab = params.get("navigation") === "redirect";
 
   const [stage, setStage] = useState<Stage>("LOADING");
   const [errorMsg, setErrorMsg] = useState("");
@@ -124,23 +127,23 @@ function SaveFlow() {
   const closeTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   useEffect(() => {
-    setIsPopup(Boolean(window.opener));
+    setIsPopup(!sameTab && Boolean(window.opener));
     return () => {
       if (closeTimer.current) clearTimeout(closeTimer.current);
     };
-  }, []);
+  }, [sameTab]);
 
   const recordResult = useCallback((saved: SaveResponse) => {
     resultRef.current = saved;
     setResult(saved);
     setStage("SAVED");
     setStatusError("");
-    if (actionIdRef.current) notifyOpener(saved, actionIdRef.current, openerOrigin);
+    if (!sameTab && actionIdRef.current) notifyOpener(saved, actionIdRef.current, openerOrigin);
     // Pending, failed and unconfirmed outcomes stay visible.
-    if (saved.deliveryStatus === "accepted" && window.opener && !closeTimer.current) {
+    if (!sameTab && saved.deliveryStatus === "accepted" && window.opener && !closeTimer.current) {
       closeTimer.current = setTimeout(() => window.close(), AUTO_CLOSE_MS);
     }
-  }, [openerOrigin]);
+  }, [openerOrigin, sameTab]);
 
   const performSave = useCallback((): Promise<void> => {
     if (resultRef.current) return Promise.resolve();
@@ -297,17 +300,17 @@ function SaveFlow() {
     return () => clearInterval(interval);
   }, [result?.deliveryStatus, checkDeliveryStatus]);
 
-  function handleGoogleLogin() {
+  function handleSignin() {
     const returnUrl = new URL(window.location.href);
     actionIdRef.current ??= actionIdForContent(contentScope, suppliedFlowId);
     returnUrl.searchParams.set("flowId", actionIdRef.current);
-    window.location.href = `${API_BASE}/api/auth/login?returnTo=${encodeURIComponent(returnUrl.href)}`;
+    window.location.assign(`/signin?next=${encodeURIComponent(returnUrl.pathname + returnUrl.search)}`);
   }
 
   const copy = result ? deliveryCopy(result) : null;
 
   return (
-    <main style={{ fontFamily: "system-ui,sans-serif", maxWidth: 400, margin: "0 auto", padding: 24 }}>
+    <main style={{ fontFamily: "system-ui,sans-serif", maxWidth: 400, margin: "0 auto", padding: 24, overflowWrap: "anywhere" }}>
       {image && <img src={image} alt="" style={{ width: "100%", borderRadius: 8, marginBottom: 16, objectFit: "cover", maxHeight: 200 }} />}
       <h1 style={{ fontSize: 18, margin: "0 0 8px" }}>{title}</h1>
       {description && <p style={{ color: "#555", fontSize: 14, margin: "0 0 24px" }}>{description}</p>}
@@ -327,9 +330,9 @@ function SaveFlow() {
       {stage === "PREVIEW_SIGNED_OUT" && (
         <div>
           {errorMsg && <p role="alert" style={{ color: "#b42318" }}>{errorMsg}</p>}
-          <button onClick={handleGoogleLogin} style={btnStyle("#2866c4")}>Continue with Google to Save</button>
+          <button onClick={handleSignin} style={btnStyle("#2866c4")}>Continue with WhatsApp</button>
           <p style={{ color: "#555", fontSize: 12, marginTop: 12, textAlign: "center", lineHeight: 1.5 }}>
-            Connect WhatsApp to receive this item. We use your Google email to identify your account and never post on your behalf.
+            Sign in using your WhatsApp number to receive this item. No Google account is required.
             Stop WhatsApp messages anytime by replying <strong>STOP</strong>.
           </p>
         </div>
@@ -372,6 +375,7 @@ function SaveFlow() {
           <button onClick={() => void (errorAction === "save" ? performSave() : checkSession())} style={btnStyle("#111")}>{errorAction === "save" ? "Check this save again" : "Try account check again"}</button>
         </div>
       )}
+      {returnTo && <p style={{ marginTop: 24 }}><a href={returnTo} rel="noreferrer" style={{ display: "inline-flex", alignItems: "center", minHeight: 44 }}>Back to {new URL(returnTo).hostname}</a></p>}
     </main>
   );
 }

@@ -22,6 +22,7 @@
     "db:studio": "npm run db:studio --workspace=core",
     "test:lean": "node scripts/verify-lean-mode.mjs",
     "test:extension": "node --import tsx scripts/verify-extension.mjs",
+    "test:widget": "node --import tsx scripts/verify-widget-navigation.mjs",
     "extension:package": "python3 scripts/package-extension.py"
   },
   "engines": {
