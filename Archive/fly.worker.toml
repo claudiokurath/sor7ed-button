@@ -1,0 +1,25 @@
+# Fly.io — SOR7ED BUTTON worker (no public HTTP)
+# Deploy:  fly deploy -c fly.worker.toml --app sor7ed-button-worker
+# Secrets: worker subset in DEPLOY.md (DB, Redis, Meta sending, shared R2, …)
+# First-time: fly apps create sor7ed-button-worker
+#
+# Production uploads use the same R2 bucket/public URL as the API.
+# Local-disk uploads are development-only; no Fly volume is needed.
+
+app = "sor7ed-button-worker"
+primary_region = "lhr"
+
+[build]
+  dockerfile = "Dockerfile.worker"
+
+[env]
+  NODE_ENV = "production"
+
+# No http_service — this is a background process only.
+
+[[vm]]
+  size = "shared-cpu-1x"
+  memory = "512mb"
+
+[[restart]]
+  policy = "always"

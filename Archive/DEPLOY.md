@@ -1,0 +1,386 @@
+# Deploy SOR7ED BUTTON to production
+
+**Target stack (default):**
+
+| Piece | Service | Public URL |
+|---|---|---|
+| `web` | Vercel | `https://sor7ed.com` |
+| `api` | Fly.io | `https://api.sor7ed.com` |
+| `worker` | Fly.io | (no public URL) |
+| Postgres + pgvector | Neon | (internal) |
+| Redis | Upstash | (internal) |
+
+Swap any row if you prefer Railway/Render/etc. — env names stay the same.
+
+---
+
+## 0. Before anything
+
+1. **Rotate** any Meta / Google / OpenAI / JWT secrets that ever lived in the source zip.
+2. Own DNS for `sor7ed.com` (Cloudflare or registrar).
+3. Install CLIs: `npm i -g vercel`, [flyctl](https://fly.io/docs/hands-on/install-flyctl/), `psql` optional.
+4. Accounts: Vercel, Fly.io, Neon, Upstash, Google Cloud Console, Meta Developer.
+
+Generate secrets locally:
+
+```bash
+openssl rand -hex 32   # JWT_SECRET
+openssl rand -hex 24   # META_WEBHOOK_VERIFY_TOKEN (any long random string)
+```
+
+---
+
+## 1. Neon (Postgres + pgvector)
+
+1. Create project → copy the **pooled** connection string → `DATABASE_URL`.
+2. Enable extension (SQL editor):
+
+```sql
+CREATE EXTENSION IF NOT EXISTS vector;
+```
+
+3. From the repo root, put this product's `DATABASE_URL` in `.env` and load it explicitly for the migration command:
+
+```bash
+cp .env.example .env   # fill DATABASE_URL at least
+npm install
+DOTENV_CONFIG_PATH="$PWD/.env" npm run db:migrate
+```
+
+Confirm tables: `users`, `partners`, `saved_items`, `whatsapp_connection_requests`, `partner_members`.
+
+The absolute dotenv path is needed because the migration command runs in the `core` workspace. Apply `0006_save_action_delivery` before deploying the updated API; `/health` checks database connectivity, not migration readiness.
+
+---
+
+## 2. Upstash (Redis)
+
+1. Create Redis database (region near `lhr` if possible).
+2. Copy the **Redis URL** (`rediss://…`) → `REDIS_URL`.
+
+---
+
+## 3. Fly.io — API
+
+```bash
+# once per machine
+fly auth login
+fly apps create sor7ed-button-api
+# No volume needed — uploads go to R2 (see "Uploads storage" below), not local disk.
+
+# set secrets (never commit these)
+fly secrets set -a sor7ed-button-api \
+  DATABASE_URL="postgres://…" \
+  REDIS_URL="rediss://…" \
+  JWT_SECRET="…" \
+  BASE_URL="https://sor7ed.com" \
+  API_BASE_URL="https://api.sor7ed.com" \
+  WEB_ORIGIN="https://sor7ed.com" \
+  COOKIE_DOMAIN=".sor7ed.com" \
+  META_WHATSAPP_TOKEN="…" \
+  META_WHATSAPP_PHONE_ID="…" \
+  META_WEBHOOK_VERIFY_TOKEN="…" \
+  META_APP_SECRET="…" \
+  META_WHATSAPP_DISPLAY_NUMBER="447…" \
+  GOOGLE_CLIENT_ID="….apps.googleusercontent.com" \
+  GOOGLE_CLIENT_SECRET="…" \
+  OPENAI_API_KEY="sk-…" \
+  R2_BUCKET="sor7ed-uploads" \
+  R2_ACCOUNT_ID="…" \
+  R2_ACCESS_KEY_ID="…" \
+  R2_SECRET_ACCESS_KEY="…" \
+  R2_PUBLIC_URL="https://uploads.sor7ed.com"
+
+fly deploy -c fly.api.toml --app sor7ed-button-api
+```
+
+Health check: `curl https://sor7ed-button-api.fly.dev/health` → `{"status":"ok","database":"ok","redis":"ok"}`. Returns HTTP 503 with `"status":"degraded"` if either dependency is unreachable — this endpoint pings both for real, it does not just return a static "ok".
+
+### Custom domain `api.sor7ed.com`
+
+```bash
+fly certs add api.sor7ed.com -a sor7ed-button-api
+# Add the DNS records Fly prints (CNAME or AAAA) at your DNS host
+fly certs show api.sor7ed.com -a sor7ed-button-api
+```
+
+---
+
+## 4. Fly.io — worker
+
+```bash
+fly apps create sor7ed-button-worker
+
+# Worker needs DB, Redis, Meta sending, shared R2 and public origins.
+fly secrets set -a sor7ed-button-worker \
+  DATABASE_URL="postgres://…" \
+  REDIS_URL="rediss://…" \
+  BASE_URL="https://sor7ed.com" \
+  API_BASE_URL="https://api.sor7ed.com" \
+  META_WHATSAPP_TOKEN="…" \
+  META_WHATSAPP_PHONE_ID="…" \
+  OPENAI_API_KEY="sk-…" \
+  R2_BUCKET="sor7ed-uploads" \
+  R2_ACCOUNT_ID="…" \
+  R2_ACCESS_KEY_ID="…" \
+  R2_SECRET_ACCESS_KEY="…" \
+  R2_PUBLIC_URL="https://uploads.sor7ed.com"
+
+fly deploy -c fly.worker.toml --app sor7ed-button-worker
+fly logs -a sor7ed-button-worker
+# expect: "SOR7ED BUTTON worker running (enrichment + reminders + monthly reset)"
+```
+
+### Uploads storage (Cloudflare R2)
+
+`core/src/storage.ts` uploads images to **Cloudflare R2** (S3-compatible) in production, and refuses to boot with `NODE_ENV=production` unless `R2_BUCKET` is set. This is required because api and worker are separate Fly apps with separate disks — a previous local-disk-only implementation silently lost images written by the worker (enrichment) since the api process (which serves `/uploads/*`) never saw them.
+
+Setup:
+
+```bash
+# Create the bucket once, in the Cloudflare dashboard or via wrangler:
+npx wrangler r2 bucket create sor7ed-uploads
+# Enable public access on the bucket (or front it with a custom domain / Worker),
+# then set R2_PUBLIC_URL to that public base URL.
+# Create an R2 API token (Account → R2 → Manage API Tokens) for R2_ACCESS_KEY_ID / R2_SECRET_ACCESS_KEY.
+```
+
+Set all five `R2_*` variables in both processes, using the same bucket and public URL. No upload volume is needed. Local development does **not** need R2 — if `R2_BUCKET` is unset, `storage.ts` writes under repository-root `uploads/`; production rejects this fallback.
+
+---
+
+## 5. Vercel — web
+
+```bash
+cd web
+vercel link          # create / link project
+```
+
+### Project settings (Vercel dashboard or `vercel` prompts)
+
+- **Root Directory:** `web`
+- **Framework:** Next.js
+- **Install Command:** from monorepo root is trickier — simplest path:
+
+**Option A (recommended):** deploy from monorepo root with:
+
+```
+Install Command:  npm install
+Build Command:    npm run build --workspace=web
+Output Directory: web/.next
+Root Directory:   .   (repo root)
+```
+
+Or use Vercel’s monorepo “Root Directory = `web`” and add `web` install that can resolve `@sor7ed/types`:
+
+Because `web` only depends on `@sor7ed/types` (plain TS, no build), Root Directory = `web` works if you also include types via:
+
+```
+# vercel project Root Directory = web
+# Install: cd ../ && npm install --workspace=web --workspace=types
+```
+
+**Simplest proven path for this repo:**
+
+1. Vercel → New Project → import `claudiokurath/sor7ed-button`
+2. Root Directory: **`web`**
+3. Environment variables (Production):
+
+| Name | Value |
+|---|---|
+| `NEXT_PUBLIC_API_BASE_URL` | `https://api.sor7ed.com` |
+| `NEXT_PUBLIC_WEB_ORIGIN` | `https://sor7ed.com` |
+| `NEXT_PUBLIC_WEB_BASE_URL` | `https://sor7ed.com` |
+| `API_INTERNAL_URL` | `https://api.sor7ed.com` |
+
+4. Deploy. Then add domain `sor7ed.com` + `www` in Vercel → Domains.
+
+`widget.js` is served from `web/public/widget.js` → `https://sor7ed.com/widget.js`.
+
+---
+
+## 6. Google OAuth
+
+[Google Cloud Console](https://console.cloud.google.com/) → APIs & Services → Credentials → OAuth 2.0 Client (Web):
+
+**Authorized JavaScript origins**
+
+- `https://sor7ed.com`
+- `https://api.sor7ed.com`
+
+**Authorized redirect URIs**
+
+- `https://api.sor7ed.com/api/auth/google/callback`
+
+Client ID → `GOOGLE_CLIENT_ID`  
+Client secret → `GOOGLE_CLIENT_SECRET` (Fly api secrets)
+
+---
+
+## 7. Meta WhatsApp Cloud API
+
+1. Meta Developer App → WhatsApp → API Setup → copy **Token** + **Phone number ID**.
+2. **Display number** (E.164, no `+`) → `META_WHATSAPP_DISPLAY_NUMBER`.
+3. App → Settings → Basic → **App Secret** → `META_APP_SECRET`.
+4. WhatsApp → Configuration → Webhook:
+
+| Field | Value |
+|---|---|
+| Callback URL | `https://api.sor7ed.com/webhook/whatsapp` |
+| Verify token | same as `META_WEBHOOK_VERIFY_TOKEN` |
+| Subscribe | `messages` |
+
+5. **Message templates** (Business Manager, language `en_GB`):
+
+### `sor7ed_saved_card`
+
+- Header: **IMAGE**
+- Body: something like  
+  `Saved from {{1}}\n\n*{{2}}*`  
+  ({{1}} = partner name, {{2}} = title — match `core/src/whatsapp/service.ts`)
+- Button: **Visit website** → dynamic URL path `s/{{1}}`  
+  Base URL in template config must be `https://sor7ed.com/`  
+  (full link becomes `https://sor7ed.com/s/<shortId>`)
+
+### `sor7ed_reminder`
+
+- Body: title + url placeholders matching `service.ts` reminder send
+
+After approval, test outside the 24h window (or use a fresh number).
+
+---
+
+## 8. DNS checklist
+
+| Host | Type | Target |
+|---|---|---|
+| `sor7ed.com` / `www` | per Vercel | Vercel |
+| `api.sor7ed.com` | CNAME/AAAA | per `fly certs` |
+
+Wait for TLS on both. Then:
+
+```bash
+curl -sS https://api.sor7ed.com/health
+curl -sSI https://sor7ed.com/widget.js | head -5
+```
+
+---
+
+## 9. Env matrix (copy-paste)
+
+### Fly `sor7ed-button-api`
+
+```
+DATABASE_URL
+REDIS_URL
+JWT_SECRET
+BASE_URL=https://sor7ed.com
+API_BASE_URL=https://api.sor7ed.com
+WEB_ORIGIN=https://sor7ed.com
+COOKIE_DOMAIN=.sor7ed.com
+META_WHATSAPP_TOKEN
+META_WHATSAPP_PHONE_ID
+META_WEBHOOK_VERIFY_TOKEN
+META_APP_SECRET
+META_WHATSAPP_DISPLAY_NUMBER
+GOOGLE_CLIENT_ID
+GOOGLE_CLIENT_SECRET
+R2_BUCKET
+R2_ACCOUNT_ID
+R2_ACCESS_KEY_ID
+R2_SECRET_ACCESS_KEY
+R2_PUBLIC_URL
+OPENAI_API_KEY          # optional but recommended
+NODE_ENV=production     # set via fly.toml [env]
+PORT=8080               # set via fly.toml [env]
+```
+
+### Fly `sor7ed-button-worker`
+
+```
+DATABASE_URL
+REDIS_URL
+BASE_URL=https://sor7ed.com
+API_BASE_URL=https://api.sor7ed.com
+META_WHATSAPP_TOKEN
+META_WHATSAPP_PHONE_ID
+R2_BUCKET
+R2_ACCOUNT_ID
+R2_ACCESS_KEY_ID
+R2_SECRET_ACCESS_KEY
+R2_PUBLIC_URL
+OPENAI_API_KEY          # optional but recommended
+NODE_ENV=production
+```
+
+### Vercel `web`
+
+```
+NEXT_PUBLIC_API_BASE_URL=https://api.sor7ed.com
+NEXT_PUBLIC_WEB_ORIGIN=https://sor7ed.com
+NEXT_PUBLIC_WEB_BASE_URL=https://sor7ed.com
+API_INTERNAL_URL=https://api.sor7ed.com
+```
+
+---
+
+## 10. Go-live smoke test
+
+1. Open `https://sor7ed.com/dashboard` → Google login → lands back signed in.
+2. Create partner → copy embed snippet.
+3. Paste on a test HTML page (or use dashboard setup).
+4. Click **Save to WhatsApp** → CONNECT flow → message arrives.
+5. Confirm `https://sor7ed.com/s/<shortId>` shows OG for WhatsApp crawler (`curl -A WhatsApp …`).
+6. Text reply: text `LIBRARY` to the business number.
+7. Fly logs: `fly logs -a sor7ed-button-api` / `…-worker` — no boot crashes on missing env.
+
+---
+
+## 11. Local prod-like check (optional)
+
+```bash
+cp .env.example .env   # fill real-ish values; NODE_ENV=development for looser checks
+npm install
+npm run dev:infra
+DOTENV_CONFIG_PATH="$PWD/.env" npm run db:migrate
+# Three terminals, each from the repo root:
+node --env-file=.env --import tsx --watch api/src/index.ts
+node --env-file=.env node_modules/next/dist/bin/next dev web
+node --env-file=.env --import tsx --watch worker/src/index.ts
+```
+
+Production fail-fast (`assertRequiredEnv`) enforces role-specific Meta requirements and shared R2 storage. Google OAuth, webhook verification and session secrets are API-only.
+
+---
+
+## 12. Rollback
+
+```bash
+fly releases -a sor7ed-button-api
+fly deploy -c fly.api.toml --app sor7ed-button-api --image <previous-image>
+# Vercel: Promote previous deployment in dashboard
+```
+
+---
+
+## Related docs
+
+### Domain ownership and legacy website links
+
+`www.planetsorted.com` serves the content website; `www.sor7ed.com` serves
+the Button product. Vercel redirects each apex domain to its corresponding www
+host. Keep these domains assigned to their separate projects.
+
+The active `web/next.config.ts` redirects known legacy website paths on both
+Button hosts to Planet Sorted, preserving the path and query parameters. These
+are temporary 307 redirects so migration corrections remain reversible. The
+Button homepage, `/demo`, `/save`, `/s`, `/dashboard`, `/widget.js`, and `/api`
+namespace remain with the Button. Do not add a catch-all redirect: it would
+break saves and partner accounts. Preview deployment hosts are unaffected.
+
+These redirects work with the current web-only Vercel project; the candidate
+multi-service configuration is not required or activated.
+
+- [README.md](./README.md) — product + local dev
+- [AGENTS.md](./AGENTS.md) — invariants for AI/humans editing code
+- `.env.example` — every variable with comments
