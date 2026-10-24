@@ -1,5 +1,6 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { sendText, WhatsAppSendError } from './client.js';
+import { verifyRelay } from '../relay-auth.js';
 
 describe('WhatsApp provider request outcome', () => {
   const request = vi.fn();
@@ -43,5 +44,18 @@ describe('WhatsApp provider request outcome', () => {
   it('malformed success response remains uncertain', async () => {
     request.mockResolvedValue(new Response('not json', { status: 200 }));
     await expect(sendText('440000000000', 'Example')).rejects.toMatchObject({ outcome: 'unknown' });
+  });
+  it('relay mode signs the text request without copying Meta credentials', async () => {
+    vi.stubEnv('WHATSAPP_TRANSPORT', 'relay');
+    vi.stubEnv('WHATSAPP_RELAY_URL', 'https://www.planetsorted.com/api/button/whatsapp');
+    vi.stubEnv('WHATSAPP_RELAY_SECRET', 'fixture-secret');
+    vi.stubEnv('META_WHATSAPP_TOKEN', undefined); vi.stubEnv('META_WHATSAPP_PHONE_ID', undefined);
+    request.mockResolvedValue(Response.json({ messages: [{ id: 'wamid.relay' }] }));
+    expect(await sendText('440000000000', 'Example')).toBe('wamid.relay');
+    const [url, options] = request.mock.calls[0]!;
+    expect(url).toBe('https://www.planetsorted.com/api/button/whatsapp');
+    expect(options.headers.Authorization).toBeUndefined();
+    expect(verifyRelay('fixture-secret', 'outbound', options.headers['x-sor7ed-ts'], options.headers['x-sor7ed-id'], options.body, options.headers['x-sor7ed-signature'])).toBe(true);
+    expect(request).toHaveBeenCalledTimes(1);
   });
 });

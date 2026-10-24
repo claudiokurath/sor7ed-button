@@ -2,6 +2,8 @@
 // session-window compliance and message formatting live in service.ts.
 // Meta expects the "to" field as E.164 without a leading "+" (e.g.
 // "447700900123", not "+447700900123") — this is a common gotcha.
+import { randomUUID } from 'node:crypto';
+import { relaySignature } from '../relay-auth.js';
 
 const META_API_VERSION = "v21.0"; // check Meta's changelog periodically; this drifts over time
 
@@ -31,19 +33,32 @@ interface MetaSendResponse {
 }
 
 async function callMetaApi(body: unknown): Promise<MetaSendResponse> {
-  const phoneId = requireEnv("META_WHATSAPP_PHONE_ID");
-  const token = requireEnv("META_WHATSAPP_TOKEN");
+  const relay = process.env['WHATSAPP_TRANSPORT'] === 'relay';
+  let endpoint: string;
+  let headers: Record<string, string>;
+  const encoded = JSON.stringify(body);
+  if (relay) {
+    endpoint = requireEnv('WHATSAPP_RELAY_URL');
+    const target = new URL(endpoint);
+    if (target.protocol !== 'https:' || target.hostname !== 'www.planetsorted.com' || target.pathname !== '/api/button/whatsapp') throw new WhatsAppSendError('WhatsApp relay is not configured correctly.', 'failed');
+    const secret = requireEnv('WHATSAPP_RELAY_SECRET');
+    const timestamp = String(Date.now()), id = randomUUID();
+    headers = { 'Content-Type': 'application/json', 'x-sor7ed-ts': timestamp, 'x-sor7ed-id': id, 'x-sor7ed-signature': relaySignature(secret, 'outbound', timestamp, id, encoded) };
+  } else {
+    const phoneId = requireEnv("META_WHATSAPP_PHONE_ID");
+    const token = requireEnv("META_WHATSAPP_TOKEN");
+    endpoint = `https://graph.facebook.com/${META_API_VERSION}/${phoneId}/messages`;
+    headers = { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' };
+  }
 
   let res: Response;
   try {
-    res = await fetch(`https://graph.facebook.com/${META_API_VERSION}/${phoneId}/messages`, {
+    res = await fetch(endpoint, {
       method: "POST",
-      headers: {
-        Authorization: `Bearer ${token}`,
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify(body),
-      signal: AbortSignal.timeout(15_000),
+      headers,
+      body: encoded,
+      redirect: 'error',
+      signal: AbortSignal.timeout(relay ? 25_000 : 15_000),
     });
   } catch {
     // A timeout can happen after Meta accepted a request. Do not silently

@@ -23,7 +23,13 @@ const testSecret = 'isolated-test-secret-never-use-in-production';
 const mock = createServer(async (req, res) => {
   const chunks = [];
   for await (const chunk of req) chunks.push(chunk);
-  const message = JSON.parse(Buffer.concat(chunks).toString());
+  const raw = Buffer.concat(chunks).toString();
+  const message = JSON.parse(raw);
+  if (req.url === '/relay-messages') {
+    const sig = createHmac('sha256', testSecret).update(`outbound\n${req.headers['x-sor7ed-ts']}\n${req.headers['x-sor7ed-id']}\n${raw}`).digest('hex');
+    assert.equal(req.headers['x-sor7ed-signature'], sig);
+    assert.equal(req.headers.authorization, undefined);
+  }
   outbound.push(message);
   res.setHeader('content-type', 'application/json');
   res.end(JSON.stringify(omitMessageId ? {} : { messages: [{ id: `wamid.test-${outbound.length}` }] }));
@@ -48,7 +54,7 @@ async function api(base, path, options = {}) {
   const text = await response.text();
   return { status: response.status, cookie: response.headers.get("set-cookie"), body: text ? JSON.parse(text) : null };
 }
-async function start(metaUrl, google = true) {
+async function start(metaUrl, google = true, relay = false) {
   const p = await port(); const base = `http://127.0.0.1:${p}`;
   const env = { ...process.env, NODE_ENV:'production', BUTTON_MODE:'lean', PORT:String(p),
     DATABASE_URL:databaseUrl, BASE_URL:base, API_BASE_URL:base, WEB_ORIGIN:base,
@@ -58,6 +64,11 @@ async function start(metaUrl, google = true) {
     GOOGLE_CLIENT_SECRET:'mock-only', SOR7ED_TEST_META_URL:metaUrl };
   for (const key of Object.keys(env)) if (key.startsWith('R2_') || key === 'REDIS_URL' || key === 'OPENAI_API_KEY' || key === 'VERCEL') delete env[key];
   if (!google) { delete env.GOOGLE_CLIENT_ID; delete env.GOOGLE_CLIENT_SECRET; }
+  if (relay) {
+    env.WHATSAPP_TRANSPORT = 'relay'; env.WHATSAPP_RELAY_SECRET = testSecret;
+    env.WHATSAPP_RELAY_URL = 'https://www.planetsorted.com/api/button/whatsapp';
+    delete env.META_WHATSAPP_TOKEN; delete env.META_WHATSAPP_PHONE_ID; delete env.META_APP_SECRET;
+  }
   const child = spawn(process.execPath, ['--import', './scripts/mock-meta-for-lean-tests.mjs', '--import','tsx','api/src/index.ts'], { env, stdio:['ignore','pipe','pipe'] });
   processes.push(child);
   child.stdout.on('data', b => logs.push(b.toString())); child.stderr.on('data', b => logs.push(b.toString()));
@@ -188,6 +199,42 @@ try {
   await pool.query("update button_rate_limits set expires_at=now()-interval '1 second'");
   assert.equal((await fetch(base+'/api/auth/login',{redirect:'manual'})).status,302);
   console.log('PASS: shared Postgres rate limit spans two API processes and expires correctly');
+
+  {
+  const relayBase = await start(metaUrl, false, true);
+  const relayHeaders = { 'content-type': 'application/json', origin: relayBase };
+  const challenge = await api(relayBase, '/api/signin/challenge', { method: 'POST', headers: relayHeaders, body: '{}' });
+  assert.equal(challenge.status, 200);
+  const relayPhone = '447700900124';
+  const event = JSON.stringify({ mode: 'command', message: { from: relayPhone, type: 'text', text: { body: `SIGNIN-${challenge.body.token}` } } });
+  const eventId = randomUUID(), timestamp = String(Date.now());
+  const signedHeaders = { ...relayHeaders, 'x-sor7ed-id': eventId, 'x-sor7ed-ts': timestamp, 'x-sor7ed-signature': createHmac('sha256', testSecret).update(`inbound\n${timestamp}\n${eventId}\n${event}`).digest('hex') };
+  assert.equal((await api(relayBase, '/webhook/relay', { method: 'POST', headers: relayHeaders, body: event })).status, 401);
+  const beforeRelay = outbound.length;
+  assert.equal((await api(relayBase, '/webhook/relay', { method: 'POST', headers: signedHeaders, body: event })).status, 200);
+  await eventually(() => outbound.length === beforeRelay + 1);
+  assert.equal((await api(relayBase, '/webhook/relay', { method: 'POST', headers: signedHeaders, body: event })).body.duplicate, true);
+  assert.equal(outbound.length, beforeRelay + 1);
+  const relayCode = outbound.at(-1).text.body.match(/code is (\d{6})/)[1];
+  const verifiedRelay = await api(relayBase, '/api/signin/verify', { method: 'POST', headers: relayHeaders, body: JSON.stringify({ id: challenge.body.id, token: challenge.body.token, proof: challenge.body.proof, code: relayCode }) });
+  assert.equal(verifiedRelay.status, 200);
+  const relayCookie = verifiedRelay.cookie.split(';')[0];
+  const relaySave = await api(relayBase, '/api/personal-saves', { method: 'POST', headers: { ...relayHeaders, cookie: relayCookie }, body: JSON.stringify({ url: 'https://example.org/relay', title: 'Relay fixture', idempotencyKey: randomUUID() }) });
+  assert.equal(relaySave.status, 201); assert.equal(relaySave.body.deliveryStatus, 'accepted');
+  async function sharedConsent(command) {
+    const raw = JSON.stringify({ mode: 'session', message: { from: relayPhone, type: 'text', text: { body: command } } });
+    const time = String(Date.now()), key = randomUUID();
+    return api(relayBase, '/webhook/relay', { method: 'POST', headers: { ...relayHeaders, 'x-sor7ed-ts': time, 'x-sor7ed-id': key, 'x-sor7ed-signature': createHmac('sha256', testSecret).update(`inbound\n${time}\n${key}\n${raw}`).digest('hex') }, body: raw });
+  }
+  const noExtraReplies = outbound.length;
+  await sharedConsent('STOP');
+  await eventually(async () => Boolean((await pool.query('select whatsapp_opted_out_at from users where whatsapp_number=$1', [relayPhone])).rows[0].whatsapp_opted_out_at));
+  assert.equal(outbound.length, noExtraReplies);
+  await sharedConsent('START');
+  await eventually(async () => !(await pool.query('select whatsapp_opted_out_at from users where whatsapp_number=$1', [relayPhone])).rows[0].whatsapp_opted_out_at);
+  assert.equal(outbound.length, noExtraReplies);
+  console.log('PASS: relay production boot without Meta secrets; signed sign-in and personal save; duplicate rejection and silent shared STOP/START');
+  }
 } catch (error) {
   console.error(logs.join('').slice(-7000)); throw error;
 } finally {

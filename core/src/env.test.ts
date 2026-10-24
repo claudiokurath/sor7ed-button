@@ -73,4 +73,12 @@ describe("required environment by process role", () => {
     expect(() => assertRequiredEnv("api")).not.toThrow();
     expect(() => assertRequiredEnv("worker")).toThrow("does not run a background worker");
   });
+  it('relay mode requires its own auth and keeps Meta credentials in the gateway', () => {
+    vi.stubEnv('BUTTON_MODE', 'lean'); vi.stubEnv('WHATSAPP_TRANSPORT', 'relay');
+    for (const [key, value] of Object.entries(apiEnvironment)) vi.stubEnv(key, value);
+    for (const key of ['META_WHATSAPP_TOKEN', 'META_WHATSAPP_PHONE_ID', 'META_APP_SECRET', 'GOOGLE_CLIENT_ID', 'GOOGLE_CLIENT_SECRET']) vi.stubEnv(key, undefined);
+    expect(() => assertRequiredEnv('api')).toThrow('WHATSAPP_RELAY_URL');
+    vi.stubEnv('WHATSAPP_RELAY_URL', 'https://www.planetsorted.com/api/button/whatsapp'); vi.stubEnv('WHATSAPP_RELAY_SECRET', 'fixture-secret');
+    expect(() => assertRequiredEnv('api')).not.toThrow();
+  });
 });

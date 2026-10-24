@@ -32,12 +32,15 @@ const REQUIRED_API_PRODUCTION = [
 
 export function assertRequiredEnv(role: "api" | "worker" = "api"): void {
   const lean = isLeanMode();
+  const relay = process.env['WHATSAPP_TRANSPORT'] === 'relay';
+  if (relay && !lean) throw new Error('The shared WhatsApp relay requires lean mode');
   if (lean && role === "worker") throw new Error("Lean mode does not run a background worker");
   const required: string[] = REQUIRED_ALWAYS.filter(key => !lean || key !== "REDIS_URL");
   if (role === "api") required.push("JWT_SECRET");
+  if (relay) required.push('WHATSAPP_RELAY_URL', 'WHATSAPP_RELAY_SECRET');
   if (process.env["NODE_ENV"] === "production") {
-    required.push(...REQUIRED_PRODUCTION.filter(key => !lean || !key.startsWith("R2_")));
-    if (role === "api") required.push(...REQUIRED_API_PRODUCTION.filter(key => !lean || !key.startsWith("GOOGLE_")));
+    required.push(...REQUIRED_PRODUCTION.filter(key => (!lean || !key.startsWith("R2_")) && (!relay || !key.startsWith('META_'))));
+    if (role === "api") required.push(...REQUIRED_API_PRODUCTION.filter(key => (!lean || !key.startsWith("GOOGLE_")) && (!relay || key !== 'META_APP_SECRET')));
   }
   const missing = required.filter((key) => !process.env[key]);
   if (missing.length > 0) {
