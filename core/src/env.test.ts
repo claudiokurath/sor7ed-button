@@ -66,8 +66,10 @@ describe("required environment by process role", () => {
     vi.stubEnv("BUTTON_MODE", "lean");
     vi.stubEnv("REDIS_URL", undefined);
     for (const key of Object.keys(workerEnvironment)) if (key.startsWith("R2_")) vi.stubEnv(key, undefined);
-    expect(() => assertRequiredEnv("api")).toThrow("GOOGLE_CLIENT_ID");
+    expect(() => assertRequiredEnv("api")).toThrow("META_APP_SECRET");
     for (const [key, value] of Object.entries(apiEnvironment)) vi.stubEnv(key, value);
+    vi.stubEnv("GOOGLE_CLIENT_ID", undefined);
+    vi.stubEnv("GOOGLE_CLIENT_SECRET", undefined);
     expect(() => assertRequiredEnv("api")).not.toThrow();
     expect(() => assertRequiredEnv("worker")).toThrow("does not run a background worker");
   });

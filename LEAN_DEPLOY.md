@@ -38,8 +38,8 @@ BASE_URL=https://www.sor7ed.com
 API_BASE_URL=https://api.sor7ed.com
 WEB_ORIGIN=https://www.sor7ed.com
 COOKIE_DOMAIN=.sor7ed.com
-GOOGLE_CLIENT_ID=<Button OAuth client>
-GOOGLE_CLIENT_SECRET=<Button OAuth secret>
+GOOGLE_CLIENT_ID=<optional Button OAuth client>
+GOOGLE_CLIENT_SECRET=<optional Button OAuth secret>
 META_WHATSAPP_TOKEN=<Button WhatsApp access token>
 META_WHATSAPP_PHONE_ID=<Button sending phone ID>
 META_WHATSAPP_DISPLAY_NUMBER=<international digits without plus>
@@ -78,3 +78,10 @@ Redeploy web after changing public env vars. Authentication cookies require the 
 The integration harness refuses production databases and external HTTP. It requires a disposable loopback database named sor7ed_lean_tests, via SOR7ED_LEAN_TEST_DATABASE_URL. See scripts/create-save-test-databases.mjs and CI for the complete setup.
 
 These checks do not prove real Google login or WhatsApp delivery. Final live checks require the owner's Google/Meta setup: sign in, CONNECT, click once, verify one message, repeat the click, test STOP, and test reopening a closed window. `/health` must report database ok and redis disabled. No Fly machines, Redis plan or upload service is required for this mode.
+
+## Consumer account and extension follow-up
+
+See [consumer-account-extension.md](docs/consumer-account-extension.md). That
+branch adds WhatsApp-proven sign-in without Google and requires migration 0008.
+Google credentials are optional in lean mode there; Meta credentials still
+remain necessary. The original deployment and real-device checks still apply.

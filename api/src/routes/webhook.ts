@@ -14,6 +14,7 @@ import {
   setWhatsAppOptOut,
   resolveItemFromQuotedMessage,
   isLeanMode,
+  prepareSigninCode,
 } from "@sor7ed/core";
 
 interface InboundMessage {
@@ -158,6 +159,12 @@ async function handleInboundMessage(app: FastifyInstance, message: InboundMessag
 
   // Keeps the 24h session window alive for every subsequent send.
   await updateLastInbound(from);
+
+  if (command.startsWith("SIGNIN-")) {
+    const code = await prepareSigninCode(command.slice(7), from);
+    if (code) await sendText(from, `Your Sorted sign-in code is ${code}. Enter it only in the Sorted window you opened. Never share this code. It expires in 10 minutes.`);
+    return;
+  }
 
   if (command.startsWith("CONNECT-")) {
     const token = command.slice("CONNECT-".length);

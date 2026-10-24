@@ -43,11 +43,12 @@ function cookie(user) {
   return `sor7ed_session=${header}.${payload}.${createHmac('sha256', testSecret).update(`${header}.${payload}`).digest('base64url')}`;
 }
 async function api(base, path, options = {}) {
+  if (!options.body && options.method === 'DELETE') { options.headers = { ...options.headers }; delete options.headers['content-type']; }
   const response = await fetch(base+path, { redirect: 'manual', ...options });
   const text = await response.text();
-  return { status: response.status, body: text ? JSON.parse(text) : null };
+  return { status: response.status, cookie: response.headers.get("set-cookie"), body: text ? JSON.parse(text) : null };
 }
-async function start(metaUrl) {
+async function start(metaUrl, google = true) {
   const p = await port(); const base = `http://127.0.0.1:${p}`;
   const env = { ...process.env, NODE_ENV:'production', BUTTON_MODE:'lean', PORT:String(p),
     DATABASE_URL:databaseUrl, BASE_URL:base, API_BASE_URL:base, WEB_ORIGIN:base,
@@ -56,6 +57,7 @@ async function start(metaUrl) {
     META_WHATSAPP_DISPLAY_NUMBER:'447700900123', GOOGLE_CLIENT_ID:'mock-only',
     GOOGLE_CLIENT_SECRET:'mock-only', SOR7ED_TEST_META_URL:metaUrl };
   for (const key of Object.keys(env)) if (key.startsWith('R2_') || key === 'REDIS_URL' || key === 'OPENAI_API_KEY' || key === 'VERCEL') delete env[key];
+  if (!google) { delete env.GOOGLE_CLIENT_ID; delete env.GOOGLE_CLIENT_SECRET; }
   const child = spawn(process.execPath, ['--import', './scripts/mock-meta-for-lean-tests.mjs', '--import','tsx','api/src/index.ts'], { env, stdio:['ignore','pipe','pipe'] });
   processes.push(child);
   child.stdout.on('data', b => logs.push(b.toString())); child.stderr.on('data', b => logs.push(b.toString()));
@@ -121,7 +123,65 @@ try {
   assert.equal(race.filter(r=>r.status===201).length,5); assert.equal(race.filter(r=>r.status===429).length,7);
   assert.equal((await pool.query('select saves_this_month from partners where id=$1',[partner])).rows[0].saves_this_month,5);
   console.log('PASS: lazy monthly reset and concurrent quota limit remain atomic without a scheduler');
-  const second = await start(metaUrl);
+  // Browser proof + code possession are both required; no phone enumeration.
+  const consumerHeaders = { ...headers, origin: base };
+  const post = (path,data,override=consumerHeaders) => api(base,path,{method:'POST',headers:override,body:JSON.stringify(data)});
+  assert.equal((await post('/api/signin/challenge',{}, {...consumerHeaders,origin:'https://attacker.invalid'})).status,403);
+  const challenge=await post('/api/signin/challenge',{});assert.equal(challenge.status,200);
+  const beforeSignin=outbound.length;
+  await inbound(`SIGNIN-${challenge.body.token}`);
+  await eventually(()=>outbound.length>beforeSignin);
+  const code=outbound.at(-1).text.body.match(/code is (\d{6})/)[1];
+  const proof=challenge.body.proof, token=challenge.body.token, id=challenge.body.id;
+  assert.equal((await post('/api/signin/verify',{id,proof:'0'.repeat(64),token,code})).status,401);
+  await inbound(`SIGNIN-${token}`);await sleep(200);assert.equal(outbound.length,beforeSignin+1);
+  const signedIn=await post('/api/signin/verify',{id,proof,token,code});assert.equal(signedIn.status,200);assert(signedIn.cookie.includes('HttpOnly'));assert(signedIn.cookie.includes('Secure'));assert.equal((await api(base,'/api/account',{headers:{cookie:signedIn.cookie.split(';')[0]}})).status,200);
+  assert.equal((await post('/api/signin/verify',{id,proof,token,code})).status,401);
+  const locked=await post('/api/signin/challenge',{});const b=locked.body;
+  await inbound(`SIGNIN-${b.token}`);await eventually(()=>outbound.length>beforeSignin+1);
+  const real=outbound.at(-1).text.body.match(/code is (\d{6})/)[1];const wrong=real==='000000'?'111111':'000000';
+  for(let i=0;i<5;i++)assert.equal((await post('/api/signin/verify',{id:b.id,token:b.token,proof:b.proof,code:wrong})).status,401);
+  assert.equal((await post('/api/signin/verify',{id:b.id,token:b.token,proof:b.proof,code:real})).status,401);
+  const exp=await post('/api/signin/challenge',{});await pool.query("update whatsapp_signin_challenges set expires_at=now()-interval '1 second' where id=$1",[exp.body.id]);
+  assert.equal((await post('/api/signin/verify',{id:exp.body.id,token:exp.body.token,proof:exp.body.proof,code:'000000'})).status,401);
+  console.log('PASS: signed WhatsApp sign-in, browser proof, code expiry, five-attempt lock and single-use challenge');
+  const draft={url:'https://example.org/resource',title:'Personal fixture',idempotencyKey:randomUUID()};
+  const c0=outbound.length;
+  const personalRace=await Promise.all(Array.from({length:8},()=>post('/api/personal-saves',draft)));
+  assert.equal(personalRace.filter(r=>r.status===201).length,1);assert.equal(outbound.length,c0+1);
+  const personal=personalRace.find(r=>r.status===201).body;
+  assert.equal((await post('/api/personal-saves',{...draft,title:'Changed'})).status,409);
+  assert.equal((await post('/api/personal-saves',{...draft,url:'http://127.0.0.1',idempotencyKey:randomUUID()})).status,400);
+  const strangerHeaders={...consumerHeaders,cookie:cookie(other)};
+  assert.equal((await api(base,`/api/account/items/${personal.shortId}`,{method:'DELETE',headers:strangerHeaders})).status,404);
+  const ak=randomUUID();
+  assert.equal((await post(`/api/account/items/${personal.shortId}/resend`,{actionKey:ak,confirmed:true})).body.deliveryStatus,'accepted');assert.equal(outbound.length,c0+1);
+  await pool.query("update saved_items set delivery_status='unknown' where short_id=$1",[personal.shortId]);
+  const resendKey=randomUUID(),rcount=outbound.length;
+  const resendRace=await Promise.all(Array.from({length:6},()=>post(`/api/account/items/${personal.shortId}/resend`,{actionKey:resendKey,confirmed:true})));
+  assert(resendRace.every(r=>r.status===200));assert.equal(outbound.length,rcount+1);
+  assert.equal((await post('/api/account/profile',{displayName:'Lean Person',paused:true})).status,200);
+  const paused=await post('/api/personal-saves',{...draft,idempotencyKey:randomUUID()});assert.equal(paused.body.deliveryReason,'opted_out');
+  assert.equal((await api(base,'/api/account',{headers:consumerHeaders})).body.profile.displayName,'Lean Person');
+  await post('/api/account/profile',{displayName:'Lean Person',paused:false});
+  assert.equal((await api(base,`/api/account/items/${personal.shortId}`,{method:'DELETE',headers:consumerHeaders})).status,204);
+  assert.equal((await api(base,`/api/saves/status/${personal.shortId}`,{headers:consumerHeaders})).status,404);
+  const owner=await pool.query('insert into users(email) values($1) returning id',['deletion@example.invalid']);
+  const deleteHeaders={...consumerHeaders,cookie:cookie(owner.rows[0].id)};
+  await post('/api/personal-saves',{...draft,idempotencyKey:randomUUID()},deleteHeaders);
+  assert.equal((await api(base,'/api/account',{method:'DELETE',headers:deleteHeaders})).status,200);
+  assert.equal((await api(base,'/api/account',{headers:deleteHeaders})).status,401);
+  assert.equal((await pool.query('select count(*)::int n from saved_items where user_id=$1',[owner.rows[0].id])).rows[0].n,0);
+  console.log('PASS: concurrent personal-save and resend idempotency, ownership, profile/pause and cascading account deletion');
+
+  const second = await start(metaUrl, false);
+  assert.equal((await api(second,'/api/auth/google/callback')).status,503);
+  const login=await fetch(second+'/api/auth/login?returnTo='+encodeURIComponent(second+'/save?url=https%3A%2F%2Fexample.com'),{redirect:'manual'});
+  assert(new URL(login.headers.get('location')).searchParams.get('next').startsWith('/save?'));
+  const rejected=await fetch(second+'/api/auth/login?returnTo='+encodeURIComponent('https://attacker.invalid'),{redirect:'manual'});
+  assert.equal(new URL(rejected.headers.get('location')).searchParams.get('next'),'/account');
+  // Reset only fixture counters before the separate two-instance budget check.
+  await pool.query('delete from button_rate_limits');
   const statuses=[];
   for(let i=0;i<22;i++) statuses.push((await fetch((i%2 ? second : base)+'/api/auth/login',{redirect:'manual'})).status);
   assert.equal(statuses.filter(s=>s===302).length,20); assert.equal(statuses.filter(s=>s===429).length,2);
