@@ -29,3 +29,12 @@ cannot resend an accepted, pending or uncertain message. API send claims and
 the 24-hour window still apply. No paid templates, worker or new storage service
 is introduced. Background webhook work is lifecycle-bound, not a durable queue.
 Do not claim delivered messages or real WhatsApp verification from mocked tests.
+
+## Production packaging
+
+The core workspace exposes `dist/index.js` to production Node processes and
+keeps TypeScript source under the development export condition. Build core
+before the API; API's build script does this explicitly. Development watch
+commands enable the development condition. The lean integration suite now
+builds and starts `api/dist/index.js` without tsx, so missing compiled workspace
+files fail CI. Docker API/worker images also compile core before launching.

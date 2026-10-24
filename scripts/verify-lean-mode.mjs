@@ -69,7 +69,7 @@ async function start(metaUrl, google = true, relay = false) {
     env.WHATSAPP_RELAY_URL = 'https://www.planetsorted.com/api/button/whatsapp';
     delete env.META_WHATSAPP_TOKEN; delete env.META_WHATSAPP_PHONE_ID; delete env.META_APP_SECRET;
   }
-  const child = spawn(process.execPath, ['--import', './scripts/mock-meta-for-lean-tests.mjs', '--import','tsx','api/src/index.ts'], { env, stdio:['ignore','pipe','pipe'] });
+  const child = spawn(process.execPath, ['--import', './scripts/mock-meta-for-lean-tests.mjs', 'api/dist/index.js'], { env, stdio:['ignore','pipe','pipe'] });
   processes.push(child);
   child.stdout.on('data', b => logs.push(b.toString())); child.stderr.on('data', b => logs.push(b.toString()));
   await eventually(async () => { if (child.exitCode !== null) throw new Error('API exited before startup'); try { return (await fetch(base+'/health')).status === 200; } catch { return false; } });

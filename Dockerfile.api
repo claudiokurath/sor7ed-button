@@ -1,9 +1,4 @@
-# Runs production via tsx directly from TypeScript source, matching how
-# development already runs it — @sor7ed/core's package.json points "main"
-# at src/index.ts (not a compiled dist/), so a compiled api/dist/index.js
-# trying to `import { db } from "@sor7ed/core"` would follow the workspace
-# symlink and fail loading a .ts file as plain JS. Running everything
-# through tsx sidesteps that entirely: nothing ever gets compiled.
+# The shared workspace has a compiled production entry; tsx remains the process launcher.
 FROM node:22-alpine
 WORKDIR /app
 
@@ -23,6 +18,8 @@ COPY api ./api
 COPY core ./core
 COPY types ./types
 COPY tsconfig.base.json ./
+
+RUN npm run build --workspace=@sor7ed/core
 
 ENV NODE_ENV=production
 ENV PORT=8080
