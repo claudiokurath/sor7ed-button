@@ -3,7 +3,7 @@
 
 <!-- Once per page -->
 <script
-  src="https://sor7ed.com/widget.js"
+  src="https://www.sor7ed.com/widget.js"
   data-api-key="YOUR_PARTNER_KEY"
   data-label="Save this piece"
   data-color="#25D366"
@@ -33,7 +33,7 @@
     const items = [
       { n: '01', h: 'Find something worth keeping.', p: 'An article, a video, a guide: anything useful on a website that has the Button.' },
       { n: '02', h: 'Press Sorted on a participating website.', p: 'Look for the tangle mark. The first time, a small window lets you sign in with Google and connect WhatsApp.' },
-      { n: '03', h: 'Receive the link in your WhatsApp thread once connected.', p: 'When live saving is available, SOR7ED asks WhatsApp to send the card. The Button shows the send status.' },
+      { n: '03', h: 'Receive the link in your WhatsApp thread once connected.', p: 'When live saving is available, SOR7ED asks WhatsApp to send the card. The Button distinguishes an accepted send from a pending, failed, not-sent or unconfirmed request. Acceptance does not confirm arrival on your phone.' },
     ];
     return (
       <section id="how-it-works" className="s7-section" aria-labelledby="how-title">
@@ -90,8 +90,9 @@
           </p>
           <pre className="s7-code"><code>{EMBED}</code></pre>
           <ul className="s7-facts">
-            <li>Restrict the page addresses a key can save by listing your domains. The key is visible in your page source.</li>
-            <li>The dashboard includes saves, distinct savers and opens of saved links. An open is not necessarily a unique returning visitor.</li>
+            <li>The key is visible in your page source. Register your domains to restrict which page addresses it can save. Leaving the list empty allows any page domain.</li>
+            <li>Registered domains include their subdomains; www is treated the same as the bare domain.</li>
+            <li>The dashboard includes saves, distinct savers, top pages and opens of saved links. Forwarded links can also count as opens; an open is not necessarily a unique returning visitor.</li>
             <li>The partner dashboard includes monthly save limits and key rotation. Live partner sign-in is not available yet.</li>
             <li>The Button loads one web font from Google Fonts. Mention this in your own privacy notice.</li>
           </ul>
@@ -112,7 +113,7 @@
     { q: 'What gets saved?', a: 'The address, title, description and preview image that the website provides for the page you pressed Sorted on, linked to your account.' },
     { q: 'Which websites take part?', a: 'Only websites whose owners have added the Button. It does not appear anywhere else. A browser extension is planned but not available.' },
     { q: 'What happens to my data?', a: 'See the privacy summary on this page. It is a plain-language summary, not a full privacy policy.' },
-    { q: 'What is the difference between the demo and live saving?', a: 'The demo on this page runs in your browser. It sends nothing, saves nothing and contacts no service. Live saving signs you in, connects WhatsApp and asks WhatsApp to send the card. WhatsApp accepting a message is not proof it arrived, so the Button also shows when sending is pending, failed, skipped or unconfirmed.' },
+    { q: 'What is the difference between the demo and live saving?', a: 'The demo on this page runs in your browser. It sends nothing, saves nothing and contacts no service. Live saving signs you in, connects WhatsApp and asks WhatsApp to send the card. WhatsApp accepting a message is not proof it arrived, so the Button also shows when sending is pending, failed, not sent or unconfirmed. If the conversation has become inactive, you may need to reopen it before a message can be sent.' },
   ];
 
   export function Faq() {
@@ -141,11 +142,12 @@
           <p className="s7-eyebrow">Privacy</p>
           <h2 id="privacy-title" className="s7-h2">Privacy summary</h2>
           <ul className="s7-facts">
-            <li>Google sign-in identifies your account.</li>
+            <li>Google sign-in identifies your account using your email address and Google ID.</li>
             <li>WhatsApp (Meta's WhatsApp Cloud API) connects your number and sends the card. Sending the connection message shares your number with SOR7ED.</li>
-            <li>Saved items (address, title, description, image) are stored against your account.</li>
+            <li>Saved items keep the page address, title, description and image link against your account, together with the send status and any WhatsApp message ID returned.</li>
+            <li>SOR7ED keeps your WhatsApp opt-out status and the time of your last message to determine whether the conversation is active.</li>
             <li>Public page previews may be fetched and preview images cached at public addresses. Where AI enrichment is enabled, page titles and descriptions are sent to OpenAI for summaries and tags.</li>
-            <li>Card links pass through a SOR7ED link that records a return visit for the website owner. Automated crawlers are excluded.</li>
+            <li>Card links pass through a SOR7ED link that records opens against the saved item and originating website. Known preview crawlers are excluded; an open is not proof of a unique return visit.</li>
           </ul>
           <p className="s7-prose">This is a plain-language summary, not a full privacy policy.</p>
         </div>

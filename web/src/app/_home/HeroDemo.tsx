@@ -66,7 +66,9 @@ import { useEffect, useRef, useState } from "react";
               type="button"
               className="hd-btn"
               onClick={onPress}
-              aria-label={previewing ? 'Reset the demo' : 'Press Sorted: preview this page as a WhatsApp card'}
+              aria-label={previewing ? 'Preview ready: reset the demo' : 'Press Sorted: preview this page as a WhatsApp card'}
+              aria-pressed={previewing}
+              aria-controls="hd-preview"
             >
               <span className="hd-mark">
                 <img className="hd-tangle" src="/static/tangle-white.png" alt="" draggable="false" />
@@ -80,9 +82,9 @@ import { useEffect, useRef, useState } from "react";
           </div>
         </div>
 
-        <div className="hd-slot">
-          {previewing ? (
-            <div className="hd-card">
+        <div className="hd-slot" id="hd-preview">
+            <p className={`hd-empty${previewing ? ' hd-empty--hidden' : ''}`}>Your card preview appears here.</p>
+            <div className={`hd-card${previewing ? ' hd-card--visible' : ''}`}>
               <p className="hd-caption">Illustration of a WhatsApp card</p>
               <div className="hd-bubble">
                 <div className="hd-thumb" aria-hidden="true">
@@ -94,9 +96,6 @@ import { useEffect, useRef, useState } from "react";
                 </div>
               </div>
             </div>
-          ) : (
-            <p className="hd-empty">Your card preview appears here.</p>
-          )}
         </div>
 
         <p role="status" aria-live="polite" className="hd-sr">{status}</p>

@@ -293,7 +293,7 @@
   text-transform: uppercase;
   color: color-mix(in oklab, var(--hd-muted), var(--hd-accent) calc(var(--td) * 100%));
   transition: color 0.32s var(--hd-ease);
-  overflow-wrap: anywhere;
+  overflow-wrap: normal;
   line-height: 1.4;
 }
 .hd-label--lead { text-align: right; }
@@ -352,7 +352,7 @@
   stroke-linecap: round;
   stroke-linejoin: round;
   stroke-dasharray: 100;
-  stroke-dashoffset: calc(100 * (1 - var(--td)));
+  stroke-dashoffset: calc(100px * (1 - var(--td)));
 }
 
 /* Where the card preview lands. Fixed min-height so the panel doesn't jump. */
@@ -361,9 +361,8 @@
   min-height: 132px;
   border: 1px dashed rgba(255, 255, 255, 0.14);
   padding: 14px;
-  display: flex;
+  display: grid;
   align-items: center;
-  justify-content: center;
 }
 .hd-empty {
   margin: 0;
@@ -374,7 +373,10 @@
   text-align: center;
 }
 
-.hd-card { width: 100%; }
+.hd-empty, .hd-card { grid-area: 1 / 1; }
+.hd-empty--hidden { visibility: hidden; }
+.hd-card { width: 100%; visibility: hidden; opacity: 0; transform: translateY(6px); transition: opacity 200ms var(--hd-ease), transform 200ms var(--hd-ease); }
+.hd-card--visible { visibility: visible; opacity: 1; transform: none; }
 .hd-caption {
   margin: 0 0 9px;
   font-size: 8.5px;
