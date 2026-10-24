@@ -1,6 +1,6 @@
 import type { FastifyInstance } from "fastify";
 import { eq } from "drizzle-orm";
-import { db, savedItems, partners, recordSavedItemClick } from "@sor7ed/core";
+import { db, savedItems, partners, recordSavedItemClick, isLeanMode } from "@sor7ed/core";
 
 export async function itemLookupRoutes(app: FastifyInstance) {
   app.get<{ Params: { shortId: string } }>("/api/saves/:shortId", async (req, reply) => {
@@ -11,6 +11,7 @@ export async function itemLookupRoutes(app: FastifyInstance) {
         title: savedItems.title,
         description: savedItems.description,
         cachedImageUrl: savedItems.cachedImageUrl,
+        imageUrl: savedItems.imageUrl,
         url: savedItems.url,
         partnerName: partners.name,
       })
@@ -20,7 +21,10 @@ export async function itemLookupRoutes(app: FastifyInstance) {
       .limit(1);
 
     if (!item) return reply.code(404).send({ error: "Not found" });
-    return reply.send(item);
+    const originalImage = item.imageUrl && URL.canParse(item.imageUrl) && new URL(item.imageUrl).protocol === "https:"
+      ? item.imageUrl : null;
+    const { imageUrl: _image, ...card } = item;
+    return reply.send({ ...card, cachedImageUrl: item.cachedImageUrl ?? (isLeanMode() ? originalImage : null) });
   });
 
   // Fired by web/src/app/s/[shortId]/page.tsx exactly once per real (non-

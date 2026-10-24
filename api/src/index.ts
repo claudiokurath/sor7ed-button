@@ -12,6 +12,8 @@ import { itemLookupRoutes } from "./routes/item-lookup.js";
 import { partnerRoutes } from "./routes/partner.js";
 import { UPLOAD_DIR, isUsingLocalDiskUploads, assertRequiredEnv, db } from "@sor7ed/core";
 import { sql } from "drizzle-orm";
+import { isLeanMode } from "@sor7ed/core";
+import { PostgresRateLimitStore } from "./plugins/postgres-rate-limit.js";
 
 assertRequiredEnv("api");
 
@@ -55,11 +57,11 @@ await app.register(authPlugin);
 
 await registerCors(app);
 
-const redisClient = new Redis(process.env["REDIS_URL"] ?? "redis://localhost:6379");
+const redisClient = isLeanMode() ? null : new Redis(process.env["REDIS_URL"] ?? "redis://localhost:6379");
 
 await app.register(rateLimit, {
   global: false, // opt-in per route — the webhook endpoint should NOT be limited the same way
-  redis: redisClient,
+  ...(redisClient ? { redis: redisClient } : { store: PostgresRateLimitStore }),
   // @fastify/rate-limit throws whatever this returns and reads a
   // .statusCode property off it to set the response status — its own
   // default implementation returns an Error with statusCode explicitly
@@ -89,14 +91,14 @@ if (isUsingLocalDiskUploads) {
 // would report healthy while the DB or Redis were both down. Fly/any
 // orchestrator polling this for restart decisions needs the real signal.
 app.get("/health", async (_req, reply) => {
-  const checks = await Promise.allSettled([db.execute(sql`SELECT 1`), redisClient.ping()]);
+  const checks = await Promise.allSettled([db.execute(sql`SELECT 1`), redisClient ? redisClient.ping() : Promise.resolve()]);
   const [dbCheck, redisCheck] = checks;
   const healthy = dbCheck.status === "fulfilled" && redisCheck.status === "fulfilled";
 
   const body = {
     status: healthy ? "ok" : "degraded",
     database: dbCheck.status === "fulfilled" ? "ok" : "error",
-    redis: redisCheck.status === "fulfilled" ? "ok" : "error",
+    redis: redisClient ? (redisCheck.status === "fulfilled" ? "ok" : "error") : "disabled",
   };
   return reply.code(healthy ? 200 : 503).send(body);
 });

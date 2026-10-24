@@ -61,4 +61,14 @@ describe("required environment by process role", () => {
     expect(() => assertRequiredEnv("worker")).not.toThrow();
     expect(() => assertRequiredEnv("api")).toThrow("JWT_SECRET");
   });
+
+  it("lean API requires real auth/provider credentials but not Redis or R2", () => {
+    vi.stubEnv("BUTTON_MODE", "lean");
+    vi.stubEnv("REDIS_URL", undefined);
+    for (const key of Object.keys(workerEnvironment)) if (key.startsWith("R2_")) vi.stubEnv(key, undefined);
+    expect(() => assertRequiredEnv("api")).toThrow("GOOGLE_CLIENT_ID");
+    for (const [key, value] of Object.entries(apiEnvironment)) vi.stubEnv(key, value);
+    expect(() => assertRequiredEnv("api")).not.toThrow();
+    expect(() => assertRequiredEnv("worker")).toThrow("does not run a background worker");
+  });
 });

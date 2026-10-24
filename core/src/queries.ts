@@ -2,6 +2,7 @@
 // compliance-critical session-window check lives in exactly one place —
 // this is what the WhatsApp service calls before every outbound send.
 import { db } from "./client.js";
+import { isLeanMode } from "./mode.js";
 import {
   users,
   savedItems,
@@ -205,7 +206,7 @@ export async function verifyConnectionRequest(token: string, phoneNumber: string
 
     await tx
       .update(users)
-      .set({ whatsappNumber: phoneNumber, whatsappVerified: true })
+      .set({ whatsappNumber: phoneNumber, whatsappVerified: true, lastInboundMessageAt: new Date() })
       .where(eq(users.id, request.userId));
 
     // Old clients could create several pending links for the same user.
@@ -235,7 +236,7 @@ export async function getPartnerForUser(userId: string) {
       apiKey: partners.apiKey,
       plan: partners.plan,
       monthlySaveLimit: partners.monthlySaveLimit,
-      savesThisMonth: partners.savesThisMonth,
+      savesThisMonth: isLeanMode() ? sql<number>`CASE WHEN ${partners.quotaPeriodStart} < date_trunc('month', now()) THEN 0 ELSE ${partners.savesThisMonth} END`.mapWith(Number) : partners.savesThisMonth,
       allowedDomains: partners.allowedDomains,
     })
     .from(partnerMembers)

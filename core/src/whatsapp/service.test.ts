@@ -42,4 +42,20 @@ describe('save-card outcome and consent', () => {
     mock.text.mockResolvedValue(undefined);
     expect(await sendSaveCard('user', '440000000000', item, 'Partner')).toEqual({ status: 'unknown', reason: 'unconfirmed' });
   });
+
+  it('lean mode never sends a template when the window is closed', async () => {
+    vi.stubEnv('BUTTON_MODE', 'lean');
+    mock.sessionOpen.mockResolvedValue(false);
+    expect(await sendSaveCard('user', '440000000000', item, 'Partner'))
+      .toEqual({ status: 'skipped', reason: 'session_closed' });
+    expect(mock.template).not.toHaveBeenCalled();
+    expect(mock.text).not.toHaveBeenCalled();
+  });
+
+  it('lean mode automatically sends in an open window without advertising reminders', async () => {
+    vi.stubEnv('BUTTON_MODE', 'lean');
+    expect((await sendSaveCard('user', '440000000000', item, 'Partner')).status).toBe('accepted');
+    expect(mock.text.mock.calls[0]?.[1]).not.toContain('REMIND');
+    expect(mock.template).not.toHaveBeenCalled();
+  });
 });

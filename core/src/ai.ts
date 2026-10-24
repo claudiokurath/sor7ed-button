@@ -1,4 +1,7 @@
+import { isLeanMode } from "./mode.js";
+
 export async function callOpenAi(prompt: string, maxTokens: number): Promise<string | null> {
+  if (isLeanMode()) return null;
   const apiKey = process.env["OPENAI_API_KEY"];
   if (!apiKey) return null;
   try {
@@ -20,6 +23,7 @@ export async function callOpenAi(prompt: string, maxTokens: number): Promise<str
 // requesting it explicitly means a future model swap can't silently
 // produce a mismatched vector size without a visible code change.
 export async function generateEmbedding(text: string): Promise<number[] | null> {
+  if (isLeanMode()) return null;
   const apiKey = process.env["OPENAI_API_KEY"];
   if (!apiKey) return null;
   try {
