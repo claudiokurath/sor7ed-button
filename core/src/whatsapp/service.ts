@@ -2,6 +2,7 @@
 // this is what enforces the 24h session-window rule in exactly one place.
 import { sendText, sendTemplate, type TemplateComponent } from "./client.js";
 import { isWhatsAppSessionOpen, isWhatsAppOptedOut } from "../queries.js";
+import { isLeanMode } from "../mode.js";
 
 // Deliberately narrower than the shared SavedItem DTO (@sor7ed/types),
 // which models the JSON-over-the-wire shape consumed by the web app
@@ -41,7 +42,7 @@ function resolveHeaderImage(item: SaveCardItem): string {
 
 export type SaveCardOutcome =
   | { status: 'accepted'; messageId: string; reason: null }
-  | { status: 'skipped'; reason: 'opted_out' }
+  | { status: 'skipped'; reason: 'opted_out' | 'session_closed' }
   | { status: 'unknown'; reason: 'unconfirmed' };
 
 function acceptedOutcome(messageId: string | undefined): SaveCardOutcome {
@@ -67,9 +68,13 @@ export async function sendSaveCard(
 
   if (sessionOpen) {
     const summary = item.aiSummary ? `\n${item.aiSummary}\n` : "";
-    const text = `Saved from ${partnerName} ✓\n\n*${item.title}*${summary}\n${requireBaseUrl()}/s/${item.shortId}\n\n_Reply REMIND tomorrow (or REMIND friday 10am) to get nudged about this later._`;
+    const reminder = isLeanMode() ? "" : "\n\n_Reply REMIND tomorrow (or REMIND friday 10am) to get nudged about this later._";
+    const text = `Saved from ${partnerName} ✓\n\n*${item.title}*${summary}\n${requireBaseUrl()}/s/${item.shortId}${reminder}`;
     return acceptedOutcome(await sendText(userPhone, text));
   }
+
+  // Never fall back to a billable template in the budget-limited mode.
+  if (isLeanMode()) return { status: 'skipped', reason: 'session_closed' };
 
   const components: TemplateComponent[] = [
     { type: "header", parameters: [{ type: "image", image: { link: resolveHeaderImage(item) } }] },
@@ -99,6 +104,7 @@ const REMINDER_TEMPLATE = "sor7ed_reminder";
 // user may have opted out in the interim; this is the only place that's
 // actually re-checked before the message goes out.
 export async function sendReminder(userId: string, userPhone: string, item: { title: string; shortId: string }): Promise<void> {
+  if (isLeanMode()) return;
   if (await isWhatsAppOptedOut(userId)) return;
 
   const base = requireBaseUrl();

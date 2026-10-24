@@ -1,5 +1,7 @@
 # Deploy SOR7ED BUTTON to production
 
+**Current budget-conscious launch:** follow [LEAN_DEPLOY.md](./LEAN_DEPLOY.md). The instructions below describe the optional full stack; do not provision Redis, Fly machines or R2 for lean mode.
+
 **Target stack (default):**
 
 | Piece | Service | Public URL |

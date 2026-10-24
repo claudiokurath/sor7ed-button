@@ -36,7 +36,8 @@ suite("connection requests with real PostgreSQL", () => {
       CREATE TABLE users (
         id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
         whatsapp_number text UNIQUE,
-        whatsapp_verified boolean NOT NULL DEFAULT false
+        whatsapp_verified boolean NOT NULL DEFAULT false,
+        last_inbound_message_at timestamptz
       );
       CREATE TABLE whatsapp_connection_requests (
         id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
@@ -82,6 +83,8 @@ suite("connection requests with real PostgreSQL", () => {
     const winner = attempts.findIndex((result) => result === userId);
     const users = await pool.query("SELECT whatsapp_number, whatsapp_verified FROM users WHERE id = $1", [userId]);
     expect(users.rows[0]).toEqual({ whatsapp_number: `44000000${winner}`, whatsapp_verified: true });
+    const opened = await pool.query("SELECT last_inbound_message_at IS NOT NULL AS opened FROM users WHERE id = $1", [userId]);
+    expect(opened.rows[0].opened).toBe(true);
     expect(await verifyConnectionRequest(request.token, "449999999999")).toBeNull();
   });
 

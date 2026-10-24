@@ -1,6 +1,7 @@
 import type { FastifyInstance } from "fastify";
 import crypto from "node:crypto";
 import { eq, desc } from "drizzle-orm";
+import { waitUntil } from "@vercel/functions";
 import {
   db,
   users,
@@ -12,6 +13,7 @@ import {
   sendText,
   setWhatsAppOptOut,
   resolveItemFromQuotedMessage,
+  isLeanMode,
 } from "@sor7ed/core";
 
 interface InboundMessage {
@@ -120,11 +122,10 @@ export async function webhookRoutes(app: FastifyInstance) {
 
     // Acknowledge within seconds regardless of internal outcome — Meta
     // retries aggressively on anything else, causing duplicate processing.
-    reply.code(200).send("OK");
-
     const body = req.body as WebhookPayload;
-    if (body.object !== "whatsapp_business_account") return;
+    if (body.object !== "whatsapp_business_account") return reply.code(200).send("OK");
 
+    const processing = (async () => {
     for (const entry of body.entry ?? []) {
       for (const change of entry.changes ?? []) {
         for (const message of change.value?.messages ?? []) {
@@ -140,6 +141,12 @@ export async function webhookRoutes(app: FastifyInstance) {
         }
       }
     }
+    })();
+    // Keep signed inbound processing alive after Fastify sends its response on
+    // Vercel. No daemon, fire-and-forget queue or separate worker is required.
+    if (process.env["VERCEL"]) waitUntil(processing);
+    reply.code(200).send("OK");
+    await processing;
   });
 }
 
@@ -180,7 +187,7 @@ async function handleInboundMessage(app: FastifyInstance, message: InboundMessag
 
   if (command === "START" || command === "SUBSCRIBE") {
     await setWhatsAppOptOut(from, false);
-    await sendText(from, "✓ You're resubscribed. Saves and reminders will land here again.");
+    await sendText(from, isLeanMode() ? "You're resubscribed. You can save pages to this chat again." : "✓ You're resubscribed. Saves and reminders will land here again.");
     return;
   }
 
@@ -217,6 +224,10 @@ async function handleInboundMessage(app: FastifyInstance, message: InboundMessag
   }
 
   if (command.startsWith("REMIND")) {
+    if (isLeanMode()) {
+      await sendText(from, "Reminders aren't available in this version. Reply LIBRARY to see your saved pages.");
+      return;
+    }
     const [user] = await db.select({ id: users.id }).from(users).where(eq(users.whatsappNumber, from)).limit(1);
     if (!user) {
       await sendText(from, "This number isn't connected to a SOR7ED account yet.");

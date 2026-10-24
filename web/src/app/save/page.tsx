@@ -16,6 +16,8 @@ interface MeResponse {
   id: string;
   email: string;
   whatsappVerified: boolean;
+  requiresActiveSession?: boolean;
+  whatsappSessionOpen?: boolean;
 }
 
 interface ConnectionResponse {
@@ -79,6 +81,10 @@ function deliveryCopy(result: SaveResponse): { title: string; detail: string } {
     case "failed":
       return { title: "Saved. WhatsApp sending failed.", detail: "Your item is safe in your library. No new message will be sent when you check its status." };
     case "skipped":
+      if (result.deliveryReason === "session_closed") return {
+        title: "Saved — WhatsApp conversation needs reopening",
+        detail: "No message was sent. Message Sorted in WhatsApp, then reply LIBRARY to find this item. No paid template was requested.",
+      };
       return { title: "Saved in your library", detail: result.deliveryReason === "opted_out" ? "WhatsApp messages are paused for your account." : "A WhatsApp message could not be sent for this save." };
     default:
       return { title: "Saved. WhatsApp status is unconfirmed.", detail: "The message may have been sent. Check its status without sending it again." };
@@ -103,6 +109,7 @@ function SaveFlow() {
   const [connectExpired, setConnectExpired] = useState(false);
   const [refreshingConnection, setRefreshingConnection] = useState(false);
   const [connectTapped, setConnectTapped] = useState(false);
+  const [requiresActiveSession, setRequiresActiveSession] = useState(false);
   const [result, setResult] = useState<SaveResponse | null>(null);
   const [statusError, setStatusError] = useState("");
   const [checkingStatus, setCheckingStatus] = useState(false);
@@ -219,7 +226,8 @@ function SaveFlow() {
         if (!res.ok) throw new Error("We couldn’t check your account. Please try again.");
         const user = (await res.json()) as MeResponse;
         if (!user || typeof user.whatsappVerified !== "boolean") throw new Error("We couldn’t check your account. Please try again.");
-        if (user.whatsappVerified) { await performSave(); return; }
+        setRequiresActiveSession(user.requiresActiveSession === true);
+        if (user.whatsappVerified && (!user.requiresActiveSession || user.whatsappSessionOpen)) { await performSave(); return; }
         if (!connectionRef.current) await prepareConnection();
         else {
           setConnectExpired(Date.parse(connectionRef.current.expiresAt) <= Date.now());
@@ -322,14 +330,15 @@ function SaveFlow() {
           <button onClick={handleGoogleLogin} style={btnStyle("#2866c4")}>Continue with Google to Save</button>
           <p style={{ color: "#555", fontSize: 12, marginTop: 12, textAlign: "center", lineHeight: 1.5 }}>
             Connect WhatsApp to receive this item. We use your Google email to identify your account and never post on your behalf.
-            Reminders are sent when you ask for them. Stop WhatsApp messages anytime by replying <strong>STOP</strong>.
+            Stop WhatsApp messages anytime by replying <strong>STOP</strong>.
           </p>
         </div>
       )}
 
       {stage === "PREVIEW_NEEDS_WHATSAPP" && (
         <div style={{ textAlign: "center" }}>
-          <p style={{ color: "#111", fontWeight: 600, marginBottom: 4 }}>Connect WhatsApp once</p>
+          <p style={{ color: "#111", fontWeight: 600, marginBottom: 4 }}>Connect or reopen your WhatsApp conversation</p>
+          {requiresActiveSession && <p style={{ color: "#555", fontSize: 14 }}>An inactive conversation needs reopening before we can send without requesting a paid template.</p>}
           <p style={{ color: "#555", marginBottom: 20, fontSize: 14, lineHeight: 1.5 }}>
             Tap below, then hit <strong>send</strong> on the pre-filled WhatsApp message. We’ll check your connection when you return.
           </p>
