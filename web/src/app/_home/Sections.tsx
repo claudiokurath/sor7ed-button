@@ -32,7 +32,7 @@
   export function Steps() {
     const items = [
       { n: '01', h: 'Find something worth keeping.', p: 'An article, a video, a guide: anything useful on a website that has the Button.' },
-      { n: '02', h: 'Press Sorted on a participating website.', p: 'Look for the tangle mark. The first time, a small window lets you sign in with Google and connect WhatsApp.' },
+      { n: '02', h: 'Press Sorted on a participating website.', p: 'Look for the tangle mark. The first time, a small window lets you sign in with WhatsApp.' },
       { n: '03', h: 'Receive the link in your WhatsApp thread once connected.', p: 'When live saving is available, SOR7ED asks WhatsApp to send the card. The Button distinguishes an accepted send from a pending, failed, not-sent or unconfirmed request. Acceptance does not confirm arrival on your phone.' },
     ];
     return (
@@ -50,8 +50,8 @@
             ))}
           </ol>
           <p className="s7-prose">
-            First time only: sign in with Google, then open the connection link. WhatsApp opens
-            with a one-time message ready to send. Send it and you are connected.
+            First time only: open WhatsApp and send the prepared sign-in message. Enter the
+            six-digit reply in the save window to verify your number. No Google account needed.
           </p>
           <p className="s7-note">Live saving is not switched on yet. The demo above is a simulation.</p>
         </div>
@@ -109,7 +109,7 @@
   }
 
   const FAQ = [
-    { q: 'How does WhatsApp get connected?', a: 'The first time, a small window asks you to sign in with Google. It then gives you a connection link that opens WhatsApp with a one-time message ready to send. Send it and you are connected. The link works once and expires after about 15 minutes; the window can fetch a new one.' },
+    { q: 'How does WhatsApp get connected?', a: 'The first time, send the prepared sign-in message in WhatsApp and enter the six-digit reply in the save window. It expires after ten minutes and locks after five wrong codes. On phones the save flow uses the current tab; desktop browsers use a small window when allowed.' },
     { q: 'What gets saved?', a: 'The address, title, description and preview image that the website provides for the page you pressed Sorted on, linked to your account.' },
     { q: 'Which websites take part?', a: 'Only websites whose owners have added the Button. It does not appear anywhere else. A browser extension is planned but not available.' },
     { q: 'What happens to my data?', a: 'The privacy summary below explains the main points. The footer links to the Button privacy policy for details about saved links, WhatsApp, service providers and your rights.' },
