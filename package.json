@@ -23,7 +23,8 @@
     "test:lean": "node scripts/verify-lean-mode.mjs",
     "test:extension": "node --import tsx scripts/verify-extension.mjs",
     "test:widget": "node --import tsx scripts/verify-widget-navigation.mjs",
-    "extension:package": "python3 scripts/package-extension.py"
+    "extension:package": "python3 scripts/package-extension.py",
+    "pretest:lean": "npm run build --workspace=api"
   },
   "engines": {
     "node": ">=20"
