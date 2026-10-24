@@ -14,3 +14,4 @@ export * from "./ssrf-guard.js";
 export * from "./save-actions.js";
 export * from "./consumer-auth.js";
 export * from "./personal-saves.js";
+export { relaySignature, verifyRelay } from './relay-auth.js';

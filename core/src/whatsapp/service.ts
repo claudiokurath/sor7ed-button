@@ -122,5 +122,5 @@ export async function sendReminder(userId: string, userPhone: string, item: { ti
 
 export function generateClickToChatUrl(token: string): string {
   const number = requireDisplayNumber();
-  return `https://wa.me/${number}?text=${encodeURIComponent(`CONNECT-${token}`)}`;
+  return `https://wa.me/${number}?text=${encodeURIComponent(`${process.env['WHATSAPP_TRANSPORT'] === 'relay' ? 'BUTTON-CONNECT-' : 'CONNECT-'}${token}`)}`;
 }

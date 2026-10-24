@@ -15,6 +15,8 @@ import {
   resolveItemFromQuotedMessage,
   isLeanMode,
   prepareSigninCode,
+  verifyRelay,
+  buttonRateLimits,
 } from "@sor7ed/core";
 
 interface InboundMessage {
@@ -101,6 +103,31 @@ function verifyMetaSignature(rawBody: Buffer | undefined, signatureHeader: strin
 }
 
 export async function webhookRoutes(app: FastifyInstance) {
+  app.post('/webhook/relay', async (req, reply) => {
+    const raw = req.rawBody?.toString('utf8') ?? '';
+    const id = req.headers['x-sor7ed-id'] as string | undefined;
+    if (process.env['WHATSAPP_TRANSPORT'] !== 'relay' || !verifyRelay(process.env['WHATSAPP_RELAY_SECRET'], 'inbound', req.headers['x-sor7ed-ts'] as string | undefined, id, raw, req.headers['x-sor7ed-signature'] as string | undefined)) return reply.code(401).send({ error: 'Unauthorised' });
+    const body = req.body as { mode?: string; message?: InboundMessage & { id?: string } };
+    const message = body.message;
+    if (!message || message.type !== 'text' || !/^\d{7,15}$/.test(message.from) || typeof message.text?.body !== 'string' || message.text.body.length > 4096 || !['command', 'session'].includes(body.mode ?? '')) return reply.code(400).send({ error: 'Invalid relay event' });
+    const keyHash = crypto.createHash('sha256').update(`relay-event:${id}`).digest('hex');
+    const claimed = await db.insert(buttonRateLimits).values({ keyHash, hits: 1, expiresAt: new Date(Date.now() + 86_400_000) }).onConflictDoNothing().returning({ keyHash: buttonRateLimits.keyHash });
+    if (!claimed.length) return reply.send({ accepted: true, duplicate: true });
+    const processing = (async () => {
+      if (body.mode === 'session') {
+        await updateLastInbound(message.from);
+        const command = message.text!.body.trim().toUpperCase();
+        if (['STOP', 'UNSUBSCRIBE', 'OPT OUT', 'OPTOUT'].includes(command)) await setWhatsAppOptOut(message.from, true);
+        if (['START', 'SUBSCRIBE'].includes(command)) await setWhatsAppOptOut(message.from, false);
+      } else {
+        if (message.text!.body.trim().toUpperCase().startsWith('BUTTON-CONNECT-')) message.text!.body = message.text!.body.trim().slice(7);
+        await handleInboundMessage(app, message);
+      }
+    })().catch(() => app.log.error('Button relay event processing failed'));
+    if (process.env['VERCEL']) waitUntil(processing);
+    reply.send({ accepted: true });
+    await processing;
+  });
   // Meta sends application/json — Fastify parses this by default,
   // no extra body-parser plugin is needed (that's only for
   // application/x-www-form-urlencoded, which this isn't).

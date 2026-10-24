@@ -11,5 +11,6 @@ globalThis.fetch = (input, init) => {
   if (url.hostname === 'graph.facebook.com' && url.pathname.endsWith('/messages')) {
     return realFetch(new URL('/messages', target), init);
   }
+  if (url.hostname === 'www.planetsorted.com' && url.pathname === '/api/button/whatsapp') return realFetch(new URL('/relay-messages', target), init);
   throw new Error('External HTTP is forbidden in lean integration tests');
 };
