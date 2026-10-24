@@ -32,7 +32,7 @@ const GOOGLE_OAUTH_CONFIG = {
  *  subdomains (sor7ed.com + api.sor7ed.com), set COOKIE_DOMAIN=.sor7ed.com
  *  so the browser sends sor7ed_session on both hosts. Leave unset for
  *  localhost / same-origin proxy setups. */
-function cookieBase(maxAge: number) {
+export function cookieBase(maxAge: number) {
   const opts: {
     path: string;
     httpOnly: boolean;
@@ -53,7 +53,8 @@ function cookieBase(maxAge: number) {
 }
 
 export async function authRoutes(app: FastifyInstance) {
-  await app.register(oauthPlugin, {
+  const googleEnabled = !!process.env["GOOGLE_CLIENT_ID"] && !!process.env["GOOGLE_CLIENT_SECRET"];
+  if (googleEnabled) await app.register(oauthPlugin, {
     name: "googleOAuth2",
     credentials: {
       client: {
@@ -87,6 +88,14 @@ export async function authRoutes(app: FastifyInstance) {
       },
     },
     async (req, reply) => {
+      if (!googleEnabled) {
+        const origin = process.env["WEB_ORIGIN"] ?? "http://localhost:3000";
+        let next = "/account";
+        try { const target = new URL(req.query.returnTo ?? "/account", origin);
+          if (target.origin === new URL(origin).origin && ["/save", "/save/extension", "/account", "/dashboard"].includes(target.pathname)) next = target.pathname + target.search;
+        } catch { /* Use the account page for invalid return addresses. */ }
+        return reply.redirect(`${origin}/signin?next=${encodeURIComponent(next)}`);
+      }
       if (req.query.returnTo) {
         reply.setCookie("returnTo", req.query.returnTo, cookieBase(600));
       }
@@ -95,6 +104,7 @@ export async function authRoutes(app: FastifyInstance) {
   );
 
   app.get("/api/auth/google/callback", async (req, reply) => {
+    if (!googleEnabled) return reply.code(503).send({ error: "Google sign-in is not configured. Use WhatsApp sign-in." });
     const { token } = await app.googleOAuth2.getAccessTokenFromAuthorizationCodeFlow(req);
 
     const profileRes = await fetch("https://www.googleapis.com/oauth2/v2/userinfo", {
@@ -112,7 +122,7 @@ export async function authRoutes(app: FastifyInstance) {
       .returning({ id: users.id });
     if (!user) return reply.code(500).send({ error: "Failed to upsert user" });
 
-    const sessionToken = await reply.jwtSign({ sub: user.id });
+    const sessionToken = await reply.jwtSign({ sub: user.id }, { expiresIn: "30d" });
     reply.setCookie("sor7ed_session", sessionToken, cookieBase(60 * 60 * 24 * 30));
 
     const returnTo = req.cookies["returnTo"] ?? process.env["WEB_ORIGIN"] ?? "http://localhost:3000";

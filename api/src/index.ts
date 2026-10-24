@@ -9,6 +9,7 @@ import { webhookRoutes } from "./routes/webhook.js";
 import { connectRoutes } from "./routes/connect.js";
 import { saveRoutes } from "./routes/saves.js";
 import { itemLookupRoutes } from "./routes/item-lookup.js";
+import { consumerRoutes } from "./routes/consumer.js";
 import { partnerRoutes } from "./routes/partner.js";
 import { UPLOAD_DIR, isUsingLocalDiskUploads, assertRequiredEnv, db } from "@sor7ed/core";
 import { sql } from "drizzle-orm";
@@ -32,7 +33,7 @@ const app = Fastify({
     // app.log.* calls elsewhere that pass PII directly — those need
     // fixing at the call site (see webhook.ts).
     redact: {
-      paths: ["req.headers.cookie", "req.headers.authorization", "req.body.whatsappNumber", "req.body.phoneNumber"],
+      paths: ["req.headers.cookie", "req.headers.authorization", "req.body.whatsappNumber", "req.body.phoneNumber", "req.body.proof", "req.body.code", "req.body.token"],
       censor: "[REDACTED]",
     },
   },
@@ -108,6 +109,7 @@ await app.register(connectRoutes);
 await app.register(saveRoutes);
 await app.register(itemLookupRoutes);
 await app.register(partnerRoutes);
+await app.register(consumerRoutes);
 
 const port = Number(process.env["PORT"] ?? 3001);
 

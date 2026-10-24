@@ -16,6 +16,7 @@ async function isCrawlerRequest(): Promise<boolean> {
 }
 
 interface SaveCardItem {
+  source?: string;
   title: string;
   description: string | null;
   cachedImageUrl: string | null;
@@ -51,10 +52,10 @@ export async function generateMetadata({ params }: SaveCardPageProps) {
   if (!item) return { title: "Not found" };
   return {
     title: item.title,
-    description: item.description ?? `Saved from ${item.partnerName}`,
+    description: item.source === "extension" ? undefined : item.description ?? `Saved from ${item.partnerName}`,
     openGraph: {
       title: item.title,
-      description: item.description ?? `Saved from ${item.partnerName}`,
+      description: item.source === "extension" ? undefined : item.description ?? `Saved from ${item.partnerName}`,
       images: item.cachedImageUrl ? [{ url: item.cachedImageUrl, width: 1200, height: 630 }] : [],
       type: "article",
     },

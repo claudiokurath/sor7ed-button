@@ -24,6 +24,7 @@ export const users = pgTable(
     id: uuid("id").primaryKey().defaultRandom(),
     email: text("email").unique(),
     googleId: text("google_id").unique(),
+    displayName: text("display_name"),
     whatsappNumber: text("whatsapp_number").unique(),
     whatsappVerified: boolean("whatsapp_verified").default(false).notNull(),
     // Set when the user texts STOP/UNSUBSCRIBE, cleared on START. Every
@@ -99,6 +100,8 @@ export const savedItems = pgTable(
       .references(() => users.id, { onDelete: "cascade" }),
     partnerId: uuid("partner_id").references(() => partners.id, { onDelete: "set null" }),
     collectionId: uuid("collection_id").references(() => collections.id, { onDelete: "set null" }),
+    source: text("source").default("partner").notNull(),
+    sourceHost: text("source_host"),
     url: text("url").notNull(),
     title: text("title").notNull(),
     description: text("description"),
@@ -133,6 +136,9 @@ export const savedItems = pgTable(
     createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
   },
   (t) => [
+    index("saved_items_source_host_idx").on(t.userId, t.sourceHost),
+    uniqueIndex("saved_items_personal_action_idx").on(t.userId, t.idempotencyKey).where(sql`${t.source} = 'extension'`),
+    check("saved_items_source_check", sql`${t.source} IN ('partner', 'extension')`),
     index("saved_items_user_idx").on(t.userId),
     index("saved_items_user_created_idx").on(t.userId, t.createdAt),
     index("saved_items_wa_message_idx").on(t.whatsappMessageId),
@@ -245,3 +251,23 @@ export const partnerInvites = pgTable(
   },
   (t) => [uniqueIndex("partner_invites_token_idx").on(t.token), index("partner_invites_partner_idx").on(t.partnerId)]
 );
+
+// Only hashes of browser proof, public handoff token and the short code persist.
+export const whatsappSigninChallenges = pgTable("whatsapp_signin_challenges", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  tokenHash: text("token_hash").unique().notNull(),
+  proofHash: text("proof_hash").notNull(),
+  codeHash: text("code_hash"),
+  phone: text("phone"),
+  attempts: integer("attempts").default(0).notNull(),
+  expiresAt: timestamp("expires_at", { withTimezone: true }).notNull(),
+  consumedAt: timestamp("consumed_at", { withTimezone: true }),
+}, t => [index("whatsapp_signin_expiry_idx").on(t.expiresAt)]);
+
+export const saveResendActions = pgTable('save_resend_actions', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  userId: uuid('user_id').notNull().references(() => users.id, { onDelete: 'cascade' }),
+  savedItemId: uuid('saved_item_id').notNull().references(() => savedItems.id, { onDelete: 'cascade' }),
+  actionKey: text('action_key').notNull(),
+  createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
+}, t => [uniqueIndex('save_resend_action_key_idx').on(t.userId,t.actionKey)]);

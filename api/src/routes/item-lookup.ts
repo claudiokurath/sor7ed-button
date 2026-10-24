@@ -9,6 +9,7 @@ export async function itemLookupRoutes(app: FastifyInstance) {
         id: savedItems.id,
         partnerId: savedItems.partnerId,
         title: savedItems.title,
+        source: savedItems.source,
         description: savedItems.description,
         cachedImageUrl: savedItems.cachedImageUrl,
         imageUrl: savedItems.imageUrl,

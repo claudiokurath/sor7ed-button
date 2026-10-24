@@ -37,7 +37,7 @@ export function assertRequiredEnv(role: "api" | "worker" = "api"): void {
   if (role === "api") required.push("JWT_SECRET");
   if (process.env["NODE_ENV"] === "production") {
     required.push(...REQUIRED_PRODUCTION.filter(key => !lean || !key.startsWith("R2_")));
-    if (role === "api") required.push(...REQUIRED_API_PRODUCTION);
+    if (role === "api") required.push(...REQUIRED_API_PRODUCTION.filter(key => !lean || !key.startsWith("GOOGLE_")));
   }
   const missing = required.filter((key) => !process.env[key]);
   if (missing.length > 0) {
