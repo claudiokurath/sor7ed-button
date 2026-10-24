@@ -1,51 +1,50 @@
+import type { Metadata } from "next";
+import HeroDemo from "./_home/HeroDemo";
+import { Nav, Footer, Steps, ForYou, ForWebsites, Faq, Privacy } from "./_home/Sections";
+import "./_home/home.css";
+
+export const metadata: Metadata = {
+ title: "SOR7ED — keep useful things in WhatsApp",
+ description: "Found something useful? Send it to yourself. Explore the SOR7ED Button with an interactive, no-signup preview.",
+ alternates: { canonical: "https://www.sor7ed.com" },
+};
+
 export default function HomePage() {
-  return (
-    <main style={{ maxWidth: 640, margin: "80px auto", padding: "0 24px" }}>
-      <h1 style={{ fontSize: 32, letterSpacing: "0.04em", marginBottom: 8 }}>SOR7ED BUTTON</h1>
-      <p style={{ color: "#555", fontSize: 18, marginBottom: 32 }}>
-        Save it. Get it on WhatsApp.
-      </p>
-      <p style={{ color: "#666", lineHeight: 1.6, marginBottom: 24 }}>
-        The partner Save-to-WhatsApp product. Site owners embed one script tag;
-        visitors save any page straight into their WhatsApp library.
-      </p>
-      <div style={{ display: "flex", gap: 12, flexWrap: "wrap" }}>
-        <a
-          href="/demo"
-          style={{
-            display: "inline-block",
-            padding: "12px 20px",
-            background: "#25D366",
-            color: "#fff",
-            borderRadius: 8,
-            fontWeight: 700,
-            textDecoration: "none",
-          }}
-        >
-          Try the live demo →
-        </a>
-        <a
-          href="/dashboard"
-          style={{
-            display: "inline-block",
-            padding: "12px 20px",
-            background: "#fff",
-            color: "#111",
-            border: "1px solid #ddd",
-            borderRadius: 8,
-            fontWeight: 700,
-            textDecoration: "none",
-          }}
-        >
-          Partner dashboard →
-        </a>
+ return (
+      <div className="s7" id="top">
+        <link rel="preload" as="image" href="/static/demo-garden.svg" />
+        <a className="s7-skip" href="#main">Skip to main content</a>
+        <Nav />
+
+        <main id="main">
+          <section className="s7-wrap s7-hero" aria-labelledby="hero-title">
+            <div>
+              <h1 id="hero-title" className="s7-h1">
+                Found something useful?
+                <em>Send it to yourself.</em>
+              </h1>
+              <p className="s7-lede">
+                Keep useful articles, videos and resources in one familiar WhatsApp thread.
+                Come back when you're ready.
+              </p>
+              <div className="s7-ctas">
+                <a className="s7-btn s7-btn--primary" href="#demo">Try the demo</a>
+                <a className="s7-btn s7-btn--secondary" href="#for-websites">For website owners</a>
+              </div>
+            </div>
+            <div id="demo" style={{ display: 'flex', justifyContent: 'center', scrollMarginTop: 16 }}>
+              <HeroDemo />
+            </div>
+          </section>
+
+          <Steps />
+          <ForYou />
+          <ForWebsites />
+          <Faq />
+          <Privacy />
+        </main>
+
+        <Footer />
       </div>
-      <p style={{ color: "#999", fontSize: 13, marginTop: 48 }}>
-        Part of the SOR7ED family · separate from{" "}
-        <a href="https://planetsorted.com" style={{ color: "#666" }}>
-          planetsorted.com
-        </a>
-      </p>
-    </main>
-  );
+ );
 }
