@@ -112,7 +112,7 @@
     { q: 'How does WhatsApp get connected?', a: 'The first time, a small window asks you to sign in with Google. It then gives you a connection link that opens WhatsApp with a one-time message ready to send. Send it and you are connected. The link works once and expires after about 15 minutes; the window can fetch a new one.' },
     { q: 'What gets saved?', a: 'The address, title, description and preview image that the website provides for the page you pressed Sorted on, linked to your account.' },
     { q: 'Which websites take part?', a: 'Only websites whose owners have added the Button. It does not appear anywhere else. A browser extension is planned but not available.' },
-    { q: 'What happens to my data?', a: 'See the privacy summary on this page. It is a plain-language summary, not a full privacy policy.' },
+    { q: 'What happens to my data?', a: 'The privacy summary below explains the main points. The footer links to the Button privacy policy for details about saved links, WhatsApp, service providers and your rights.' },
     { q: 'What is the difference between the demo and live saving?', a: 'The demo on this page runs in your browser. It sends nothing, saves nothing and contacts no service. Live saving signs you in, connects WhatsApp and asks WhatsApp to send the card. WhatsApp accepting a message is not proof it arrived, so the Button also shows when sending is pending, failed, not sent or unconfirmed. If the conversation has become inactive, you may need to reopen it before a message can be sent.' },
   ];
 
@@ -149,7 +149,7 @@
             <li>Public page previews may be fetched and preview images cached at public addresses. Where AI enrichment is enabled, page titles and descriptions are sent to OpenAI for summaries and tags.</li>
             <li>Card links pass through a SOR7ED link that records opens against the saved item and originating website. Known preview crawlers are excluded; an open is not proof of a unique return visit.</li>
           </ul>
-          <p className="s7-prose">This is a plain-language summary, not a full privacy policy.</p>
+          <p className="s7-prose">Read the <a href="/privacy-policy">Button privacy policy</a> for more detail and how to contact us about your data.</p>
         </div>
       </section>
     );
@@ -168,6 +168,7 @@
             <a href="#for-websites">For website owners</a>
             <a href="#how-it-works">How it works</a>
             <a href="#privacy">Privacy summary</a>
+            <a href="/privacy-policy">Privacy policy</a>
             <a href="https://www.planetsorted.com" rel="noopener">Planet Sorted: neurodivergent support and content ↗</a>
           </nav>
         </div>

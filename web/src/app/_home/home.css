@@ -437,6 +437,10 @@
 }
 
 .s7-h3 { color:#fff; }
+.s7-policy { padding-top:64px; padding-bottom:64px; max-width:820px; }
+.s7-policy .s7-h1 { font-size:clamp(36px,7vw,68px); }
+.s7-policy .s7-h2 { margin-top:44px; font-size:clamp(25px,4vw,36px); }
+.s7-policy a, .s7-prose a { text-decoration:underline; text-underline-offset:4px; }
 .s7 #demo { scroll-margin-top:24px; }
 .s7 .hd-thumb img { width:46px; height:46px; display:block; border-radius:4px; }
 .s7 .hd-slot { min-height:148px; }

@@ -3,3 +3,6 @@ Allow: /s/
 Allow: /widget.js
 Disallow: /dashboard
 Disallow: /save
+Disallow: /account
+Disallow: /signin
+Sitemap: https://www.sor7ed.com/sitemap.xml

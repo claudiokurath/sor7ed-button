@@ -7,6 +7,20 @@ export const metadata: Metadata = {
  title: "SOR7ED — keep useful things in WhatsApp",
  description: "Found something useful? Send it to yourself. Explore the SOR7ED Button with an interactive, no-signup preview.",
  alternates: { canonical: "https://www.sor7ed.com" },
+ openGraph: {
+  type: "website",
+  url: "https://www.sor7ed.com",
+  siteName: "SOR7ED",
+  title: "SOR7ED — keep useful things in WhatsApp",
+  description: "Found something useful? Send it to yourself. Try the interactive preview of the SOR7ED Button.",
+  images: [{ url: "/opengraph-image", width: 1200, height: 630, alt: "SOR7ED — Found something useful? Send it to yourself." }],
+ },
+ twitter: {
+  card: "summary_large_image",
+  title: "SOR7ED — keep useful things in WhatsApp",
+  description: "Found something useful? Send it to yourself. Try the interactive preview of the SOR7ED Button.",
+  images: ["/opengraph-image"],
+ },
 };
 
 export default function HomePage() {
