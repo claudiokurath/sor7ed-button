@@ -1,0 +1,10 @@
+{
+  "files": [],
+  "references": [
+    { "path": "./types" },
+    { "path": "./core" },
+    { "path": "./api" },
+    { "path": "./worker" },
+    { "path": "./web" }
+  ]
+}
