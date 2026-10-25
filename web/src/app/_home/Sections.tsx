@@ -32,7 +32,7 @@
 
   export function Problem() {
     return (
-      <section className="s7-section" aria-labelledby="problem-title">
+      <section className="s7-section s7-section--yellow" aria-labelledby="problem-title">
         <div className="s7-wrap s7-editorial-grid">
           <div><p className="s7-eyebrow">The problem</p><h2 id="problem-title" className="s7-h2">Good finds get lost in open tabs and bookmarks.</h2></div>
           <div className="s7-editorial-copy"><p className="s7-prose">Articles, videos and guides pile up. Another app to manage can make it harder to come back to them.</p><div className="s7-short-rule" /><p className="s7-prose">Keep the good ones in one WhatsApp thread, ready to open later.</p></div>
@@ -73,7 +73,7 @@
 
   export function ForYou() {
     return (
-      <section className="s7-section" aria-labelledby="you-title">
+      <section className="s7-section s7-section--yellow" aria-labelledby="you-title">
         <div className="s7-wrap">
           <p className="s7-eyebrow">For you</p>
           <h2 id="you-title" className="s7-h2">A familiar place for useful things.</h2>
@@ -160,7 +160,7 @@
 
   export function Privacy() {
     return (
-      <section id="privacy" className="s7-section" aria-labelledby="privacy-title">
+      <section id="privacy" className="s7-section s7-section--yellow" aria-labelledby="privacy-title">
         <div className="s7-wrap">
           <p className="s7-eyebrow">Privacy</p>
           <h2 id="privacy-title" className="s7-h2">Privacy summary</h2>

@@ -485,3 +485,18 @@
 @media(min-width:1024px) { .s7-hero { grid-template-columns:minmax(0,1.2fr) minmax(0,.85fr); gap:48px; } }
 @media(max-width:800px) { .s7-editorial-grid { grid-template-columns:1fr; gap:12px; } .s7-partner-metrics { grid-template-columns:1fr; gap:32px; } }
 @media(max-width:480px) { .s7-h1 { font-size:clamp(2.7rem,11vw,3.4rem); } .s7-hero { gap:44px; } .s7-navlinks { flex-wrap:wrap; gap:0 16px; } .s7-ctas { flex-direction:column; align-items:stretch; } }
+
+/* Alternating section surfaces from the supplied presentation (#FFD400). */
+@media screen {
+  .s7 { --s7-yellow:#ffd400; }
+  .s7-section--yellow {
+    --s7-ink:#000; --s7-soft:#242000; --s7-muted:#383000;
+    --s7-line:rgb(0 0 0 / .35); --s7-line-faint:rgb(0 0 0 / .14);
+    background:var(--s7-yellow); color:#000; border-color:#000;
+  }
+  .s7-section--yellow :is(.s7-eyebrow,.s7-num,.s7-prose,.s7-note) { color:#242000; }
+  .s7-section--yellow .s7-short-rule { background:#000; }
+  .s7-section--yellow .s7-note { border-left-color:#000; }
+  .s7-section--yellow a { text-decoration-thickness:1px; text-underline-offset:4px; }
+  .s7-section--yellow :is(a,button,summary):focus-visible { outline-color:#000; }
+}
