@@ -30,6 +30,17 @@
     );
   }
 
+  export function Problem() {
+    return (
+      <section className="s7-section" aria-labelledby="problem-title">
+        <div className="s7-wrap s7-editorial-grid">
+          <div><p className="s7-eyebrow">The problem</p><h2 id="problem-title" className="s7-h2">Good finds get lost in open tabs and bookmarks.</h2></div>
+          <div className="s7-editorial-copy"><p className="s7-prose">Articles, videos and guides pile up. Another app to manage can make it harder to come back to them.</p><div className="s7-short-rule" /><p className="s7-prose">Keep the good ones in one WhatsApp thread, ready to open later.</p></div>
+        </div>
+      </section>
+    );
+  }
+
   export function Steps() {
     const items = [
       { n: '01', h: 'Find something worth keeping.', p: 'An article, a video, a guide: anything useful on a website that has the Button.' },
@@ -40,7 +51,7 @@
       <section id="how-it-works" className="s7-section" aria-labelledby="how-title">
         <div className="s7-wrap">
           <p className="s7-eyebrow">How it works</p>
-          <h2 id="how-title" className="s7-h2">Three steps, then you are done.</h2>
+          <h2 id="how-title" className="s7-h2">Find it. Press Sorted. Keep it.</h2>
           <ol className="s7-steps">
             {items.map((s) => (
               <li key={s.n} className="s7-step">
@@ -65,13 +76,13 @@
       <section className="s7-section" aria-labelledby="you-title">
         <div className="s7-wrap">
           <p className="s7-eyebrow">For you</p>
-          <h2 id="you-title" className="s7-h2">Keep it where you already look.</h2>
+          <h2 id="you-title" className="s7-h2">A familiar place for useful things.</h2>
           <p className="s7-prose">
             WhatsApp is already open on your phone. A page saved there sits next to your other
             conversations, so useful things stay easy to return to, with no other app to install
             or manage.
           </p>
-          <h3 className="s7-h3" id="extension">Save from other websites</h3>
+          <h3 className="s7-h3" id="extension">The browser extension</h3>
           <p className="s7-prose">The desktop extension preview lets you choose a page in Chrome or Edge and open its SOR7ED save window. You review the page before sending. It does not continuously read your browsing history.</p>
           <p className="s7-prose"><a href="/downloads/send-to-sorted-extension.zip" download>Download the extension preview (ZIP)</a></p>
           <ol className="s7-facts">
@@ -91,7 +102,7 @@
       <section id="for-websites" className="s7-section" aria-labelledby="owners-title">
         <div className="s7-wrap">
           <p className="s7-eyebrow">For website owners</p>
-          <h2 id="owners-title" className="s7-h2">One script. Your visitors take your content with them.</h2>
+          <h2 id="owners-title" className="s7-h2">Your content. Ready to come back to.</h2>
           <p className="s7-prose">
             Add the Button to a page and visitors can send it to their own WhatsApp thread. If you
             leave out the placeholder, the Button is added at the end of the page. Without the
@@ -107,6 +118,7 @@
             <li>The partner dashboard includes monthly save limits and key rotation. Live partner sign-in is not available yet.</li>
             <li>The Button loads one web font from Google Fonts. Mention this in your own privacy notice.</li>
           </ul>
+          <div className="s7-partner-metrics"><div><p className="s7-eyebrow">Saves</p><h3 className="s7-h3">See what readers keep.</h3><p className="s7-prose">The partner dashboard records saves from your website.</p></div><div><p className="s7-eyebrow">Opens</p><h3 className="s7-h3">See what gets reopened.</h3><p className="s7-prose">Track opens of saved links. These are link opens, not verified unique return visits.</p></div></div>
           <h3 className="s7-h3">Setting up</h3>
           <ol className="s7-facts">
             <li>Create a partner account and copy your key.</li>

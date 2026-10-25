@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import HeroDemo from "./_home/HeroDemo";
-import { Nav, Footer, Steps, ForYou, ForWebsites, Faq, Privacy } from "./_home/Sections";
+import { Nav, Footer, Problem, Steps, ForYou, ForWebsites, Faq, Privacy } from "./_home/Sections";
 import "./_home/home.css";
 
 export const metadata: Metadata = {
@@ -33,17 +33,18 @@ export default function HomePage() {
         <main id="main">
           <section className="s7-wrap s7-hero" aria-labelledby="hero-title">
             <div>
+              <p className="s7-eyebrow">Less lost. More Sorted.</p>
               <h1 id="hero-title" className="s7-h1">
-                Found something useful?
-                <em>Send it to yourself.</em>
+                Keep useful things
+                <em>in WhatsApp.</em>
               </h1>
               <p className="s7-lede">
-                Keep useful articles, videos and resources in one familiar WhatsApp thread.
-                Come back when you're ready.
+                Save articles, videos and guides to a conversation you already use.
               </p>
+              <p className="s7-prose s7-hero-detail">No separate app. Press Sorted on a participating website, or use the desktop extension preview.</p>
               <div className="s7-ctas">
                 <a className="s7-btn s7-btn--primary" href="/signin">Start with WhatsApp</a>
-                <a className="s7-btn s7-btn--secondary" href="#for-websites">For website owners</a>
+                <a className="s7-btn s7-btn--secondary" href="#demo">Try the demo <span aria-hidden="true">↓</span></a>
               </div>
             </div>
             <div id="demo" style={{ display: 'flex', justifyContent: 'center', scrollMarginTop: 16 }}>
@@ -51,6 +52,7 @@ export default function HomePage() {
             </div>
           </section>
 
+          <Problem />
           <Steps />
           <ForYou />
           <ForWebsites />
