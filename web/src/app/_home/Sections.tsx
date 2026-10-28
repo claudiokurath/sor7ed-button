@@ -1,3 +1,5 @@
+import { BrandLogo } from "../_brand/BrandLogo";
+
   const EMBED = `<!-- Optional: where the button should appear -->
 <div data-sor7ed data-title="Page title" data-url="https://example.com/page"></div>
 
@@ -15,8 +17,7 @@
       <header className="s7-nav">
         <div className="s7-wrap s7-nav-inner">
           <a className="s7-brand" href="#top" aria-label="SOR7ED home">
-            <img src="/static/tangle-white.png" alt="" />
-            <span>SOR7ED</span>
+            <BrandLogo />
           </a>
           <nav aria-label="Main" className="s7-navlinks">
             <a className="s7-navlink" href="#how-it-works">How it works</a>
@@ -183,8 +184,7 @@
       <footer className="s7-footer">
         <div className="s7-wrap s7-footer-inner">
           <p className="s7-brandline">
-            <img src="/static/tangle-white.png" alt="" />
-            SOR7ED
+            <BrandLogo />
           </p>
           <nav aria-label="Footer" className="s7-footerlinks">
             <a href="#demo">Try the demo</a>

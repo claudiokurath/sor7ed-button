@@ -54,7 +54,6 @@
   text-decoration: none; font-family: var(--font-mono);
   font-weight: 500; letter-spacing: .14em; font-size: 15px;
 }
-.s7-brand img { width: 26px; height: 26px; display: block; }
 .s7-brand { flex: none; }
 
 .s7-navlinks {
@@ -195,7 +194,6 @@
   margin: 0; font-family: var(--font-mono);
   letter-spacing: .14em; display: flex; align-items: center; gap: 10px;
 }
-.s7-brandline img { width: 22px; height: 22px; }
 .s7-footerlinks { display: flex; flex-wrap: wrap; gap: 8px 24px; }
 .s7-footerlinks a { color: var(--s7-soft); padding-block: 6px; font-size: .9375rem; }
 .s7-footerlinks a:hover { color: var(--s7-amber); }
@@ -454,7 +452,6 @@
 .s7-wrap { max-width:1280px; padding-inline:clamp(22px,5vw,64px); }
 .s7-nav-inner { padding-block:20px; }
 .s7-brand { font-size:18px; }
-.s7-brand img { width:32px; height:32px; }
 .s7-hero { padding-block:clamp(56px,8vw,110px); gap:56px; }
 .s7-h1,.s7-h2 { font-family:Anton,'Arial Narrow',sans-serif; font-weight:400; text-transform:uppercase; letter-spacing:0; text-wrap:balance; }
 .s7-h1 { font-size:clamp(3.4rem,5.7vw,5.4rem); line-height:1.1; }

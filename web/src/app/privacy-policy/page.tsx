@@ -1,3 +1,4 @@
+import { BrandLogo } from "../_brand/BrandLogo";
 import type { Metadata } from "next";
 import "../_home/home.css";
 
@@ -11,7 +12,7 @@ export default function PrivacyPolicy() {
   return (
     <div className="s7">
       <a className="s7-skip" href="#main">Skip to privacy policy</a>
-      <header className="s7-nav"><div className="s7-wrap s7-nav-inner"><a className="s7-brand" href="/">SOR7ED</a></div></header>
+      <header className="s7-nav"><div className="s7-wrap s7-nav-inner"><a className="s7-brand" href="/" aria-label="SOR7ED home"><BrandLogo /></a></div></header>
       <main className="s7-wrap s7-policy" id="main">
         <p className="s7-eyebrow">Updated 24 October 2026</p>
         <h1 className="s7-h1">Button privacy policy</h1>

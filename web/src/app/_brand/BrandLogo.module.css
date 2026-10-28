@@ -1,0 +1,8 @@
+.wordmark {
+  display: block;
+  width: clamp(144px, 16vw, 184px);
+  max-width: 100%;
+  height: auto;
+  flex: none;
+  object-fit: contain;
+}
