@@ -17,10 +17,7 @@ const domainSchema = z
 export const createPartnerBodySchema = z.object({
   name: z.string().trim().min(1).max(200),
   brandName: z.string().trim().max(200).optional(),
-  // Optional at creation: an empty list means "unrestricted" (see the
-  // allowedDomains column comment in core/src/schema.ts) — partners can
-  // add domains from the dashboard once they know the exact host(s)
-  // their embed will live on, rather than being blocked at signup time.
+  // New accounts start disabled; domain proof is set up after creation.
   allowedDomains: z.array(domainSchema).max(20).optional(),
 });
 

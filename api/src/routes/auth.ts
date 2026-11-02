@@ -1,3 +1,4 @@
+import { safeAuthReturn } from "../lib/auth-return.js";
 import type { FastifyInstance } from "fastify";
 import oauthPlugin from "@fastify/oauth2";
 import { eq } from "drizzle-orm";
@@ -88,17 +89,10 @@ export async function authRoutes(app: FastifyInstance) {
       },
     },
     async (req, reply) => {
-      if (!googleEnabled) {
-        const origin = process.env["WEB_ORIGIN"] ?? "http://localhost:3000";
-        let next = "/account";
-        try { const target = new URL(req.query.returnTo ?? "/account", origin);
-          if (target.origin === new URL(origin).origin && ["/save", "/save/extension", "/account", "/dashboard"].includes(target.pathname)) next = target.pathname + target.search;
-        } catch { /* Use the account page for invalid return addresses. */ }
-        return reply.redirect(`${origin}/signin?next=${encodeURIComponent(next)}`);
-      }
-      if (req.query.returnTo) {
-        reply.setCookie("returnTo", req.query.returnTo, cookieBase(600));
-      }
+      const origin = process.env["WEB_ORIGIN"] ?? "http://localhost:3000";
+      const next = safeAuthReturn(req.query.returnTo, origin);
+      if (!googleEnabled) return reply.redirect(`${origin}/signin?next=${encodeURIComponent(next)}`);
+      reply.setCookie("returnTo", next, cookieBase(600));
       return reply.redirect("/api/auth/google");
     }
   );
@@ -111,7 +105,8 @@ export async function authRoutes(app: FastifyInstance) {
       headers: { Authorization: `Bearer ${token.access_token}` },
     });
     if (!profileRes.ok) return reply.code(502).send({ error: "Failed to fetch Google profile" });
-    const profile = (await profileRes.json()) as { id: string; email: string };
+    const profile = (await profileRes.json()) as { id?: string; email?: string; verified_email?: boolean };
+    if (profile.verified_email !== true || typeof profile.id !== "string" || typeof profile.email !== "string" || !profile.email.includes("@")) return reply.code(403).send({ error: "Please verify your email with Google before signing in." });
 
     // Single atomic statement — avoids a select-then-write race under
     // concurrent first-time sign-ins with the same email.
@@ -125,7 +120,8 @@ export async function authRoutes(app: FastifyInstance) {
     const sessionToken = await reply.jwtSign({ sub: user.id }, { expiresIn: "30d" });
     reply.setCookie("sor7ed_session", sessionToken, cookieBase(60 * 60 * 24 * 30));
 
-    const returnTo = req.cookies["returnTo"] ?? process.env["WEB_ORIGIN"] ?? "http://localhost:3000";
+    const origin = process.env["WEB_ORIGIN"] ?? "http://localhost:3000";
+    const returnTo = new URL(safeAuthReturn(req.cookies["returnTo"], origin), origin).href;
     reply.clearCookie("returnTo", cookieBase(0));
     return reply.redirect(returnTo);
   });

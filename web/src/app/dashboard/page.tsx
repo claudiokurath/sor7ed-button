@@ -86,10 +86,7 @@ export default async function DashboardPage() {
       <h1 style={{ margin: "0 0 24px" }}>{partner.brandName ?? partner.name}</h1>
 
       {partner.allowedDomains.length === 0 && (
-        // Surfaced at the very top, not just inside the panel further down the
-        // page, because an unrestricted embed key is a real exposure: anyone
-        // who copies the <script> tag's data-api-key can embed the button on
-        // an unrelated site and consume this partner's monthly save quota.
+        // New accounts cannot save until DNS ownership is verified.
         <div
           style={{
             display: "flex",
@@ -107,11 +104,10 @@ export default async function DashboardPage() {
             ⚠️
           </span>
           <span style={{ flex: 1 }}>
-            <strong>Your embed key isn&apos;t locked to a domain yet</strong> — anyone with your snippet could embed it
-            anywhere and use up your monthly saves.
+            <strong>Your embed key is disabled</strong> — verify ownership of your domain before your website can save links.
           </span>
           <a href="#allowed-domains" style={{ color: "#8a5a00", fontWeight: 600, whiteSpace: "nowrap" }}>
-            Lock it down →
+            Verify your domain →
           </a>
         </div>
       )}

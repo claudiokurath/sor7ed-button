@@ -16,7 +16,7 @@ Do not copy secrets from planetsorted. Do not merge into that monorepo without a
 2. Meta webhook signature verification must stay on raw body bytes (`api/src/index.ts` content-type parser + `webhook.ts`).
 3. Partner save limit is atomic SQL in `api/src/routes/saves.ts` — do not split into check-then-update.
 4. CONNECT verify is transactional in `core/src/queries.ts`.
-5. `/s/[shortId]` must serve OG to crawlers and redirect humans (same idea as planetsorted `/r/`).
+5. `/s/[shortId]` serves OG with the actual destination hostname and shows a destination-confirmation page to people. Only the explicit same-origin POST Continue action redirects; crawlers and passive page loads must never count as opens. This deliberately replaces the old silent redirect after the November 2026 link-disguise audit.
 
 ## Secrets
 Never commit `.env`, `secrets_for_claude.txt`, or `all_notion_secrets.json`.

@@ -62,9 +62,7 @@ export default function Signin() {
       const target = new URL(next, location.origin);
       location.assign(
         target.origin === location.origin &&
-          ["/account", "/save", "/save/extension", "/dashboard"].includes(
-            target.pathname,
-          )
+          (["/account", "/save", "/save/extension", "/dashboard", "/dashboard/setup"].includes(target.pathname) || /^\/dashboard\/invite\/[a-f0-9]{16}$/.test(target.pathname))
           ? target.pathname + target.search
           : "/account",
       );

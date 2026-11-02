@@ -1,81 +1,88 @@
-import { redirect } from "next/navigation";
-import { headers } from "next/headers";
-
-interface SaveCardPageProps {
+import { notFound } from "next/navigation";
+import Shell from "../../_consumer/Shell";
+import { destination, getSaveCard } from "../../../lib/save-card";
+interface Props {
   params: Promise<{ shortId: string }>;
 }
-
-// Crawlers identify themselves via User-Agent. We must NOT redirect for
-// these — the whole point of this route is letting them read our OG tags
-// instead of the original site's. Anyone else gets redirected straight through.
-const CRAWLER_USER_AGENTS = ["whatsapp", "facebookexternalhit", "facebot", "twitterbot", "slackbot", "telegrambot", "linkedinbot"];
-
-async function isCrawlerRequest(): Promise<boolean> {
-  const ua = (await headers()).get("user-agent")?.toLowerCase() ?? "";
-  return CRAWLER_USER_AGENTS.some((bot) => ua.includes(bot));
-}
-
-interface SaveCardItem {
-  source?: string;
-  title: string;
-  description: string | null;
-  cachedImageUrl: string | null;
-  url: string;
-  partnerName: string;
-}
-
-async function getItem(shortId: string): Promise<SaveCardItem | null> {
-  const base = process.env["API_INTERNAL_URL"] ?? "http://localhost:3001";
-  const res = await fetch(`${base}/api/saves/${shortId}`, { next: { revalidate: 60 } });
-  if (res.status === 404) return null;
-  if (!res.ok) throw new Error(`Failed to fetch item: ${res.status}`);
-  return res.json() as Promise<SaveCardItem>;
-}
-
-// Deliberately separate from getItem above (which is cached via
-// revalidate:60 and also served to link-preview crawlers) — this must run
-// on every real visit, uncached, and never for a crawler. Best-effort: a
-// failed click record must never stop the redirect back to the partner's
-// page, so errors are swallowed rather than thrown.
-async function recordClick(shortId: string): Promise<void> {
-  const base = process.env["API_INTERNAL_URL"] ?? "http://localhost:3001";
-  try {
-    await fetch(`${base}/api/saves/${shortId}/click`, { method: "POST", cache: "no-store" });
-  } catch {
-    // Analytics is non-critical — the redirect must proceed either way.
-  }
-}
-
-export async function generateMetadata({ params }: SaveCardPageProps) {
+export const dynamic = "force-dynamic";
+export async function generateMetadata({ params }: Props) {
   const { shortId } = await params;
-  const item = await getItem(shortId);
-  if (!item) return { title: "Not found" };
+  const item = await getSaveCard(shortId);
+  if (!item)
+    return {
+      title: "Saved link not found | SOR7ED",
+      robots: { index: false, follow: false },
+    };
+  const host = destination(item.url)!.hostname;
+  const title =
+    `${host} — ${item.title.replace(/[\u0000-\u001f\u007f-\u009f\u202a-\u202e\u2066-\u2069]/g, "")}`.slice(
+      0,
+      240,
+    );
   return {
-    title: item.title,
-    description: item.source === "extension" ? undefined : item.description ?? `Saved from ${item.partnerName}`,
+    title,
+    robots: { index: false, follow: false },
     openGraph: {
-      title: item.title,
-      description: item.source === "extension" ? undefined : item.description ?? `Saved from ${item.partnerName}`,
-      images: item.cachedImageUrl ? [{ url: item.cachedImageUrl, width: 1200, height: 630 }] : [],
+      title,
+      siteName: "SOR7ED",
       type: "article",
+      images: item.cachedImageUrl
+        ? [{ url: item.cachedImageUrl, width: 1200, height: 630 }]
+        : [],
     },
   };
 }
-
-export default async function SaveCardPage({ params }: SaveCardPageProps) {
+export default async function SavedLinkPage({ params }: Props) {
   const { shortId } = await params;
-  const item = await getItem(shortId);
-  if (!item) redirect("/");
-
-  if (!(await isCrawlerRequest())) {
-    await recordClick(shortId);
-    redirect(item.url);
-  }
-
+  const item = await getSaveCard(shortId);
+  if (!item) notFound();
+  const url = destination(item.url)!;
   return (
-    <main style={{ textAlign: "center", padding: 40 }}>
-      <p>Redirecting to {item.partnerName}…</p>
-      <a href={item.url}>Continue to {item.title}</a>
-    </main>
+    <Shell>
+      <section
+        style={{
+          maxWidth: 620,
+          margin: "48px auto",
+          padding: 24,
+          overflowWrap: "anywhere",
+        }}
+      >
+        <p style={{ fontSize: 13, color: "#FFD400" }}>SAVED WITH SOR7ED</p>
+        <h1 style={{ fontSize: "clamp(30px,6vw,46px)", lineHeight: 1.1 }}>
+          Continue to this website?
+        </h1>
+        <p style={{ fontSize: 22, fontWeight: 600 }}>{url.hostname}</p>
+        <p>{item.title}</p>
+        <p style={{ lineHeight: 1.6 }}>
+          This link was saved by a user. Check the website address before you
+          continue.
+        </p>
+        <p style={{ fontSize: 14, color: "#d4d4d4" }}>{url.href}</p>
+        <form
+          method="post"
+          action={`/s/${encodeURIComponent(shortId)}/continue`}
+        >
+          <button
+            type="submit"
+            style={{
+              minHeight: 52,
+              background: "#FFD400",
+              color: "#000",
+              border: 0,
+              padding: "14px 24px",
+              fontWeight: 600,
+              cursor: "pointer",
+              maxWidth: "100%",
+              overflowWrap: "anywhere",
+            }}
+          >
+            Continue to {url.hostname} →
+          </button>
+        </form>
+        <p style={{ marginTop: 24 }}>
+          <a href="/account">Back to your saved links</a>
+        </p>
+      </section>
+    </Shell>
   );
 }

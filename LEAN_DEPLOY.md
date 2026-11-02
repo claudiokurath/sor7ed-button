@@ -85,3 +85,13 @@ See [consumer-account-extension.md](docs/consumer-account-extension.md). That
 branch adds WhatsApp-proven sign-in without Google and requires migration 0008.
 Google credentials are optional in lean mode there; Meta credentials still
 remain necessary. The original deployment and real-device checks still apply.
+
+## November 2026 security correction
+
+- Website keys start disabled. Create a partner account, request its partner-bound DNS TXT challenge in the dashboard, publish the record and verify it. Empty domains authorize nothing. Keep records published; successful DNS checks are cached for at most five minutes. Existing registered domains also need proof before saves work. No database migration is required for this proof layer. Changing JWT_SECRET changes DNS proof values and requires updating records.
+- Saved-link previews show the real destination hostname. Opening /s shows a confirmation; only its explicit Continue POST redirects. Both Button web and API require the same server-only CLICK_TRACKING_SECRET in production to record continuations. It must never use a NEXT_PUBLIC_ prefix. The production values were configured securely without exporting existing credentials. Unsigned click calls fail; one continuation per keyed network address/item/day is counted. Counts remain estimates and do not prove unique readers or completed publisher sessions.
+- Google login requires verified_email and checks the return address both before and after OAuth.
+- Web responses deny framing and include CSP, no-referrer and nosniff. The widget and font are served from SOR7ED; document the widget origin in partner script/style/font/image/connect CSP directives.
+- Button terms live at /button-terms; old PlanetSorted /terms links retain their compatibility redirect. The Chrome extension is still a developer-preview ZIP until a store account publishes a reviewed release; do not describe it as available from an app store.
+
+Verification uses fixture accounts/resources and simulated providers. Real WhatsApp delivery, payment and production DNS ownership were not exercised with customer data.

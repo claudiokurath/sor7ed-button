@@ -2,6 +2,7 @@ import { createHash } from "node:crypto";
 import { and, eq, sql } from "drizzle-orm";
 import { db } from "./client.js";
 import { isUrlAllowedForPartner } from "./domain-check.js";
+import { verifyPartnerUrl } from "./domain-verification.js";
 import { isLeanMode } from "./mode.js";
 import { partners, savedItems, users, type SaveDeliveryStatus } from "./schema.js";
 
@@ -58,6 +59,9 @@ export async function claimSaveAction(input: SaveActionInput) {
     if (!partner) throw new SaveActionError(403, "Invalid partner API key");
     if (!isUrlAllowedForPartner(input.url, partner.allowedDomains)) {
       throw new SaveActionError(403, "This URL's domain is not registered to this partner account");
+    }
+    if (!await verifyPartnerUrl(partner.id, input.url, partner.allowedDomains)) {
+      throw new SaveActionError(403, "This website must verify its domain before using the Button.");
     }
 
     const [user] = await tx

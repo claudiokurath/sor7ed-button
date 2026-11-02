@@ -4,6 +4,8 @@ import { sql } from "drizzle-orm";
 import { eq } from "drizzle-orm";
 import {
   db,
+  partnerDomainChallenge,
+  verifyPartnerDomain,
   partners,
   partnerMembers,
   getPartnerForUser,
@@ -42,14 +44,15 @@ export async function partnerRoutes(app: FastifyInstance) {
     const body = parseBody(createPartnerBodySchema, req.body, reply);
     if (!body) return;
     const { name, brandName, allowedDomains } = body;
+    if (allowedDomains?.length) return reply.code(400).send({ error: 'Create your account first, then verify your domain from the dashboard.' });
 
-    const [partner] = await db
-      .insert(partners)
-      .values({ name, brandName: brandName ?? null, allowedDomains: allowedDomains ?? [] })
-      .returning();
-    if (!partner) return reply.code(500).send({ error: "Failed to create partner" });
-
-    await db.insert(partnerMembers).values({ userId: req.userId!, partnerId: partner.id, role: "admin" });
+    const partner = await db.transaction(async tx => {
+      const [created] = await tx.insert(partners)
+        .values({ name, brandName: brandName ?? null, allowedDomains: [] }).returning();
+      if (!created) throw new Error('Partner creation failed');
+      await tx.insert(partnerMembers).values({ userId: req.userId!, partnerId: created.id, role: 'admin' });
+      return created;
+    });
     return reply.code(201).send(partner);
   });
 
@@ -60,10 +63,21 @@ export async function partnerRoutes(app: FastifyInstance) {
   // Replaces the full list rather than appending — the dashboard sends
   // its complete current list on every save, same pattern as apiKey
   // rotation below (single source of truth, no partial-update ambiguity).
+  app.post<{ Body: { domain?: string } }>("/api/partner/domain-challenge", {
+    preHandler: app.requirePartnerAuth,
+    config: { rateLimit: { max: 30, timeWindow: '1 hour' } },
+  }, async (req, reply) => {
+    if (typeof req.body?.domain !== 'string') return reply.code(400).send({ error: 'Enter your website domain.' });
+    try { return reply.send(partnerDomainChallenge(req.partnerId!, req.body.domain)); }
+    catch { return reply.code(400).send({ error: 'Enter a valid public domain, such as example.com.' }); }
+  });
+
   app.put("/api/partner/allowed-domains", { preHandler: app.requirePartnerAuth }, async (req, reply) => {
     const body = parseBody(updateAllowedDomainsBodySchema, req.body, reply);
     if (!body) return;
 
+    const checks = await Promise.all(body.allowedDomains.map(domain => verifyPartnerDomain(req.partnerId!, domain)));
+    if (checks.some(valid => !valid)) return reply.code(400).send({ error: 'Domain ownership is not verified yet. Add the TXT record shown below and retry after DNS updates.' });
     await db.update(partners).set({ allowedDomains: body.allowedDomains }).where(eq(partners.id, req.partnerId!));
     return reply.send({ allowedDomains: body.allowedDomains });
   });

@@ -57,7 +57,7 @@ export const partners = pgTable("partners", {
   // "example.com"), used to validate that a /api/saves request is saving
   // a URL the partner actually owns, since apiKey itself is public
   // (printed in the embed snippet) and carries no secrecy on its own.
-  // Empty array = unrestricted (dev/setup default; tighten before go-live).
+  // Empty array = disabled. DNS proof is rechecked by the save action.
   allowedDomains: text("allowed_domains").array().default(sql`'{}'`).notNull(),
   createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
 });

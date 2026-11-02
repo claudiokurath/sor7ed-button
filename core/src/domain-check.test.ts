@@ -2,8 +2,8 @@ import { describe, it, expect } from "vitest";
 import { isUrlAllowedForPartner } from "./domain-check.js";
 
 describe("isUrlAllowedForPartner", () => {
-  it("allows any URL when allowedDomains is empty (unrestricted legacy partners)", () => {
-    expect(isUrlAllowedForPartner("https://anything.example/page", [])).toBe(true);
+  it("rejects all URLs when no domains are verified", () => {
+    expect(isUrlAllowedForPartner("https://anything.example/page", [])).toBe(false);
   });
 
   it("allows an exact hostname match", () => {
