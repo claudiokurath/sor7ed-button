@@ -134,7 +134,7 @@ suite("connection requests with real PostgreSQL", () => {
   it("rolls back token consumption when another account owns the number", async () => {
     await pool.query("INSERT INTO users (whatsapp_number, whatsapp_verified) VALUES ('440000000000', true)");
     const request = await createOrReuseConnectionRequest(userId);
-    await expect(verifyConnectionRequest(request.token, "440000000000")).rejects.toMatchObject({ code: "23505" });
+    await expect(verifyConnectionRequest(request.token, "440000000000")).rejects.toMatchObject({ cause: { code: "23505" } });
     const token = await pool.query("SELECT status, verified_at FROM whatsapp_connection_requests WHERE token = $1", [request.token]);
     expect(token.rows[0]).toEqual({ status: "pending", verified_at: null });
     expect(await verifyConnectionRequest(request.token, "441111111111")).toBe(userId);
