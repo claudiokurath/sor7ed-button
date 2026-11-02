@@ -39,6 +39,7 @@
     "minimatch": "11.0.1",
     "@vercel/cli-config": {
       "zod": "4.6.7"
-    }
+    },
+    "light-my-request": "6.6.0"
   }
 }
