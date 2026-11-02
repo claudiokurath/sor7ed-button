@@ -31,14 +31,8 @@ Animation uses JavaScript CSS properties; verify your actual policy in the
 browser. Host CSS can still affect the widget; stronger isolation needs its
 own compatibility review rather than silently changing partner behaviour.
 
-The optional font request uses `https://fonts.googleapis.com` in `style-src`
-and `https://fonts.gstatic.com` in `font-src`. If blocked, the local monospace
-fallback remains usable. Describe those third-party requests in your notice.
-
-## Verification boundaries
-
-`npm run test:widget` verifies widget navigation and cleanup with browser API
-stand-ins and validates return destinations. The production web build is
-also checked with mocked API responses on mobile and desktop. Neither test
-proves Instagram/Facebook webview behaviour or real WhatsApp delivery.
-The API, Button Meta credentials and migration 0008 are still launch gates.
+The optional font stylesheet is hosted at the widget origin, `/widget-font.css`,
+with the font at `/fonts/JetBrainsMono-Variable.woff2`. Allow that origin in
+`style-src` and `font-src`; both assets return CORS headers. Google Fonts is not
+contacted by the widget. Inline widget styles still require a CSP nonce or an
+appropriate style-src policy, as described above.

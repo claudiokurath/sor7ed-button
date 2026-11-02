@@ -73,7 +73,7 @@ export async function saveRoutes(app: FastifyInstance) {
     if (user.whatsappVerified && user.whatsappNumber) {
       try {
         const outcome = await sendSaveCard(
-          req.userId!, user.whatsappNumber, item, partner.brandName ?? partner.name
+          req.userId!, user.whatsappNumber, item, new URL(item.url).hostname
         );
         status = outcome.status;
         reason = outcome.reason;

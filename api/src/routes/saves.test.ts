@@ -25,7 +25,7 @@ describe('save and delivery API', () => {
   };
   const headers = { 'x-test-user': 'user-one' };
   const item = {
-    id: 'item-one', shortId: 'abc123def456', title: 'Resource',
+    id: 'item-one', shortId: 'abc123def456', title: 'Resource', url: 'https://example.com/resource',
     cachedImageUrl: null, aiSummary: null,
     deliveryStatus: 'pending', deliveryReason: null, deliveryUpdatedAt: new Date(),
   };

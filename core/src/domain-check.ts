@@ -16,17 +16,15 @@ function normalizeHost(hostname: string): string {
   return lower.startsWith("www.") ? lower.slice(4) : lower;
 }
 
-// An empty allowedDomains list means "unrestricted" — this only applies to
-// partner rows created before domain registration existed (or via manual
-// DB edit). New partners always get one via the dashboard setup flow (see
-// api/src/routes/partner.ts). Documented explicitly in the schema comment
-// on partners.allowedDomains: tighten before go-live if any such rows exist.
+// Empty means disabled. A public key never authorizes arbitrary domains.
 export function isUrlAllowedForPartner(url: string, allowedDomains: readonly string[]): boolean {
-  if (allowedDomains.length === 0) return true;
+  if (allowedDomains.length === 0) return false;
 
   let hostname: string;
   try {
-    hostname = normalizeHost(new URL(url).hostname);
+    const parsed = new URL(url);
+    if (!['https:', 'http:'].includes(parsed.protocol) || parsed.username || parsed.password) return false;
+    hostname = normalizeHost(parsed.hostname);
   } catch {
     return false;
   }

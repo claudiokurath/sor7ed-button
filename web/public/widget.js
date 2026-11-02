@@ -1,5 +1,5 @@
 // SOR7ED save button — embeddable widget.
-// Style-isolated (all rules scoped under .s7-widget), single external
+// Style-isolated (all rules scoped under .s7-widget), single self-hosted
 // font request (JetBrains Mono, non-blocking), otherwise dependency-free.
 //
 // Visual design: hand-drawn "tangle" mark that resolves into a tick on
@@ -81,7 +81,7 @@
     fontInjected = true;
     var link = document.createElement("link");
     link.rel = "stylesheet";
-    link.href = "https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500&display=swap";
+    link.href = BASE + "/widget-font.css";
     document.head.appendChild(link);
   }
 

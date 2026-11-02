@@ -10,6 +10,7 @@ export * from "./whatsapp/service.js";
 export * from "./env.js";
 export * from "./mode.js";
 export * from "./domain-check.js";
+export * from "./domain-verification.js";
 export * from "./ssrf-guard.js";
 export * from "./save-actions.js";
 export * from "./consumer-auth.js";

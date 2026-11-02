@@ -18,6 +18,7 @@ const DEMO_ARTICLE = {
 export const metadata = {
   title: "Live demo — SOR7ED BUTTON",
   description: "Try the Save to WhatsApp button with no signup required.",
+  openGraph: { title: DEMO_ARTICLE.title, description: DEMO_ARTICLE.description, images: [DEMO_ARTICLE.image] },
 };
 
 export default function DemoPage() {
@@ -54,7 +55,7 @@ export default function DemoPage() {
         <div style={{ padding: 24 }}>
           <h1 style={{ fontSize: 24, margin: "0 0 12px" }}>{DEMO_ARTICLE.title}</h1>
           <p style={{ color: "#555", fontSize: 15, lineHeight: 1.6, marginBottom: 20 }}>{DEMO_ARTICLE.description}</p>
-          <div id="sor7ed-demo-slot" data-sor7ed />
+          <div id="sor7ed-demo-slot" data-sor7ed data-title={DEMO_ARTICLE.title} data-description={DEMO_ARTICLE.description} data-image={DEMO_ARTICLE.image} />
         </div>
       </article>
 

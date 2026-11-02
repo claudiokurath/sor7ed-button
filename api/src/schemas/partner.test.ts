@@ -59,7 +59,7 @@ describe("updateAllowedDomainsBodySchema", () => {
     expect(result.success).toBe(false);
   });
 
-  it("accepts an empty array (explicitly clearing all restrictions)", () => {
+  it("accepts an empty array (explicitly disabling saves)", () => {
     const result = updateAllowedDomainsBodySchema.safeParse({ allowedDomains: [] });
     expect(result.success).toBe(true);
   });

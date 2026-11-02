@@ -18,6 +18,8 @@ if (testUrl) {
 }
 
 const pool = testUrl ? new pg.Pool({ connectionString: testUrl, max: 16 }) : null;
+const { verifyDomain } = vi.hoisted(() => ({ verifyDomain: vi.fn(async () => true) }));
+vi.mock("./domain-verification.js", () => ({ verifyPartnerUrl: verifyDomain }));
 vi.mock("./client.js", () => ({ db: pool ? drizzle(pool, { schema }) : null }));
 const { claimSaveAction, SaveActionError, updateSaveDelivery, readOwnSaveDelivery } = await import("./save-actions.js");
 
@@ -37,6 +39,7 @@ describe.skipIf(!testUrl)("save actions against disposable Postgres", () => {
   });
 
   beforeEach(async () => {
+    verifyDomain.mockResolvedValue(true);
     await pool!.query("TRUNCATE users, partners CASCADE");
     userId = randomUUID();
     partnerId = randomUUID();
@@ -122,12 +125,18 @@ describe.skipIf(!testUrl)("save actions against disposable Postgres", () => {
       FOR EACH ROW EXECUTE FUNCTION reject_save_at_commit();
     `);
     try {
-      await expect(claimSaveAction(action())).rejects.toThrow("test deferred insertion failure");
+      await expect(claimSaveAction(action())).rejects.toMatchObject({ cause: { message: "test deferred insertion failure" } });
       expect(await persistedCounts()).toEqual({ items: 0, quota: 0 });
     } finally {
       await pool!.query("DROP TRIGGER reject_save_at_commit ON saved_items; DROP FUNCTION reject_save_at_commit()");
     }
     expect((await claimSaveAction(action())).created).toBe(true);
+  });
+
+  it("rejects an unverified domain without consuming quota", async () => {
+    verifyDomain.mockResolvedValueOnce(false);
+    await expect(claimSaveAction(action())).rejects.toMatchObject({ statusCode: 403 });
+    expect(await persistedCounts()).toEqual({ items: 0, quota: 0 });
   });
 
   it("rejects invalid partner, foreign domain and missing user before consuming quota", async () => {

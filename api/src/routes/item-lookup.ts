@@ -1,3 +1,4 @@
+import { validClickProof } from "../lib/click-proof.js";
 import type { FastifyInstance } from "fastify";
 import { eq } from "drizzle-orm";
 import { db, savedItems, partners, recordSavedItemClick, isLeanMode } from "@sor7ed/core";
@@ -28,15 +29,15 @@ export async function itemLookupRoutes(app: FastifyInstance) {
     return reply.send({ ...card, cachedImageUrl: item.cachedImageUrl ?? (isLeanMode() ? originalImage : null) });
   });
 
-  // Fired by web/src/app/s/[shortId]/page.tsx exactly once per real (non-
-  // crawler) visit, right before it redirects the person back to the
-  // partner's page — this is the "return visit" signal shown in the
-  // partner dashboard. Deliberately separate from the GET above, which is
-  // also hit by link-preview crawlers (WhatsApp, Slack, etc.) fetching OG
-  // tags and by Next's revalidate:60 cache — neither of those should ever
-  // count as a click. Fire-and-forget from the caller's perspective: a
-  // failure here must never block the redirect itself.
-  app.post<{ Params: { shortId: string } }>("/api/saves/:shortId/click", async (req, reply) => {
+  // Only the website's explicit Continue action signs this proof. Browser
+  // callers cannot mint it. Count at most one continuation per hashed network
+  // address and saved item per day; these remain estimates, not unique people.
+  app.post<{ Params: { shortId: string } }>("/api/saves/:shortId/click", {
+    onRequest: async (req, reply) => {
+      if(!validClickProof(req.params.shortId,req.headers['x-sor7ed-click-time'],req.headers['x-sor7ed-click-visitor'],req.headers['x-sor7ed-click-signature'],process.env['CLICK_TRACKING_SECRET']))return reply.code(401).send({error:'Not authorised.'});
+    },
+    config: { rateLimit: { max: 1, timeWindow: '24 hours', hook: 'preHandler', keyGenerator: req=>`${(req.params as {shortId:string}).shortId}:${req.headers['x-sor7ed-click-visitor']}` } },
+  }, async (req, reply) => {
     const [item] = await db
       .select({ id: savedItems.id, partnerId: savedItems.partnerId })
       .from(savedItems)

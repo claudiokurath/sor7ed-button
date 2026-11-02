@@ -134,7 +134,7 @@ function DemoFlow() {
           </div>
 
           <p style={{ color: "#666", fontSize: 13, marginTop: 16, textAlign: "center", lineHeight: 1.6 }}>
-            The live service can keep saved links in your WhatsApp thread. Lean mode has no scheduled reminders. This demo sends nothing.
+            In the live service, your saved links arrive in your WhatsApp thread. This demo sends nothing.
           </p>
 
           <a

@@ -16,6 +16,7 @@ if (testUrl) {
 const pool = testUrl ? new pg.Pool({ connectionString: testUrl, max: 20 }) : null;
 const send = vi.fn();
 const enqueue = vi.fn();
+vi.mock('@sor7ed/core/src/domain-verification.js', () => ({ verifyPartnerUrl: async () => true }));
 vi.mock('@sor7ed/core/src/client.js', () => ({ db: pool ? drizzle(pool, { schema }) : null }));
 vi.mock('@sor7ed/core', async () => ({
   ...await import('@sor7ed/core/src/save-actions.js'),

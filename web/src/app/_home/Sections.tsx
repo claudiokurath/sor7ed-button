@@ -46,7 +46,7 @@ import { BrandLogo } from "../_brand/BrandLogo";
     const items = [
       { n: '01', h: 'Find something worth keeping.', p: 'An article, a video, a guide: anything useful on a website that has the Button.' },
       { n: '02', h: 'Press Sorted on a participating website.', p: 'Look for the tangle mark. The first time, a small window lets you sign in with WhatsApp.' },
-      { n: '03', h: 'Receive the link in your WhatsApp thread once connected.', p: 'SOR7ED asks WhatsApp to send the card. The Button distinguishes an accepted send from a pending, failed, not-sent or unconfirmed request. Acceptance does not confirm arrival on your phone.' },
+      { n: '03', h: 'Receive the link in your WhatsApp thread once connected.', p: 'We send the link to your connected WhatsApp thread. You can see whether the request was accepted or needs attention; acceptance does not confirm arrival on your phone.' },
     ];
     return (
       <section id="how-it-works" className="s7-section" aria-labelledby="how-title">
@@ -113,20 +113,20 @@ import { BrandLogo } from "../_brand/BrandLogo";
           </p>
           <pre className="s7-code"><code>{EMBED}</code></pre>
           <ul className="s7-facts">
-            <li>The key is visible in your page source. Register your domains to restrict which page addresses it can save. Leaving the list empty allows any page domain.</li>
+            <li>The key is visible in your page source. Verify ownership of your website domain before enabling saves. An empty list disables the key.</li>
             <li>Registered domains include their subdomains; www is treated the same as the bare domain.</li>
             <li>The dashboard includes saves, distinct savers, top pages and opens of saved links. Forwarded links can also count as opens; an open is not necessarily a unique returning visitor.</li>
-            <li>The partner dashboard includes monthly save limits and key rotation. Live partner sign-in is not available yet.</li>
-            <li>The Button loads one web font from Google Fonts. Mention this in your own privacy notice.</li>
+            <li>The partner dashboard includes monthly save limits and key rotation. Sign in to create your website account, then verify your domain.</li>
+            <li>The Button’s font is hosted by SOR7ED. It does not request Google Fonts on your visitors’ browsers.</li>
           </ul>
           <div className="s7-partner-metrics"><div><p className="s7-eyebrow">Saves</p><h3 className="s7-h3">See what readers keep.</h3><p className="s7-prose">The partner dashboard records saves from your website.</p></div><div><p className="s7-eyebrow">Opens</p><h3 className="s7-h3">See what gets reopened.</h3><p className="s7-prose">Track opens of saved links. These are link opens, not verified unique return visits.</p></div></div>
           <h3 className="s7-h3">Setting up</h3>
           <ol className="s7-facts">
             <li>Create a partner account and copy your key.</li>
-            <li>List the domains that may use the key.</li>
+            <li>Verify your website domain with the DNS TXT record shown in the dashboard.</li>
             <li>Paste the snippet into your page, with your key in place of the placeholder.</li>
           </ol>
-          <p className="s7-note">Partner accounts are not open yet. Use the placeholder key only to see how it fits.</p>
+          <p className="s7-note">Website accounts start with saves disabled. Verify your domain before using a live key.</p>
         </div>
       </section>
     );
@@ -137,7 +137,7 @@ import { BrandLogo } from "../_brand/BrandLogo";
     { q: 'What gets saved?', a: 'The address, title, description and preview image that the website provides for the page you pressed Sorted on, linked to your account.' },
     { q: 'Which websites take part?', a: 'Website owners can add the Button to their pages. The optional desktop extension preview also lets you choose pages on other websites, without requiring the publisher to add a button. Some restricted or private pages only provide their address, so a preview image may be unavailable.' },
     { q: 'What happens to my data?', a: 'The privacy summary below explains the main points. The footer links to the Button privacy policy for details about saved links, WhatsApp, service providers and your rights.' },
-    { q: 'What is the difference between the demo and live saving?', a: 'The demo on this page runs in your browser. It sends nothing, saves nothing and contacts no service. Live saving signs you in, connects WhatsApp and asks WhatsApp to send the card. WhatsApp accepting a message is not proof it arrived, so the Button also shows when sending is pending, failed, not sent or unconfirmed. If the conversation has become inactive, you may need to reopen it before a message can be sent.' },
+    { q: 'What is the difference between the demo and live saving?', a: 'The demo on this page runs in your browser. It sends nothing, saves nothing and contacts no service. Live saving signs you in, connects WhatsApp and asks WhatsApp to send the card. The save window shows whether the request was accepted or needs attention. Delivery to your phone can take a moment. If the conversation has become inactive, you may need to reopen it before a message can be sent.' },
   ];
 
   export function Faq() {
@@ -193,6 +193,7 @@ import { BrandLogo } from "../_brand/BrandLogo";
             <a href="/account">Your account</a>
             <a href="#privacy">Privacy summary</a>
             <a href="/privacy-policy">Privacy policy</a>
+            <a href="/button-terms">Button terms</a>
             <a href="https://www.planetsorted.com" rel="noopener">Planet Sorted: neurodivergent support and content ↗</a>
           </nav>
         </div>
