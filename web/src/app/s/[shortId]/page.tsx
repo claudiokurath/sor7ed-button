@@ -29,7 +29,7 @@ export async function generateMetadata({ params }: Props) {
       type: "article",
       // External artwork is often cropped, text-heavy or missing. Keep the
       // card consistent; the real destination and saved title stay below it.
-      images: [{ url: '/whatsapp-card-v2.png', width: 1200, height: 630, alt: 'SOR7ED scribble on black' }],
+      images: [{ url: '/whatsapp-thumbnail-v3.png', width: 320, height: 320, alt: 'SOR7ED scribble on black' }],
     },
   };
 }
