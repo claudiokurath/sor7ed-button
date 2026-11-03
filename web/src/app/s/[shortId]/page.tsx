@@ -21,14 +21,15 @@ export async function generateMetadata({ params }: Props) {
     );
   return {
     title,
+    description: null,
     robots: { index: false, follow: false },
     openGraph: {
       title,
       siteName: "SOR7ED",
       type: "article",
-      images: item.cachedImageUrl
-        ? [{ url: item.cachedImageUrl, width: 1200, height: 630 }]
-        : [],
+      // External artwork is often cropped, text-heavy or missing. Keep the
+      // card consistent; the real destination and saved title stay below it.
+      images: [{ url: '/whatsapp-card-v2.png', width: 1200, height: 630, alt: 'SOR7ED scribble on black' }],
     },
   };
 }

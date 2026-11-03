@@ -35,12 +35,18 @@ describe('save-card outcome and consent', () => {
     expect((await sendSaveCard('user', '440000000000', item, 'Partner')).status).toBe('accepted');
     expect(mock.text).not.toHaveBeenCalled();
     expect(mock.template.mock.calls[0]?.[1]).toBe('sor7ed_saved_card');
-    expect(mock.template.mock.calls[0]?.[3][0].parameters[0].image.link).toBe('https://sor7ed.test/og-fallback.png');
+    expect(mock.template.mock.calls[0]?.[3][0].parameters[0].image.link).toBe('https://sor7ed.test/whatsapp-card-v2.png');
   });
 
   it('a response without a message ID is uncertain, not a skipped opt-out or success', async () => {
     mock.text.mockResolvedValue(undefined);
     expect(await sendSaveCard('user', '440000000000', item, 'Partner')).toEqual({ status: 'unknown', reason: 'unconfirmed' });
+  });
+
+  it('uses branded artwork even when a saved source supplies a cached image', async () => {
+    mock.sessionOpen.mockResolvedValue(false);
+    await sendSaveCard('user', '440000000000', { ...item, cachedImageUrl: 'https://source.test/cluttered-image.jpg' }, 'Partner');
+    expect(mock.template.mock.calls[0]?.[3][0].parameters[0].image.link).toBe('https://sor7ed.test/whatsapp-card-v2.png');
   });
 
   it('lean mode never sends a template when the window is closed', async () => {

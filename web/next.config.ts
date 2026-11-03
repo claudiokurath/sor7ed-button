@@ -19,6 +19,9 @@ const websitePaths = [
 
 const nextConfig: NextConfig = {
   output: "standalone",
+  outputFileTracingIncludes: {
+    '/whatsapp-card-v2.png': ['./public/static/tangle-white.png'],
+  },
   async redirects() {
     return ["sor7ed.com", "www.sor7ed.com"].flatMap((host) =>
       websitePaths.map((source) => ({

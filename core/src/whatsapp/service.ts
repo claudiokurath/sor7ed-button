@@ -31,13 +31,10 @@ function requireDisplayNumber(): string {
   return number;
 }
 
-// The approved template's header is a fixed IMAGE type, so a call that
-// omits the image parameter will be rejected regardless of whether the
-// saved item happens to have a preview image. Always supply a fallback
-// rather than conditionally sending an empty header — that fallback image
-// needs to exist as a static asset at /og-fallback.png before go-live.
-function resolveHeaderImage(item: SaveCardItem): string {
-  return item.cachedImageUrl ?? `${requireBaseUrl()}/og-fallback.png`;
+// Match rich-link previews with our original white mark on black. Never send
+// arbitrary source-page artwork as a template header.
+function resolveHeaderImage(): string {
+  return `${requireBaseUrl()}/whatsapp-card-v2.png`;
 }
 
 export type SaveCardOutcome =
@@ -77,7 +74,7 @@ export async function sendSaveCard(
   if (isLeanMode()) return { status: 'skipped', reason: 'session_closed' };
 
   const components: TemplateComponent[] = [
-    { type: "header", parameters: [{ type: "image", image: { link: resolveHeaderImage(item) } }] },
+    { type: "header", parameters: [{ type: "image", image: { link: resolveHeaderImage() } }] },
     { type: "body", parameters: [{ type: "text", text: partnerName }, { type: "text", text: item.title }] },
     // The suffix here must exactly match the static base URL configured
     // for this template's URL button in Meta Business Manager. This code
