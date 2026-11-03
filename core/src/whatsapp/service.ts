@@ -64,9 +64,10 @@ export async function sendSaveCard(
   const sessionOpen = await isWhatsAppSessionOpen(userId);
 
   if (sessionOpen) {
-    const summary = item.aiSummary ? `\n${item.aiSummary}\n` : "";
-    const reminder = isLeanMode() ? "" : "\n\n_Reply REMIND tomorrow (or REMIND friday 10am) to get nudged about this later._";
-    const text = `Saved from ${partnerName} ✓\n\n*${item.title}*${summary}\n${requireBaseUrl()}/s/${item.shortId}${reminder}`;
+    // Keep the saved message useful at a glance: one title and its preview.
+    // Summaries and reminders remain available separately, not on every save.
+    const title = item.title.replace(/\s+/g, ' ').trim();
+    const text = `*${title}*\n${requireBaseUrl()}/s/${item.shortId}`;
     return acceptedOutcome(await sendText(userPhone, text));
   }
 

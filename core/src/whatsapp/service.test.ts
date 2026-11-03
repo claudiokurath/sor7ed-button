@@ -30,6 +30,16 @@ describe('save-card outcome and consent', () => {
     expect(mock.template).not.toHaveBeenCalled();
   });
 
+  it.each(['lean', 'full'])('sends only the title and preview link in %s mode', async (mode) => {
+    vi.stubEnv('BUTTON_MODE', mode);
+    await sendSaveCard('user', '440000000000', {
+      ...item, title: 'Search the register', aiSummary: 'An extra summary that should stay out of the message.',
+    }, 'Example publisher');
+    expect(mock.text).toHaveBeenCalledWith('440000000000', '*Search the register*\nhttps://sor7ed.test/s/abc123def456');
+    expect(mock.text).toHaveBeenCalledTimes(1);
+    expect(mock.template).not.toHaveBeenCalled();
+  });
+
   it('closed conversation keeps the approved template and fallback header', async () => {
     mock.sessionOpen.mockResolvedValue(false);
     expect((await sendSaveCard('user', '440000000000', item, 'Partner')).status).toBe('accepted');
