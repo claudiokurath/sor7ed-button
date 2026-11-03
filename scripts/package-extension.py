@@ -18,4 +18,6 @@ out.parent.mkdir(exist_ok=True)
 with zipfile.ZipFile(out,'w',zipfile.ZIP_DEFLATED) as z:
     z.write(root/'extension'/'manifest.json','manifest.json')
     z.writestr('background.js',source)
+    for icon in sorted((root/'extension'/'icons').glob('*.png')):
+        z.write(icon,'icons/'+icon.name)
 print(out)

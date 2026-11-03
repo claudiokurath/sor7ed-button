@@ -48,6 +48,14 @@ storage.setItem(
 );
 assert.equal(captureDraft(storage, `?flow=${flow}`, ""), null);
 const manifest = JSON.parse(readFileSync("extension/manifest.json"));
+for (const size of [16, 32, 48, 128]) {
+  const file = `icons/scribble-${size}.png`;
+  assert.equal(manifest.icons[size], file);
+  assert.equal(manifest.action.default_icon[size], file);
+  const png = readFileSync(`extension/${file}`);
+  assert.equal(png.readUInt32BE(16), size);
+  assert.equal(png.readUInt32BE(20), size);
+}
 assert(!manifest.host_permissions && !manifest.externally_connectable);
 assert.deepEqual(manifest.permissions, [
   "activeTab",
