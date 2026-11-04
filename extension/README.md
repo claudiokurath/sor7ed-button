@@ -2,7 +2,7 @@
 
 Build from the repository root: `npm run extension:package`.
 Extract `dist/send-to-sorted-extension.zip`, then choose **Load unpacked** in
-Chrome/Edge's extensions developer mode. Version 0.2.1 uses the bold original
+Chrome/Edge's extensions developer mode. Version 0.2.2 uses the bold original
 scribble icon and a narrow host grant for `https://www.sor7ed.com/*`.
 
 Clicking the toolbar scribble or the context menu authorizes that selected page.
@@ -27,7 +27,7 @@ To rebuild icon files: `node scripts/build-extension-icons.mjs`.
 See `docs/consumer-account-extension.md` for account handling and the explicit
 development-only origin override used by local verification.
 
-The Chrome Web Store package name is exactly SOR7ED. The approved bold vector
+The Chrome Web Store package name is SOR7ED — Save to WhatsApp; its short name is SOR7ED. The approved bold vector
 source is extension/brand/scribble-bold.svg; the icon builder exports its PNGs
 at every required toolbar/store size. Re-upload the ZIP under Package to update
 the listing name; editing the listing description does not change that name.
