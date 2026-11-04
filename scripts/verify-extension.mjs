@@ -2,6 +2,7 @@ import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import vm from "node:vm";
 import { webcrypto } from "node:crypto";
+import { hasExtensionApproval } from "../web/src/app/_consumer/extension-approval.ts";
 import { captureDraft } from "../web/src/app/_consumer/draft.ts";
 const memory = new Map();
 const storage = {
@@ -42,6 +43,12 @@ assert.throws(() =>
       ),
   ),
 );
+// A capture URL alone cannot authorize sending; approval is first-party and bound to this URL.
+assert.equal(hasExtensionApproval(storage, draft), false);
+storage.setItem(`sor7ed:approved:${flow}`, JSON.stringify({ url: draft.url, expiresAt: Date.now()+60000 }));
+assert.equal(hasExtensionApproval(storage, draft), true);
+assert.equal(hasExtensionApproval(storage, { ...draft, url: 'https://different.example/' }), false);
+assert.equal(hasExtensionApproval(storage, draft, Date.now()+120000), false);
 storage.setItem(
   `sor7ed:draft:${flow}`,
   JSON.stringify({ ...draft, savedAt: Date.now() - 1900000 }),
@@ -56,14 +63,16 @@ for (const size of [16, 32, 48, 128]) {
   assert.equal(png.readUInt32BE(16), size);
   assert.equal(png.readUInt32BE(20), size);
 }
-assert(!manifest.host_permissions && !manifest.externally_connectable);
+assert.deepEqual(manifest.host_permissions, ['https://www.sor7ed.com/*']);
+assert(!manifest.externally_connectable);
 assert.deepEqual(manifest.permissions, [
   "activeTab",
   "scripting",
   "contextMenus",
 ]);
 const opened = [];
-let toolbar, menu;
+let toolbar, menu, updated;
+const closed = [];
 const chrome = {
   action: {
     onClicked: { addListener: (fn) => (toolbar = fn) },
@@ -75,17 +84,22 @@ const chrome = {
   },
   runtime: { onInstalled: { addListener() {} } },
   scripting: {
-    executeScript: async () => [
+    executeScript: async (options) => options.func.name === 'approveCapture' ? [{ result: true }] : [
       { result: { url: "https://example.com/page", title: "Captured title" } },
     ],
   },
-  windows: { create: async (options) => opened.push(options) },
+  tabs: { onUpdated: { addListener: fn => { updated = fn; } }, onRemoved: { addListener() {} } },
+  windows: { create: async (options) => { opened.push(options); return { id: 1000 + opened.length, tabs: [{ id: 100 + opened.length }] }; }, remove: async id => closed.push(id) },
 };
 const source = readFileSync("extension/background.js", "utf8").replaceAll(
   "export ",
   "",
 );
-vm.runInNewContext(source, { chrome, crypto: webcrypto, URL });
+const runtime = vm.createContext({ chrome, crypto: webcrypto, URL, setTimeout, location: { origin: 'https://outside.example', pathname: '/save/extension' }, sessionStorage: storage, window: { dispatchEvent() {} }, Event: class {} });
+vm.runInContext(source, runtime);
+assert.equal(vm.runInContext(`approveCapture('${flow}', 'https://example.com/page', 'https://www.sor7ed.com')`, runtime), false);
+runtime.location.origin = 'https://www.sor7ed.com';
+assert.equal(vm.runInContext(`approveCapture('${flow}', 'https://example.com/page', 'https://www.sor7ed.com')`, runtime), true);
 toolbar({ id: 1, url: raw.url });
 await new Promise((r) => setTimeout(r, 30));
 assert.equal(opened.length, 1);
@@ -96,6 +110,11 @@ assert.equal(
   JSON.parse(decodeURIComponent(url.hash.slice(1))).title,
   "Captured title",
 );
+const clickedFlow = JSON.parse(decodeURIComponent(url.hash.slice(1))).flowId;
+updated(101, { url: `https://outside.example/save/extension?flow=${clickedFlow}&delivery=accepted` });
+assert.deepEqual(closed, []);
+updated(101, { url: `https://www.sor7ed.com/save/extension?flow=${clickedFlow}&delivery=accepted` });
+assert.deepEqual(closed, [1001]);
 menu(
   { menuItemId: "sorted-save", linkUrl: "https://example.org/video" },
   { id: 1, url: raw.url },

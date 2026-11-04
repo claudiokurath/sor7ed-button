@@ -4,6 +4,9 @@
 Standalone partner Save-to-WhatsApp product. **Not** planetsorted.com.
 Do not copy secrets from planetsorted. Do not merge into that monorepo without an explicit decision.
 
+## Brand
+Use **SOR7ED** in product names, controls, taglines and brand references. Leave ordinary uses of “sorted” in prose and registered legal names unchanged.
+
 ## Layout
 - `api/` Fastify — public REST + Meta webhook
 - `web/` Next.js — partner dashboard, /save popup, /s/[shortId] OG cards, widget.js

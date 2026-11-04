@@ -1,6 +1,19 @@
 // Production destination is fixed; there is no externally_connectable handler,
-// content-script injection on every page, host permission or session token.
+// injection on every page, all-sites host permission or session token.
 const SAVE_ORIGIN = "https://www.sor7ed.com";
+const saveWindows = new Map();
+chrome.tabs.onUpdated.addListener((tabId, change) => {
+  const save = saveWindows.get(tabId);
+  if (!save || !change.url) return;
+  try {
+    const url = new URL(change.url);
+    if (url.origin !== SAVE_ORIGIN || url.pathname !== '/save/extension' ||
+        url.searchParams.get('flow') !== save.flowId || url.searchParams.get('delivery') !== 'accepted') return;
+    saveWindows.delete(tabId);
+    void chrome.windows.remove(save.windowId).catch(() => {});
+  } catch { /* Ignore unrelated navigation. */ }
+});
+chrome.tabs.onRemoved.addListener(tabId => saveWindows.delete(tabId));
 function allowed(raw) {
   try {
     const u = new URL(raw);
@@ -34,6 +47,14 @@ export function capturePage() {
     imageUrl: image?.startsWith("https://") ? image : undefined,
   };
 }
+// Runs only inside the SOR7ED tab we just opened, using the narrow host grant.
+// A website can forge a capture URL, but cannot write this first-party approval.
+export function approveCapture(flowId, pageUrl, origin) {
+  if (location.origin !== origin || location.pathname !== '/save/extension') return false;
+  sessionStorage.setItem(`sor7ed:approved:${flowId}`, JSON.stringify({ url: pageUrl, expiresAt: Date.now() + 30 * 60_000 }));
+  window.dispatchEvent(new Event('sor7ed:extension-save'));
+  return true;
+}
 export async function saveTab(tab, linkUrl) {
   if (!allowed(linkUrl || tab.url))
     throw Error("Open a normal web page to save it.");
@@ -55,12 +76,26 @@ export async function saveTab(tab, linkUrl) {
   const flowId = crypto.randomUUID();
   // A page capture never enters the query string or a server-side redirect.
   const url = `${SAVE_ORIGIN}/save/extension#${encodeURIComponent(JSON.stringify({ ...page, flowId }))}`;
-  await chrome.windows.create({ url, type: "popup", width: 540, height: 760 });
+  const popup = await chrome.windows.create({ url, type: "popup", width: 420, height: 560 });
+  const targetId = popup?.tabs?.[0]?.id;
+  if (!targetId) return;
+  saveWindows.set(targetId, { flowId, windowId: popup.id });
+  // The tab may still be navigating. Never inject into the source website or
+  // authorize a capture based on a query/hash flag supplied by an arbitrary page.
+  for (let attempt = 0; attempt < 30; attempt++) {
+    try {
+      const [result] = await chrome.scripting.executeScript({
+        target: { tabId: targetId }, func: approveCapture, args: [flowId, page.url, SAVE_ORIGIN],
+      });
+      if (result?.result === true) return;
+    } catch { /* Wait for our first-party save tab to become available. */ }
+    await new Promise(resolve => setTimeout(resolve, 250));
+  }
 }
 chrome.runtime.onInstalled.addListener(() => {
   chrome.contextMenus.create({
     id: "sorted-save",
-    title: "Save with Sorted",
+    title: "Save with SOR7ED",
     contexts: ["page", "link"],
   });
 });

@@ -2,7 +2,7 @@ import { safeAuthReturn } from "../lib/auth-return.js";
 import type { FastifyInstance } from "fastify";
 import oauthPlugin from "@fastify/oauth2";
 import { eq } from "drizzle-orm";
-import { db, users, isLeanMode, isWhatsAppSessionOpen } from "@sor7ed/core";
+import { db, users, isWhatsAppSessionOpen } from "@sor7ed/core";
 
 // @fastify/oauth2's own type augmentation only covers the auto-derived
 // `oauth2<PascalName>` decorator key (via an index signature keyed on
@@ -134,7 +134,7 @@ export async function authRoutes(app: FastifyInstance) {
       .where(eq(users.id, req.userId!))
       .limit(1);
     if (!user) return reply.code(401).send({ error: "User not found" });
-    return reply.send({ ...user, requiresActiveSession: isLeanMode(), whatsappSessionOpen: await isWhatsAppSessionOpen(user.id) });
+    return reply.send({ ...user, requiresActiveSession: true, whatsappSessionOpen: await isWhatsAppSessionOpen(user.id) });
   });
 
   app.post("/api/auth/signout", async (_req, reply) => {

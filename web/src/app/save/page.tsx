@@ -84,7 +84,7 @@ function deliveryCopy(result: SaveResponse): { title: string; detail: string } {
     case "skipped":
       if (result.deliveryReason === "session_closed") return {
         title: "Saved — WhatsApp conversation needs reopening",
-        detail: "No message was sent. Message Sorted in WhatsApp, then reply LIBRARY to find this item. No paid template was requested.",
+        detail: "No message was sent. Message SOR7ED in WhatsApp, then reply LIBRARY to find this item. No paid template was requested.",
       };
       return { title: "Saved in your library", detail: result.deliveryReason === "opted_out" ? "WhatsApp messages are paused for your account." : "A WhatsApp message could not be sent for this save." };
     default:

@@ -1,6 +1,6 @@
 // Every outbound send should go through this file, not client.ts directly —
 // this is what enforces the 24h session-window rule in exactly one place.
-import { sendText, sendTemplate, type TemplateComponent } from "./client.js";
+import { sendText, sendTemplate, WhatsAppSendError, type TemplateComponent } from "./client.js";
 import { isWhatsAppSessionOpen, isWhatsAppOptedOut } from "../queries.js";
 import { isLeanMode } from "../mode.js";
 
@@ -11,30 +11,26 @@ import { isLeanMode } from "../mode.js";
 // type this function never touches, so it isn't coupled to either shape.
 interface SaveCardItem {
   shortId: string;
+  url: string;
   title: string;
   aiSummary: string | null;
   cachedImageUrl: string | null;
 }
 
-const SAVE_CARD_TEMPLATE = "sor7ed_saved_card";
 const LANGUAGE_CODE = "en_GB";
 
-function requireBaseUrl(): string {
-  const url = process.env["BASE_URL"];
-  if (!url) throw new Error("BASE_URL is not set");
-  return url;
+function originalPageUrl(raw: string): string {
+  try {
+    const url = new URL(raw);
+    if (["https:", "http:"].includes(url.protocol) && !url.username && !url.password) return url.href;
+  } catch {}
+  throw new WhatsAppSendError("This saved page has an invalid address.", "failed");
 }
 
 function requireDisplayNumber(): string {
   const number = process.env["META_WHATSAPP_DISPLAY_NUMBER"];
   if (!number) throw new Error("META_WHATSAPP_DISPLAY_NUMBER is not set");
   return number;
-}
-
-// Match rich-link previews with our original white mark on black. Never send
-// arbitrary source-page artwork as a template header.
-function resolveHeaderImage(): string {
-  return `${requireBaseUrl()}/whatsapp-card-v2.png`;
 }
 
 export type SaveCardOutcome =
@@ -54,7 +50,7 @@ export async function sendSaveCard(
   userId: string,
   userPhone: string,
   item: SaveCardItem,
-  partnerName: string
+  _partnerName: string
 ): Promise<SaveCardOutcome> {
   // Checked first and unconditionally — an opted-out user gets nothing
   // sent regardless of session-window state, which only affects *how*
@@ -63,29 +59,11 @@ export async function sendSaveCard(
 
   const sessionOpen = await isWhatsAppSessionOpen(userId);
 
-  if (sessionOpen) {
-    // Keep the saved message useful at a glance: one title and its preview.
-    // Summaries and reminders remain available separately, not on every save.
-    const title = item.title.replace(/\s+/g, ' ').trim();
-    const text = `*${title}*\n${requireBaseUrl()}/s/${item.shortId}`;
-    return acceptedOutcome(await sendText(userPhone, text));
-  }
+  if (!sessionOpen) return { status: 'skipped', reason: 'session_closed' };
 
-  // Never fall back to a billable template in the budget-limited mode.
-  if (isLeanMode()) return { status: 'skipped', reason: 'session_closed' };
-
-  const components: TemplateComponent[] = [
-    { type: "header", parameters: [{ type: "image", image: { link: resolveHeaderImage() } }] },
-    { type: "body", parameters: [{ type: "text", text: partnerName }, { type: "text", text: item.title }] },
-    // The suffix here must exactly match the static base URL configured
-    // for this template's URL button in Meta Business Manager. This code
-    // assumes the template's base URL is "https://sor7ed.com/" and the
-    // dynamic suffix is "s/<shortId>" — whichever convention you pick,
-    // it must match what's registered with Meta, not just what's in code.
-    { type: "button", sub_type: "url", index: "0", parameters: [{ type: "text", text: `s/${item.shortId}` }] },
-  ];
-
-  return acceptedOutcome(await sendTemplate(userPhone, SAVE_CARD_TEMPLATE, LANGUAGE_CODE, components));
+  // The original URL opens directly and lets WhatsApp resolve the source's
+  // native title/image. No tracking hop or SOR7ED artwork replaces that page.
+  return acceptedOutcome(await sendText(userPhone, originalPageUrl(item.url)));
 }
 
 const REMINDER_TEMPLATE = "sor7ed_reminder";
@@ -101,17 +79,16 @@ const REMINDER_TEMPLATE = "sor7ed_reminder";
 // check below — a reminder is scheduled well before send time, so the
 // user may have opted out in the interim; this is the only place that's
 // actually re-checked before the message goes out.
-export async function sendReminder(userId: string, userPhone: string, item: { title: string; shortId: string }): Promise<void> {
+export async function sendReminder(userId: string, userPhone: string, item: { title: string; shortId: string; url: string }): Promise<void> {
   if (isLeanMode()) return;
   if (await isWhatsAppOptedOut(userId)) return;
 
-  const base = requireBaseUrl();
   const components: TemplateComponent[] = [
     {
       type: "body",
       parameters: [
         { type: "text", text: item.title },
-        { type: "text", text: `${base}/s/${item.shortId}` },
+        { type: "text", text: originalPageUrl(item.url) },
       ],
     },
   ];

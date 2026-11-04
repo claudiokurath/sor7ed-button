@@ -1,14 +1,15 @@
 {
   "manifest_version": 3,
-  "name": "Sorted \u2014 save to your WhatsApp",
-  "version": "0.1.1",
+  "name": "SOR7ED \u2014 save to your WhatsApp",
+  "version": "0.2.0",
+  "host_permissions": ["https://www.sor7ed.com/*"],
   "icons": {
     "16": "icons/scribble-16.png",
     "32": "icons/scribble-32.png",
     "48": "icons/scribble-48.png",
     "128": "icons/scribble-128.png"
   },
-  "description": "Choose a page to save through your Sorted account and WhatsApp thread.",
+  "description": "Choose a page to save through your SOR7ED account and WhatsApp thread.",
   "permissions": [
     "activeTab",
     "scripting",
@@ -25,6 +26,6 @@
       "48": "icons/scribble-48.png",
       "128": "icons/scribble-128.png"
     },
-    "default_title": "Save this page with Sorted"
+    "default_title": "Save this page with SOR7ED"
   }
 }

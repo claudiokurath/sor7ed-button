@@ -117,6 +117,7 @@ export async function getPendingReminders() {
       id: savedItems.id,
       shortId: savedItems.shortId,
       title: savedItems.title,
+      url: savedItems.url,
       userId: savedItems.userId,
       userPhone: users.whatsappNumber,
       userWhatsappVerified: users.whatsappVerified,

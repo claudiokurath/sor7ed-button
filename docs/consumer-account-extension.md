@@ -43,14 +43,22 @@ production substitute. No live message was sent during this implementation.
 
 ## Capture and saving
 
-The MV3 extension uses activeTab, scripting and contextMenus, with no persistent
-host permissions, background page scraping or external-message listener. The
-production save destination is fixed to https://www.sor7ed.com. Toolbar and
-context-menu handlers open the central save window; they never send a message
-by themselves. It captures address/title/preview metadata, not full content or
-login cookies. The user reviews the address and chooses to save it. Anyone with
-a generated card URL can view its preview and open the original page; do not
-represent these URLs as a private document vault.
+The MV3 extension uses activeTab, scripting and contextMenus, plus one host
+permission for https://www.sor7ed.com/* (never all websites). A toolbar or
+context-menu click opens a first-party progress window and injects a short-lived
+approval bound to that capture's flow and URL. A generated URL alone cannot
+approve delivery. Once signed in with a verified, active WhatsApp conversation,
+the selected page saves automatically, without a second Save confirmation.
+The progress window signals acceptance back to its own extension-created tab;
+the extension closes only a matching first-party flow. Sign-in or reconnect
+resumes the same capture and action key. No login cookies or session tokens
+are copied into extension storage.
+
+Messages contain the original destination URL. WhatsApp resolves the source's
+native preview where that website permits it. Short-link confirmation pages
+remain for historical links, but new messages do not route through them.
+Consequently, new direct links do not contribute to redirect-based return-click
+analytics. Captured metadata remains available in account history.
 
 The capture arrives in a fragment, is persisted in sessionStorage before any
 sign-in redirect, and is removed from the address bar. The draft expires after
@@ -59,14 +67,15 @@ reload and sign-in. After persistence succeeds, the draft is removed and a local
 receipt prevents reload from creating another save. A new explicit capture is
 a new action. The database partial unique index plus user-row lock arbitrates
 concurrent saves; the personal budget is 100 new saves per rolling 24 hours.
-Original public HTTPS images are linked, never fetched/resized/uploaded by this
-flow. Private pages may not provide usable preview images.
+Source image metadata may be retained in history; this save flow does not fetch,
+resize or upload it. Private pages may not provide usable preview images.
 
 Only a newly claimed action may send. Checking status never sends. An explicit
 resend has its own durable unique action key, requires confirmation and cannot
 claim accepted or pending items. Unknown outcomes warn that a previous message
-may already exist. Lean mode retains session-window and opt-out checks; it never
-requests a template when a conversation has closed. No reminders or AI jobs.
+may already exist. Direct save delivery retains session-window and opt-out checks in both modes;
+reopen the conversation before sending instead of using an indirect template.
+Lean mode still runs no reminder or AI jobs.
 
 ## Database and release
 
@@ -92,7 +101,7 @@ Extract it and use Chrome/Edge's developer mode → Load unpacked. This is not a
 browser-store release. For isolated local tests only, packaging accepts
 `--dev-origin http://localhost:PORT` and emits a distinctly named DEVELOPMENT
 ZIP; the production ZIP contains no localhost destination. A store release
-still needs developer-account access, icons/store listing and a privacy policy.
+still needs developer-account access, store listing/review and a privacy policy.
 
 ## Verification
 

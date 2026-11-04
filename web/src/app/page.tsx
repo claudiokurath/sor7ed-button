@@ -33,7 +33,7 @@ export default function HomePage() {
         <main id="main">
           <section className="s7-wrap s7-hero" aria-labelledby="hero-title">
             <div>
-              <p className="s7-eyebrow">Less lost. More Sorted.</p>
+              <p className="s7-eyebrow">Less lost. More SOR7ED.</p>
               <h1 id="hero-title" className="s7-h1">
                 Keep useful things
                 <em>in WhatsApp.</em>
@@ -41,7 +41,7 @@ export default function HomePage() {
               <p className="s7-lede">
                 Save articles, videos and guides to a conversation you already use.
               </p>
-              <p className="s7-prose s7-hero-detail">No separate app. Press Sorted on a participating website, or use the desktop extension preview.</p>
+              <p className="s7-prose s7-hero-detail">No separate app. Press SOR7ED on a participating website, or use the desktop extension preview.</p>
               <div className="s7-ctas">
                 <a className="s7-btn s7-btn--primary" href="/signin">Start with WhatsApp</a>
                 <a className="s7-btn s7-btn--secondary" href="#demo">Try the demo <span aria-hidden="true">↓</span></a>

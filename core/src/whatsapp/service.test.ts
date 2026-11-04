@@ -2,11 +2,11 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 const mock = vi.hoisted(() => ({ optedOut: vi.fn(), sessionOpen: vi.fn(), text: vi.fn(), template: vi.fn() }));
 vi.mock('../queries.js', () => ({ isWhatsAppOptedOut: mock.optedOut, isWhatsAppSessionOpen: mock.sessionOpen }));
-vi.mock('./client.js', () => ({ sendText: mock.text, sendTemplate: mock.template }));
+vi.mock('./client.js', async (original) => ({ ...(await original<typeof import('./client.js')>()), sendText: mock.text, sendTemplate: mock.template }));
 import { sendSaveCard } from './service.js';
 
 describe('save-card outcome and consent', () => {
-  const item = { shortId: 'abc123def456', title: 'Resource', aiSummary: null, cachedImageUrl: null };
+  const item = { shortId: 'abc123def456', url: 'https://example.com/article?source=reader#section', title: 'Resource', aiSummary: null, cachedImageUrl: null };
   beforeEach(() => {
     vi.resetAllMocks();
     vi.stubEnv('BASE_URL', 'https://sor7ed.test');
@@ -30,22 +30,22 @@ describe('save-card outcome and consent', () => {
     expect(mock.template).not.toHaveBeenCalled();
   });
 
-  it.each(['lean', 'full'])('sends only the title and preview link in %s mode', async (mode) => {
+  it.each(['lean', 'full'])('sends only the original URL for native WhatsApp previews in %s mode', async (mode) => {
     vi.stubEnv('BUTTON_MODE', mode);
     await sendSaveCard('user', '440000000000', {
       ...item, title: 'Search the register', aiSummary: 'An extra summary that should stay out of the message.',
     }, 'Example publisher');
-    expect(mock.text).toHaveBeenCalledWith('440000000000', '*Search the register*\nhttps://sor7ed.test/s/abc123def456');
+    expect(mock.text).toHaveBeenCalledWith('440000000000', item.url);
     expect(mock.text).toHaveBeenCalledTimes(1);
     expect(mock.template).not.toHaveBeenCalled();
   });
 
-  it('closed conversation keeps the approved template and fallback header', async () => {
+  it.each(['lean', 'full'])('requires an open conversation for direct links in %s mode', async (mode) => {
+    vi.stubEnv('BUTTON_MODE', mode);
     mock.sessionOpen.mockResolvedValue(false);
-    expect((await sendSaveCard('user', '440000000000', item, 'Partner')).status).toBe('accepted');
+    expect(await sendSaveCard('user', '440000000000', item, 'Partner')).toEqual({ status: 'skipped', reason: 'session_closed' });
     expect(mock.text).not.toHaveBeenCalled();
-    expect(mock.template.mock.calls[0]?.[1]).toBe('sor7ed_saved_card');
-    expect(mock.template.mock.calls[0]?.[3][0].parameters[0].image.link).toBe('https://sor7ed.test/whatsapp-card-v2.png');
+    expect(mock.template).not.toHaveBeenCalled();
   });
 
   it('a response without a message ID is uncertain, not a skipped opt-out or success', async () => {
@@ -53,10 +53,15 @@ describe('save-card outcome and consent', () => {
     expect(await sendSaveCard('user', '440000000000', item, 'Partner')).toEqual({ status: 'unknown', reason: 'unconfirmed' });
   });
 
-  it('uses branded artwork even when a saved source supplies a cached image', async () => {
-    mock.sessionOpen.mockResolvedValue(false);
-    await sendSaveCard('user', '440000000000', { ...item, cachedImageUrl: 'https://source.test/cluttered-image.jpg' }, 'Partner');
-    expect(mock.template.mock.calls[0]?.[3][0].parameters[0].image.link).toBe('https://sor7ed.test/whatsapp-card-v2.png');
+  it('does not substitute cached artwork or a short link for the source', async () => {
+    await sendSaveCard('user', '440000000000', { ...item, cachedImageUrl: 'https://source.test/photo.jpg' }, 'Partner');
+    expect(mock.text).toHaveBeenCalledWith('440000000000', item.url);
+    expect(mock.template).not.toHaveBeenCalled();
+  });
+
+  it.each(['javascript:alert(1)', 'https://user:password@example.com/private'])('refuses an unsafe destination %s', async (url) => {
+    await expect(sendSaveCard('user', '440000000000', { ...item, url }, 'Partner')).rejects.toMatchObject({ outcome: 'failed' });
+    expect(mock.text).not.toHaveBeenCalled();
   });
 
   it('lean mode never sends a template when the window is closed', async () => {

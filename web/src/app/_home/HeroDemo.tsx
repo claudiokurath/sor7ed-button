@@ -59,14 +59,14 @@ import { useEffect, useRef, useState } from "react";
 
           <div className="hd-row">
             <span className="hd-label hd-label--lead">
-              {previewing ? 'Preview ready' : 'Press Sorted'}
+              {previewing ? 'Preview ready' : 'Press SOR7ED'}
             </span>
 
             <button
               type="button"
               className="hd-btn"
               onClick={onPress}
-              aria-label={previewing ? 'Preview ready: reset the demo' : 'Press Sorted: preview this page as a WhatsApp card'}
+              aria-label={previewing ? 'Preview ready: reset the demo' : 'Press SOR7ED: preview this page as a WhatsApp card'}
               aria-pressed={previewing}
               aria-controls="hd-preview"
             >

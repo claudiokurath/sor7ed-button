@@ -189,7 +189,7 @@ async function handleInboundMessage(app: FastifyInstance, message: InboundMessag
 
   if (command.startsWith("SIGNIN-")) {
     const code = await prepareSigninCode(command.slice(7), from);
-    if (code) await sendText(from, `Your Sorted sign-in code is ${code}. Enter it only in the Sorted window you opened. Never share this code. It expires in 10 minutes.`);
+    if (code) await sendText(from, `Your SOR7ED sign-in code is ${code}. Enter it only in the SOR7ED window you opened. Never share this code. It expires in 10 minutes.`);
     return;
   }
 
@@ -251,7 +251,7 @@ async function handleInboundMessage(app: FastifyInstance, message: InboundMessag
     }
 
     const lines = results
-      .map((s, i) => `${i + 1}. ${s.title}${s.aiSummary ? `\n_${s.aiSummary}_` : ""}\n${process.env["BASE_URL"]}/s/${s.shortId}`)
+      .map((s, i) => `${i + 1}. ${s.title}${s.aiSummary ? `\n_${s.aiSummary}_` : ""}\n${s.url}`)
       .join("\n\n");
     await sendText(from, searchTerm ? `Results for "${searchTerm}":\n\n${lines}` : `Your recent saves:\n\n${lines}`);
     return;
