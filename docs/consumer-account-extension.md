@@ -120,3 +120,16 @@ still needs developer-account access, store listing/review and a privacy policy.
 The actual browser toolbar UI was not clicked, and no extension store was
 contacted. Handler tests and capture tests are not a claim of that verification.
 The API tests use real Postgres and a local Meta stand-in, not live WhatsApp.
+
+## SOR7ED-only chat account navigation — 4 November 2026
+
+The shared number routes Hi/Hello/Hey and account/sign-in/sign-up/sign-out menu
+requests to this product. The reply is plain text without a link preview and
+links only to `https://www.sor7ed.com/account`. This page sends signed-out visitors
+to `/signin`; its existing number-verification flow creates a new Button account
+only after proof. Existing members manage saves, profile and Sign out in their
+account. Chat “sign out” supplies these instructions; it cannot identify or end
+a specific browser session. PlanetSorted accounts/content are not advertised,
+created or linked by this response. Generic unrecognised notes remain silent.
+STOP/START consent, signed relay deduplication and crisis-first gateway routing
+remain unchanged. No real WhatsApp tests are sent automatically.

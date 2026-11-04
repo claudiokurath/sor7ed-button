@@ -192,8 +192,8 @@ export default function AccountPage() {
               </p>
             )}
             <p className={s.small}>Based on your latest 100 saves.</p>
-            <a href="https://www.planetsorted.com">
-              Explore PLANET SOR7ED’s tools and guidebooks ↗
+            <a href="/#demo">
+              See how to save a page with SOR7ED
             </a>
           </section>
           <h2>Recent history</h2>

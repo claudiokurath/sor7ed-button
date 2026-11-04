@@ -1,5 +1,6 @@
 import type { FastifyInstance } from "fastify";
 import crypto from "node:crypto";
+import { accountMessage } from "./account-message.js";
 import { eq, desc } from "drizzle-orm";
 import { waitUntil } from "@vercel/functions";
 import {
@@ -225,8 +226,9 @@ async function handleInboundMessage(app: FastifyInstance, message: InboundMessag
     return;
   }
 
-  if (command === "HELP") {
-    await sendText(from, "Reply LIBRARY to see your last 5 saves, LIBRARY <word> to search them, or STOP to unsubscribe.");
+  const accountReply = accountMessage(command);
+  if (accountReply) {
+    await sendText(from, accountReply, { previewUrl: false });
     return;
   }
 
