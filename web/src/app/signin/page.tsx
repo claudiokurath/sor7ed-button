@@ -3,6 +3,7 @@ import { useEffect, useState } from "react";
 import Shell from "../_consumer/Shell";
 import styles from "../_consumer/consumer.module.css";
 import { request } from "../_consumer/api";
+import { WhatsAppWindowLink } from "../_consumer/WhatsAppWindowLink";
 type Challenge = {
   id: string;
   token: string;
@@ -93,16 +94,9 @@ export default function Signin() {
           </button>
         ) : (
           <>
-            <a
-              className={styles.button}
-              href={challenge.whatsappUrl}
-              target="_blank"
-              rel="noopener noreferrer"
-            >
-              Open WhatsApp
-            </a>
+            <WhatsAppWindowLink url={challenge.whatsappUrl} className={styles.button} />
             <p className={styles.small}>
-              Send the message, then return here. Only enter a code for a
+              Keep this window open. Send the message in WhatsApp, then return here to enter the code. Only enter a code for a
               sign-in you started. The code expires after 10 minutes and locks
               after five wrong attempts.
             </p>

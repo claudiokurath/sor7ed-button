@@ -5,6 +5,7 @@ import s from "../../_consumer/consumer.module.css";
 import { request, ApiError, outcomeText } from "../../_consumer/api";
 import { captureDraft, type Draft } from "../../_consumer/draft";
 import { hasExtensionApproval } from "../../_consumer/extension-approval";
+import { WhatsAppWindowLink } from "../../_consumer/WhatsAppWindowLink";
 type Receipt = { shortId: string; deliveryStatus: string; deliveryReason?: string | null };
 type Connection = { whatsappVerified: boolean; whatsappSessionOpen: boolean };
 export default function ExtensionSave() {
@@ -127,8 +128,8 @@ export default function ExtensionSave() {
           <a className={s.button} href="/account">Open your history</a>
         </> : draft ? <>
           {reopen ? <>
-            <a className={s.button} href={reopen} target="_blank" rel="noopener noreferrer">Open WhatsApp</a>
-            <p>Send the prepared message. This page saves automatically once your conversation is active.</p>
+            <WhatsAppWindowLink url={reopen} className={s.button} />
+            <p>Keep this window open. Send the prepared message in WhatsApp, then return here. Your selected page saves automatically once your conversation is active.</p>
           </> : null}
           {busy ? <p role="status">Sending your selected page…</p> : !waiting ? <button onClick={() => void save(draft)} disabled={busy}>Save to WhatsApp</button> : <p role="status">Waiting for your WhatsApp connection…</p>}
         </> : null}
