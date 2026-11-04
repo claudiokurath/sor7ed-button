@@ -1,17 +1,16 @@
-// Render the original brand mark as extension UI assets. No replacement logo.
+// Render the approved bold original scribble as extension UI assets.
 import { readFile, mkdir, writeFile } from 'node:fs/promises';
-import { ImageResponse } from 'next/og.js';
-import { createElement } from 'react';
+import sharp from 'sharp';
 
-const mark = await readFile(new URL('../web/public/static/tangle-white.png', import.meta.url));
+const mark = await readFile(new URL('../extension/brand/scribble-bold.svg', import.meta.url));
 const directory = new URL('../extension/icons/', import.meta.url);
 await mkdir(directory, { recursive: true });
 for (const size of [16, 32, 48, 128]) {
-  const response = new ImageResponse(createElement('div', {
-    style: { display: 'flex', alignItems: 'center', justifyContent: 'center', width: '100%', height: '100%', background: '#000000' },
-  }, createElement('img', {
-    src: `data:image/png;base64,${mark.toString('base64')}`, width: size * .94, height: size * .97,
-  })), { width: size, height: size });
-  await writeFile(new URL(`scribble-${size}.png`, directory), Buffer.from(await response.arrayBuffer()));
+  const png = await sharp(mark, { density: 384 })
+    .resize(size, size, { fit: 'contain', background: '#000000' })
+    .flatten({ background: '#000000' })
+    .png()
+    .toBuffer();
+  await writeFile(new URL(`scribble-${size}.png`, directory), png);
 }
-console.log('Rendered original scribble icons at 16, 32, 48 and 128px.');
+console.log('Rendered bold original scribble icons at 16, 32, 48 and 128px.');
