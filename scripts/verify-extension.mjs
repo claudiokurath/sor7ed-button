@@ -130,3 +130,17 @@ assert.equal(opened.length, 2);
 console.log(
   "PASS extension capture, toolbar/context handler, fixed production origin, draft restoration, expiry and stable action identity (browser toolbar UI not exercised)",
 );
+
+// Login/reconnect must keep the original save window and sever the child opener.
+const { openWhatsAppWindow } = await import('../web/src/lib/whatsapp-window.ts');
+const destinations = [], calls = [];
+const child = { opener: 'original', location: { replace: value => { assert.equal(child.opener, null); destinations.push(value); } }, close() {} };
+const windows = { open: (...args) => { calls.push(args); return child; } };
+assert.equal(openWhatsAppWindow(windows, 'https://wa.me/447000000000?text=SIGNIN-fixture'), true);
+assert.equal(calls[0][0], 'about:blank');
+assert.match(calls[0][2], /popup=yes/);
+assert.deepEqual(destinations, ['https://wa.me/447000000000?text=SIGNIN-fixture']);
+assert.equal(openWhatsAppWindow({ open: () => null }, 'https://wa.me/447000000000'), false);
+assert.throws(() => openWhatsAppWindow(windows, 'https://outside.example/signin'));
+assert.throws(() => openWhatsAppWindow(windows, 'javascript:alert(1)'));
+console.log('PASS separate WhatsApp window, opener isolation, blocked-window feedback and destination validation');
