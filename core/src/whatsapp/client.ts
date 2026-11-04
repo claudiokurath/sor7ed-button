@@ -88,13 +88,13 @@ async function callMetaApi(body: unknown): Promise<MetaSendResponse> {
 // later quote-reply back to this specific message (see
 // whatsapp/service.ts's sendSaveCard) persist this against the row it
 // concerns.
-export async function sendText(to: string, body: string): Promise<string | undefined> {
+export async function sendText(to: string, body: string, options: { previewUrl?: boolean } = {}): Promise<string | undefined> {
   const res = await callMetaApi({
     messaging_product: "whatsapp",
     recipient_type: "individual",
     to,
     type: "text",
-    text: { body, preview_url: true },
+    text: { body, preview_url: options.previewUrl !== false },
   });
   return res.messages?.[0]?.id;
 }

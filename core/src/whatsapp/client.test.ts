@@ -18,6 +18,12 @@ describe('WhatsApp provider request outcome', () => {
     expect(request.mock.calls[0]?.[1].signal).toBeInstanceOf(AbortSignal);
   });
 
+  it('account navigation can suppress unrelated link preview images', async () => {
+    request.mockResolvedValue(Response.json({ messages: [{ id: 'wamid.account' }] }));
+    await sendText('440000000000', 'Your account: https://www.sor7ed.com/account', { previewUrl: false });
+    expect(JSON.parse(request.mock.calls[0]![1].body).text.preview_url).toBe(false);
+  });
+
   it('missing configuration cannot be mistaken for an attempted send', async () => {
     vi.stubEnv('META_WHATSAPP_TOKEN', '');
     await expect(sendText('440000000000', 'Example')).rejects.toMatchObject({ outcome: 'failed' });

@@ -82,11 +82,11 @@ export default function Signin() {
         Come back when you’re ready.
       </h1>
       <section className={styles.panel}>
-        <h2>Sign in with WhatsApp</h2>
+        <h2>Sign in or create your account</h2>
         <p>
           Open WhatsApp and send the prepared sign-in message. SOR7ED replies
           with a six-digit code to enter here. No password or Google account
-          needed.
+          needed. New here? Your SOR7ED account is created after you verify your number.
         </p>
         {!challenge ? (
           <button disabled={busy} onClick={begin}>
