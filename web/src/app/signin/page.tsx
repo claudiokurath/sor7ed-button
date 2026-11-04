@@ -83,7 +83,7 @@ export default function Signin() {
       <section className={styles.panel}>
         <h2>Sign in with WhatsApp</h2>
         <p>
-          Open WhatsApp and send the prepared sign-in message. Sorted replies
+          Open WhatsApp and send the prepared sign-in message. SOR7ED replies
           with a six-digit code to enter here. No password or Google account
           needed.
         </p>

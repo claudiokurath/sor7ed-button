@@ -24,7 +24,7 @@ import { BrandLogo } from "../_brand/BrandLogo";
             <a className="s7-navlink" href="#for-websites">For websites</a>
             <a className="s7-navlink" href="#demo">Try the demo</a>
             <a className="s7-navlink" href="/signin">Sign in</a>
-            <a className="s7-navlink s7-navlink--muted" href="https://www.planetsorted.com" rel="noopener">Planet Sorted ↗</a>
+            <a className="s7-navlink s7-navlink--muted" href="https://www.planetsorted.com" rel="noopener">PLANET SOR7ED ↗</a>
           </nav>
         </div>
       </header>
@@ -45,14 +45,14 @@ import { BrandLogo } from "../_brand/BrandLogo";
   export function Steps() {
     const items = [
       { n: '01', h: 'Find something worth keeping.', p: 'An article, a video, a guide: anything useful on a website that has the Button.' },
-      { n: '02', h: 'Press Sorted on a participating website.', p: 'Look for the tangle mark. The first time, a small window lets you sign in with WhatsApp.' },
+      { n: '02', h: 'Press SOR7ED on a participating website.', p: 'Look for the tangle mark. The first time, a small window lets you sign in with WhatsApp.' },
       { n: '03', h: 'Receive the link in your WhatsApp thread once connected.', p: 'We send the link to your connected WhatsApp thread. You can see whether the request was accepted or needs attention; acceptance does not confirm arrival on your phone.' },
     ];
     return (
       <section id="how-it-works" className="s7-section" aria-labelledby="how-title">
         <div className="s7-wrap">
           <p className="s7-eyebrow">How it works</p>
-          <h2 id="how-title" className="s7-h2">Find it. Press Sorted. Keep it.</h2>
+          <h2 id="how-title" className="s7-h2">Find it. Press SOR7ED. Keep it.</h2>
           <ol className="s7-steps">
             {items.map((s) => (
               <li key={s.n} className="s7-step">
@@ -84,13 +84,13 @@ import { BrandLogo } from "../_brand/BrandLogo";
             or manage.
           </p>
           <h3 className="s7-h3" id="extension">The browser extension</h3>
-          <p className="s7-prose">The desktop extension preview lets you choose a page in Chrome or Edge and open its SOR7ED save window. You review the page before sending. It does not continuously read your browsing history.</p>
+          <p className="s7-prose">The desktop extension preview lets you choose a page in Chrome or Edge and open its SOR7ED save window. One click saves the selected page when you are signed in and your WhatsApp conversation is active. It does not continuously read your browsing history.</p>
           <p className="s7-prose"><a href="/downloads/send-to-sorted-extension.zip" download>Download the extension preview (ZIP)</a></p>
           <ol className="s7-facts">
             <li>Extract the ZIP into a folder.</li>
             <li>Open your browser's Extensions settings and enable Developer mode.</li>
             <li>Choose Load unpacked, then select the extracted folder.</li>
-            <li>Open a web page and choose Save with Sorted from the extension or right-click menu.</li>
+            <li>Open a web page and press the scribble or choose Save with SOR7ED from the right-click menu.</li>
           </ol>
           <p className="s7-note">Preview version 0.1.0 for desktop Chrome and Edge. This is an unpacked test build, not a browser-store release. Sign in once at sor7ed.com; no Google account is required.</p>
         </div>
@@ -134,7 +134,7 @@ import { BrandLogo } from "../_brand/BrandLogo";
 
   const FAQ = [
     { q: 'How does WhatsApp get connected?', a: 'The first time, send the prepared sign-in message in WhatsApp and enter the six-digit reply in the save window. It expires after ten minutes and locks after five wrong codes. On phones the save flow uses the current tab; desktop browsers use a small window when allowed.' },
-    { q: 'What gets saved?', a: 'The address, title, description and preview image that the website provides for the page you pressed Sorted on, linked to your account.' },
+    { q: 'What gets saved?', a: 'The address, title, description and preview image that the website provides for the page you pressed SOR7ED on, linked to your account.' },
     { q: 'Which websites take part?', a: 'Website owners can add the Button to their pages. The optional desktop extension preview also lets you choose pages on other websites, without requiring the publisher to add a button. Some restricted or private pages only provide their address, so a preview image may be unavailable.' },
     { q: 'What happens to my data?', a: 'The privacy summary below explains the main points. The footer links to the Button privacy policy for details about saved links, WhatsApp, service providers and your rights.' },
     { q: 'What is the difference between the demo and live saving?', a: 'The demo on this page runs in your browser. It sends nothing, saves nothing and contacts no service. Live saving signs you in, connects WhatsApp and asks WhatsApp to send the card. The save window shows whether the request was accepted or needs attention. Delivery to your phone can take a moment. If the conversation has become inactive, you may need to reopen it before a message can be sent.' },
@@ -194,7 +194,7 @@ import { BrandLogo } from "../_brand/BrandLogo";
             <a href="#privacy">Privacy summary</a>
             <a href="/privacy-policy">Privacy policy</a>
             <a href="/button-terms">Button terms</a>
-            <a href="https://www.planetsorted.com" rel="noopener">Planet Sorted: neurodivergent support and content ↗</a>
+            <a href="https://www.planetsorted.com" rel="noopener">PLANET SOR7ED: neurodivergent support and content ↗</a>
           </nav>
         </div>
       </footer>

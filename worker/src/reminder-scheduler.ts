@@ -29,7 +29,7 @@ export const reminderWorker = new Worker(
       }
 
       try {
-        await sendReminder(item.userId, item.userPhone, { title: item.title, shortId: item.shortId });
+        await sendReminder(item.userId, item.userPhone, { title: item.title, shortId: item.shortId, url: item.url });
         await db.update(savedItems).set({ reminderSent: true }).where(eq(savedItems.id, item.id));
       } catch (err) {
         // Deliberately left unmarked — retried on the next tick. A

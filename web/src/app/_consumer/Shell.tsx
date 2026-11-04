@@ -10,7 +10,7 @@ export default function Shell({ children }: { children: ReactNode }) {
         </a>
         <nav className={styles.row}>
           <a href="/account">Your account</a>
-          <a href="https://www.planetsorted.com">Planet Sorted ↗</a>
+          <a href="https://www.planetsorted.com">PLANET SOR7ED ↗</a>
         </nav>
       </header>
       <main>{children}</main>

@@ -6,17 +6,19 @@ parser.add_argument('--dev-origin',help='Explicit loopback origin for a developm
 args=parser.parse_args()
 root=Path(__file__).resolve().parent.parent
 source=(root/'extension'/'background.js').read_text()
+manifest=json.loads((root/'extension'/'manifest.json').read_text())
 name='send-to-sorted-extension.zip'
 if args.dev_origin:
     u=urlparse(args.dev_origin)
     if u.hostname not in {'localhost','127.0.0.1'} or u.scheme not in {'http','https'} or u.path not in {'','/'} or u.query or u.fragment or u.username:
         raise SystemExit('Development origin must be a loopback HTTP(S) origin')
     source=source.replace('"https://www.sor7ed.com"',json.dumps(args.dev_origin.rstrip('/')))
+    manifest['host_permissions']=[args.dev_origin.rstrip('/')+'/*']
     name='send-to-sorted-extension-DEVELOPMENT.zip'
 out=root/'dist'/name
 out.parent.mkdir(exist_ok=True)
 with zipfile.ZipFile(out,'w',zipfile.ZIP_DEFLATED) as z:
-    z.write(root/'extension'/'manifest.json','manifest.json')
+    z.writestr('manifest.json',json.dumps(manifest,indent=2)+'\n')
     z.writestr('background.js',source)
     for icon in sorted((root/'extension'/'icons').glob('*.png')):
         z.write(icon,'icons/'+icon.name)

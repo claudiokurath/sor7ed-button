@@ -73,7 +73,7 @@ export default function AccountPage() {
   async function remove(item: Item) {
     if (
       !confirm(
-        "Remove this page from your Sorted history? Messages already in WhatsApp stay there.",
+        "Remove this page from your SOR7ED history? Messages already in WhatsApp stay there.",
       )
     )
       return;
@@ -139,7 +139,7 @@ export default function AccountPage() {
   async function deleteAccount() {
     if (
       !confirm(
-        "Permanently delete your Sorted account and saved history? This does not delete messages already in WhatsApp.",
+        "Permanently delete your SOR7ED account and saved history? This does not delete messages already in WhatsApp.",
       )
     )
       return;
@@ -161,7 +161,7 @@ export default function AccountPage() {
     : [];
   return (
     <Shell>
-      <p className={s.accent}>Your Sorted account</p>
+      <p className={s.accent}>Your SOR7ED account</p>
       <h1>{name ? `Welcome back, ${name}.` : "All your useful things."}</h1>
       <p>
         Your WhatsApp thread is the main home for your saves. This history is
@@ -193,7 +193,7 @@ export default function AccountPage() {
             )}
             <p className={s.small}>Based on your latest 100 saves.</p>
             <a href="https://www.planetsorted.com">
-              Explore Planet Sorted’s tools and guidebooks ↗
+              Explore PLANET SOR7ED’s tools and guidebooks ↗
             </a>
           </section>
           <h2>Recent history</h2>
