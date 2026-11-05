@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "SOR7ED \u2014 Save to WhatsApp",
-  "version": "0.2.2",
+  "version": "0.2.3",
   "host_permissions": [
     "https://www.sor7ed.com/*"
   ],
