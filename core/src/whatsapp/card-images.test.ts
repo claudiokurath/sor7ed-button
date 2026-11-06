@@ -1,7 +1,7 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import sharp from 'sharp';
 const mocks = vi.hoisted(() => ({ safeFetch: vi.fn() }));
-vi.mock('../ssrf-guard.js', () => ({ safeFetch: mocks.safeFetch }));
+vi.mock('./public-image-fetch.js', () => ({ fetchPublicImage: mocks.safeFetch }));
 import { brandCardImage, renderSavedCardImage, savedCardImageUrl, validCardImageSignature } from './card-images.js';
 
 afterEach(() => { vi.unstubAllEnvs(); vi.useRealTimers(); mocks.safeFetch.mockReset(); });

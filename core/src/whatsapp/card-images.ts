@@ -1,6 +1,6 @@
 import { createHmac, timingSafeEqual } from 'node:crypto';
 import sharp from 'sharp';
-import { safeFetch } from '../ssrf-guard.js';
+import { fetchPublicImage } from './public-image-fetch.js';
 import { CARD_BRAND_MARK } from './brand-mark.js';
 
 const ID = /^[a-zA-Z0-9_-]{8,40}$/;
@@ -57,8 +57,8 @@ async function boundedImage(response: Response): Promise<Buffer> {
 async function sourceCardImage(source: string | null | undefined, signal: AbortSignal): Promise<Buffer> {
   const url = new URL(source || '');
   if (url.protocol !== 'https:' || url.username || url.password) throw new Error('No public image');
-  // safeFetch checks public addresses and each redirect before making a request.
-  const bytes = await boundedImage(await safeFetch(url.href, { signal }));
+  // The image fetch pins the TLS connection to approved public DNS results.
+  const bytes = await boundedImage(await fetchPublicImage(url.href, { signal }));
   const raster = bytes.subarray(0, 3).equals(Buffer.from([255, 216, 255])) ||
     bytes.subarray(0, 8).equals(Buffer.from([137,80,78,71,13,10,26,10])) ||
     (bytes.subarray(0,4).toString('ascii') === 'RIFF' && bytes.subarray(8,12).toString('ascii') === 'WEBP');
