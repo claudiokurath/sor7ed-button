@@ -116,7 +116,7 @@ import { BrandLogo } from "../_brand/BrandLogo";
   const FAQ = [
     { q: 'How does WhatsApp get connected?', a: 'The first time, send the prepared sign-in message in WhatsApp and enter the six-digit reply in the save window. It expires after ten minutes and locks after five wrong codes. On phones the save flow uses the current tab; desktop browsers use a small window when allowed.' },
     { q: 'What gets saved?', a: 'The address, title, description and preview image that the website provides for the page you pressed SOR7ED on, linked to your account.' },
-    { q: 'Which websites take part?', a: 'Website owners can add the Button to their pages. The optional desktop extension preview also lets you choose pages on other websites, without requiring the publisher to add a button. Some restricted or private pages only provide their address, so a preview image may be unavailable.' },
+    { q: 'Which websites take part?', a: 'Website owners can add the Button to their pages. The optional desktop extension preview also lets you choose pages on other websites, without requiring the publisher to add a button. Some restricted or private pages do not provide a usable public image. Those cards use the SOR7ED scribble instead.' },
     { q: 'What happens to my data?', a: 'The privacy summary below explains the main points. The footer links to the Button privacy policy for details about saved links, WhatsApp, service providers and your rights.' },
     { q: 'What is the difference between the demo and live saving?', a: 'The demo on this page runs in your browser. It sends nothing, saves nothing and contacts no service. Live saving signs you in, connects WhatsApp and asks WhatsApp to send the card. The save window shows whether the request was accepted or needs attention. Delivery to your phone can take a moment. If the conversation has become inactive, you may need to reopen it before a message can be sent.' },
   ];
@@ -151,8 +151,8 @@ import { BrandLogo } from "../_brand/BrandLogo";
             <li>WhatsApp (Meta's WhatsApp Cloud API) connects your number and sends the card. Sending the connection message shares your number with SOR7ED.</li>
             <li>Saved items keep the page address, title, description and image link against your account, together with the send status and any WhatsApp message ID returned.</li>
             <li>SOR7ED keeps your WhatsApp opt-out status and the time of your last message to determine whether the conversation is active.</li>
-            <li>Public page previews may be fetched and preview images cached at public addresses. Where AI enrichment is enabled, page titles and descriptions are sent to OpenAI for summaries and tags.</li>
-            <li>Card links pass through a SOR7ED link that records opens against the saved item and originating website. Known preview crawlers are excluded; an open is not proof of a unique return visit.</li>
+            <li>Public preview images may be fetched and fitted to the card without stretching. Missing, small or unusable images use SOR7ED artwork. Where AI enrichment is enabled, page titles and descriptions are sent to OpenAI for summaries and tags.</li>
+            <li>New saved cards open the original website directly. Older SOR7ED links may record a continuation after you choose to open the destination; these counts are estimates, not verified unique visitors.</li>
           </ul>
           <p className="s7-prose">Read the <a href="/privacy-policy">Button privacy policy</a> for more detail and how to contact us about your data.</p>
         </div>
