@@ -497,3 +497,36 @@
   .s7-section--yellow a { text-decoration-thickness:1px; text-underline-offset:4px; }
   .s7-section--yellow :is(a,button,summary):focus-visible { outline-color:#000; }
 }
+
+
+/* Homepage hero: shared visual rhythm with PlanetSorted, retaining Button copy. */
+.s7-hero {
+  grid-template-columns:minmax(0,1fr);
+  justify-items:center;
+  padding-block:clamp(28px,4vw,56px) 40px;
+  gap:0;
+  text-align:center;
+}
+.s7-hero-copy { width:100%; max-width:900px; }
+.s7-hero-scribble { width:clamp(128px,10vw,160px); aspect-ratio:1; margin:0 auto 24px; overflow:hidden; }
+.s7-hero-scribble :is(video,img) { display:block; width:100%; height:100%; object-fit:contain; }
+.s7-hero .s7-eyebrow { margin:0 0 18px; }
+.s7-hero .s7-h1 { max-width:18ch; margin-inline:auto; font-size:clamp(3rem,5vw,6.5rem); line-height:1.08; }
+.s7-hero .s7-h1 em { color:#ffd400; }
+.s7-hero .s7-lede { max-width:46ch; margin:24px auto 0; font-size:clamp(1.125rem,1.4vw,1.5rem); color:#d4d4d4; }
+.s7-hero .s7-hero-detail { max-width:58ch; margin:16px auto 0; }
+.s7-hero .s7-ctas { justify-content:center; margin-top:28px; }
+.s7-hero .s7-btn--primary { background:#ffd400; border-color:#ffd400; color:#000; }
+.s7-hero .s7-btn--primary:hover { background:#ffe24d; border-color:#ffe24d; }
+.s7-hero .s7-btn--primary:active { background:#e6bf00; border-color:#e6bf00; }
+.s7-home-demo { display:flex; justify-content:center; padding-bottom:clamp(48px,6vw,80px); }
+.s7-home-demo .hd { width:100%; max-width:600px; }
+@media(max-width:767px) {
+  .s7-hero-scribble { width:112px; margin-bottom:20px; }
+  .s7-hero .s7-h1 { font-size:clamp(2.5rem,10.5vw,4.6rem); }
+  .s7-hero .s7-lede { font-size:1.0625rem; margin-top:20px; }
+}
+@media(max-width:480px) {
+  .s7-hero .s7-ctas { align-items:center; }
+  .s7-hero .s7-btn { width:min(100%,300px); }
+}
