@@ -99,6 +99,20 @@ export async function sendText(to: string, body: string, options: { previewUrl?:
   return res.messages?.[0]?.id;
 }
 
+export async function sendLinkCard(to: string, card: { title: string; url: string; imageUrl: string }): Promise<string | undefined> {
+  const hostname = new URL(card.url).hostname.replace(/^www\./, '');
+  const title = card.title.replace(/[\u0000-\u001f\u007f]/g, ' ').replace(/\s+/g, ' ').trim().slice(0, 500) || hostname;
+  const res = await callMetaApi({
+    messaging_product: 'whatsapp', recipient_type: 'individual', to, type: 'interactive',
+    interactive: {
+      type: 'cta_url', header: { type: 'image', image: { link: card.imageUrl } },
+      body: { text: `${title}\n\n${hostname}` },
+      action: { name: 'cta_url', parameters: { display_text: 'Open', url: card.url } },
+    },
+  });
+  return res.messages?.[0]?.id;
+}
+
 export type TemplateComponent =
   | { type: "header"; parameters: [{ type: "image"; image: { link: string } }] }
   | { type: "body"; parameters: Array<{ type: "text"; text: string }> }

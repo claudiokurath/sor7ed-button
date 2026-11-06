@@ -9,7 +9,7 @@ This is the Button backend, not a browser extension. PlanetSorted remains a sepa
 - Existing Neon Postgres project, pooled connection for runtime; direct connection for migrations.
 - `BUTTON_MODE=lean` on the API. No worker, Redis, R2, AI calls or reminder scheduler.
 
-Shared rate limits use atomic Postgres counters. Monthly partner quotas reset lazily on the first new save of the month. Original HTTPS preview images are used without uploading copies; the source can remove or block them. Webhook processing is registered with Vercel `waitUntil` before acknowledging Meta. This is bounded request processing, not a durable queue; monitor failures and provider retries.
+Shared rate limits use atomic Postgres counters. Monthly partner quotas reset lazily on the first new save of the month. Saved links use consistent 1200×630 image cards. Suitable public source images are fitted without stretching; missing or unsuitable images use the approved black-and-yellow mark. Signed API image URLs keep source URL/account metadata out of the media response; no R2 upload is required. See `docs/consistent-save-cards.md`. Webhook processing is registered with Vercel `waitUntil` before acknowledging Meta. This is bounded request processing, not a durable queue; monitor failures and provider retries.
 
 Automatic WhatsApp delivery is retained inside the service window. Outside it, the popup asks the user to reopen the conversation. Lean mode never falls back to a paid template. An ambiguous send is not retried automatically, to avoid duplicate messages. STOP and START still control opt-outs. No claim that provider usage or hosting is free indefinitely: confirm current limits and terms before launch.
 
