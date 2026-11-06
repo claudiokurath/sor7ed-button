@@ -1,7 +1,8 @@
 import type { Metadata } from "next";
 import HeroDemo from "./_home/HeroDemo";
 import HeroScribble from "./_home/HeroScribble";
-import { Nav, Footer, Problem, Steps, ForYou, ForWebsites, Faq, Privacy } from "./_home/Sections";
+import HomeNav from "./_home/HomeNav";
+import { Footer, Problem, Steps, ForYou, ForWebsites, Faq, Privacy } from "./_home/Sections";
 import "./_home/home.css";
 
 export const metadata: Metadata = {
@@ -29,7 +30,7 @@ export default function HomePage() {
       <div className="s7" id="top">
         <link rel="preload" as="image" href="/static/demo-garden.svg" />
         <a className="s7-skip" href="#main">Skip to main content</a>
-        <Nav />
+        <HomeNav />
 
         <main id="main">
           <section className="s7-wrap s7-hero" aria-labelledby="hero-title">

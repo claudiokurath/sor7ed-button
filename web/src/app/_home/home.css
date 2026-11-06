@@ -37,50 +37,35 @@
 }
 .s7-skip:focus { left: 16px; }
 
-/* ---------- nav ----------
-   Desktop: one ruled masthead row, never two. The four mono links are kept on
-   a single line (nowrap) and given room by tightening the gap — wrapping them
-   3 + 1 reads as a bug, not a layout.
-   Mobile: the links drop to their own ruled row, all of them, left-aligned. */
-.s7-nav { border-bottom: 1px solid var(--s7-line); }
-.s7-nav-inner {
-  display: flex; align-items: center;
-  justify-content: space-between; gap: 0 24px;
-  padding-block: 12px;
+/* Compact homepage navigation: hidden at the top, fixed after a short scroll. */
+.s7-nav {
+  position:fixed; inset:0 0 auto; z-index:40;
+  background:#000; border-bottom:1px solid rgb(255 255 255 / .22);
+  opacity:0; visibility:hidden; pointer-events:none; transform:translateY(-100%);
+  transition:transform 200ms var(--ease),opacity 200ms var(--ease);
 }
-.s7-navlinks { min-width: 0; }
-.s7-brand {
-  display: inline-flex; align-items: center; gap: 10px;
-  text-decoration: none; font-family: var(--font-mono);
-  font-weight: 500; letter-spacing: .14em; font-size: 15px;
+.s7-nav--visible { opacity:1; visibility:visible; pointer-events:auto; transform:translateY(0); }
+.s7-nav-inner { display:flex; align-items:center; justify-content:space-between; gap:24px; min-height:72px; padding-block:0; }
+.s7-brand { display:inline-flex; flex:none; text-decoration:none; }
+.s7-nav .s7-brand img { display:block; width:124px; height:auto; }
+.s7-navlinks { display:flex; align-items:center; gap:clamp(16px,2vw,28px); min-width:0; }
+.s7-navlink { display:inline-flex; align-items:center; min-height:44px; gap:6px; padding-block:8px; font:500 13px/1.4 var(--font-sans); text-decoration:none; white-space:nowrap; }
+.s7-navlink:hover { color:#ffd400; }
+.s7-navlink--muted { color:#aaa; }
+.s7-navlink--signin { color:#ffd400; }
+.s7-nav-toggle { display:none; }
+.s7-nav-reveal { position:fixed; left:-9999px; top:8px; z-index:60; padding:12px 18px; background:#ffd400; color:#000; border:0; font:600 14px var(--font-sans); }
+.s7-nav-reveal:focus { left:16px; }
+.s7 .s7-skip { z-index:60; }
+.s7 :is(#how-it-works,#for-websites,#demo) { scroll-margin-top:88px; }
+@media(max-width:880px) {
+  .s7-nav-inner { flex-wrap:wrap; min-height:64px; gap:0 20px; }
+  .s7-nav .s7-brand img { width:112px; }
+  .s7-nav-toggle { display:inline-flex; align-items:center; justify-content:center; gap:14px; margin-block:10px; min-height:44px; padding:8px 12px; border:1px solid #555; background:transparent; color:#fff; font:500 13px var(--font-sans); cursor:pointer; }
+  .s7-navlinks { display:none; flex-basis:100%; gap:0; padding:8px 0 16px; border-top:1px solid #333; }
+  .s7-nav--open .s7-navlinks { display:flex; flex-direction:column; align-items:stretch; }
+  .s7-navlink { padding:12px 0; border-bottom:1px solid #222; font-size:14px; }
 }
-.s7-brand { flex: none; }
-
-.s7-navlinks {
-  display: flex; flex-wrap: nowrap; gap: 0 20px;
-  align-items: center; justify-content: flex-end;
-}
-.s7-navlink {
-  display: inline-block; padding-block: 10px;
-  font-family: var(--font-mono); font-size: 12px;
-  letter-spacing: .08em; text-transform: uppercase;
-  text-decoration: none; white-space: nowrap;
-  transition: color var(--dur-ui) var(--ease);
-}
-
-/* Under 880px the four links cannot sit beside the wordmark without truncating.
-   Give them their own full-width row instead of wrapping them raggedly. */
-@media (max-width: 880px) {
-  .s7-nav-inner { flex-wrap: wrap; gap: 0; }
-  .s7-navlinks {
-    flex: 1 1 100%; order: 3; justify-content: flex-start;
-    gap: 0 18px; margin-top: 4px;
-    border-top: 1px solid var(--s7-line-faint);
-  }
-  .s7-navlink { font-size: 10.5px; letter-spacing: .06em; padding-block: 9px; }
-}
-.s7-navlink:hover { color: var(--s7-amber); }
-.s7-navlink--muted { color: var(--s7-muted); }
 
 /* ---------- hero ---------- */
 .s7-hero {
@@ -439,10 +424,10 @@
 .s7-policy .s7-h1 { font-size:clamp(36px,7vw,68px); }
 .s7-policy .s7-h2 { margin-top:44px; font-size:clamp(25px,4vw,36px); }
 .s7-policy a, .s7-prose a { text-decoration:underline; text-underline-offset:4px; }
-.s7 #demo { scroll-margin-top:24px; }
+
 .s7 .hd-thumb img { width:46px; height:46px; display:block; border-radius:4px; }
 .s7 .hd-slot { min-height:148px; }
-@media(max-width:480px) { .s7-navlinks { display:grid; grid-template-columns:1fr 1fr; gap:0 12px; } .s7-navlink { min-height:44px; } .s7-ctas { flex-direction:column; align-items:stretch; } .hd-notice { line-height:1.6; } }
+@media(max-width:480px) { .s7-ctas { flex-direction:column; align-items:stretch; } .hd-notice { line-height:1.6; } }
 @media(prefers-reduced-motion:reduce) { .s7 *, .s7 *::before, .s7 *::after { transition:none!important; animation:none!important; scroll-behavior:auto!important; } }
 
 /* Presentation-led layout: condensed headlines, black ground and white rules.
@@ -450,8 +435,6 @@
 @font-face { font-family: 'Anton'; src: url('/fonts/Anton-Regular.ttf') format('truetype'); font-weight: 400; font-display: swap; }
 .s7 { --s7-amber:#fff; --s7-line:rgb(255 255 255 / .3); }
 .s7-wrap { max-width:1280px; padding-inline:clamp(22px,5vw,64px); }
-.s7-nav-inner { padding-block:20px; }
-.s7-brand { font-size:18px; }
 .s7-hero { padding-block:clamp(56px,8vw,110px); gap:56px; }
 .s7-h1,.s7-h2 { font-family:Anton,'Arial Narrow',sans-serif; font-weight:400; text-transform:uppercase; letter-spacing:0; text-wrap:balance; }
 .s7-h1 { font-size:clamp(3.4rem,5.7vw,5.4rem); line-height:1.1; }
@@ -481,7 +464,7 @@
 .s7 .hd { --hd-accent:#fff; }
 @media(min-width:1024px) { .s7-hero { grid-template-columns:minmax(0,1.2fr) minmax(0,.85fr); gap:48px; } }
 @media(max-width:800px) { .s7-editorial-grid { grid-template-columns:1fr; gap:12px; } .s7-partner-metrics { grid-template-columns:1fr; gap:32px; } }
-@media(max-width:480px) { .s7-h1 { font-size:clamp(2.7rem,11vw,3.4rem); } .s7-hero { gap:44px; } .s7-navlinks { flex-wrap:wrap; gap:0 16px; } .s7-ctas { flex-direction:column; align-items:stretch; } }
+@media(max-width:480px) { .s7-h1 { font-size:clamp(2.7rem,11vw,3.4rem); } .s7-hero { gap:44px; } .s7-ctas { flex-direction:column; align-items:stretch; } }
 
 /* Alternating section surfaces from the supplied presentation (#FFD400). */
 @media screen {

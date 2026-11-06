@@ -12,25 +12,6 @@ import { BrandLogo } from "../_brand/BrandLogo";
   async
 ><\/script>`;
 
-  export function Nav() {
-    return (
-      <header className="s7-nav">
-        <div className="s7-wrap s7-nav-inner">
-          <a className="s7-brand" href="#top" aria-label="SOR7ED home">
-            <BrandLogo />
-          </a>
-          <nav aria-label="Main" className="s7-navlinks">
-            <a className="s7-navlink" href="#how-it-works">How it works</a>
-            <a className="s7-navlink" href="#for-websites">For websites</a>
-            <a className="s7-navlink" href="#demo">Try the demo</a>
-            <a className="s7-navlink" href="/signin">Sign in</a>
-            <a className="s7-navlink s7-navlink--muted" href="https://www.planetsorted.com" rel="noopener">PLANET SOR7ED ↗</a>
-          </nav>
-        </div>
-      </header>
-    );
-  }
-
   export function Problem() {
     return (
       <section className="s7-section s7-section--yellow" aria-labelledby="problem-title">
