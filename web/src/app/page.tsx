@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import HeroDemo from "./_home/HeroDemo";
+import HeroScribble from "./_home/HeroScribble";
 import { Nav, Footer, Problem, Steps, ForYou, ForWebsites, Faq, Privacy } from "./_home/Sections";
 import "./_home/home.css";
 
@@ -32,7 +33,8 @@ export default function HomePage() {
 
         <main id="main">
           <section className="s7-wrap s7-hero" aria-labelledby="hero-title">
-            <div>
+            <div className="s7-hero-copy">
+              <HeroScribble />
               <p className="s7-eyebrow">Less lost. More SOR7ED.</p>
               <h1 id="hero-title" className="s7-h1">
                 Keep useful things
@@ -47,10 +49,10 @@ export default function HomePage() {
                 <a className="s7-btn s7-btn--secondary" href="#demo">Try the demo <span aria-hidden="true">↓</span></a>
               </div>
             </div>
-            <div id="demo" style={{ display: 'flex', justifyContent: 'center', scrollMarginTop: 16 }}>
-              <HeroDemo />
-            </div>
           </section>
+          <div id="demo" className="s7-wrap s7-home-demo">
+            <HeroDemo />
+          </div>
 
           <Problem />
           <Steps />
