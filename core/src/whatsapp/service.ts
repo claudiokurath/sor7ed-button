@@ -1,7 +1,8 @@
 // Every outbound send should go through this file, not client.ts directly —
 // this is what enforces the 24h session-window rule in exactly one place.
-import { sendText, sendTemplate, WhatsAppSendError, type TemplateComponent } from "./client.js";
+import { sendLinkCard, sendTemplate, WhatsAppSendError, type TemplateComponent } from "./client.js";
 import { isWhatsAppSessionOpen, isWhatsAppOptedOut } from "../queries.js";
+import { savedCardImageUrl } from "./card-images.js";
 import { isLeanMode } from "../mode.js";
 
 // Deliberately narrower than the shared SavedItem DTO (@sor7ed/types),
@@ -61,9 +62,9 @@ export async function sendSaveCard(
 
   if (!sessionOpen) return { status: 'skipped', reason: 'session_closed' };
 
-  // The original URL opens directly and lets WhatsApp resolve the source's
-  // native title/image. No tracking hop or SOR7ED artwork replaces that page.
-  return acceptedOutcome(await sendText(userPhone, originalPageUrl(item.url)));
+  // Only the presentation changes. Open still goes directly to the source URL.
+  const url = originalPageUrl(item.url);
+  return acceptedOutcome(await sendLinkCard(userPhone, { title: item.title, url, imageUrl: savedCardImageUrl(item.shortId) }));
 }
 
 const REMINDER_TEMPLATE = "sor7ed_reminder";

@@ -4,6 +4,7 @@ import { createServer } from 'node:http';
 import { createServer as createNetServer } from 'node:net';
 import { spawn } from 'node:child_process';
 import pg from 'pg';
+import sharp from 'sharp';
 import { drizzle } from 'drizzle-orm/node-postgres';
 import { migrate } from 'drizzle-orm/node-postgres/migrator';
 
@@ -57,7 +58,7 @@ async function api(base, path, options = {}) {
 async function start(metaUrl, google = true, relay = false) {
   const p = await port(); const base = `http://127.0.0.1:${p}`;
   const env = { ...process.env, NODE_ENV:'production', BUTTON_MODE:'lean', PORT:String(p),
-    DATABASE_URL:databaseUrl, BASE_URL:base, API_BASE_URL:base, WEB_ORIGIN:base,
+    DATABASE_URL:databaseUrl, BASE_URL:base, API_BASE_URL:'https://api.sor7ed.com', WEB_ORIGIN:base,
     JWT_SECRET:testSecret, META_APP_SECRET:testSecret, META_WEBHOOK_VERIFY_TOKEN:'test-only',
     META_WHATSAPP_TOKEN:'mock-only', META_WHATSAPP_PHONE_ID:'mock-only',
     META_WHATSAPP_DISPLAY_NUMBER:'447700900123', GOOGLE_CLIENT_ID:'mock-only',
@@ -105,11 +106,14 @@ try {
   const saved = await save(body); assert.equal(saved.status,201); assert.equal(saved.body.deliveryStatus,'accepted');
   const count = outbound.length;
   assert.equal((await save(body)).status,200); assert.equal(outbound.length,count);
-  assert(!outbound.at(-1).text.body.includes('REMIND'));
+  assert.equal(outbound.at(-1).type,'interactive');
+  assert.equal(outbound.at(-1).interactive.action.parameters.url,body.url);
+  assert(!outbound.at(-1).interactive.body.text.includes('REMIND'));
+  assert.equal(outbound.at(-1).text,undefined);
   assert.equal((await api(base,`/api/saves/${saved.body.shortId}`)).body.cachedImageUrl,body.imageUrl);
   assert.equal((await api(base,`/api/saves/status/${saved.body.shortId}`,{headers:{cookie:cookie(other)}})).status,404);
   assert.equal((await save({...body,url:'http://127.0.0.1/private',idempotencyKey:randomUUID()})).status,403);
-  console.log('PASS: automatic send, original preview, duplicate protection, domain restrictions and status ownership');
+  console.log('PASS: automatic image card, direct Open URL, duplicate protection, domain restrictions and status ownership');
   omitMessageId = true;
   const uncertain = {...body,title:'Unconfirmed',idempotencyKey:randomUUID()};
   assert.equal((await save(uncertain)).body.deliveryStatus,'unknown'); const attempts = outbound.length;
@@ -161,6 +165,13 @@ try {
   const personalRace=await Promise.all(Array.from({length:8},()=>post('/api/personal-saves',draft)));
   assert.equal(personalRace.filter(r=>r.status===201).length,1);assert.equal(outbound.length,c0+1);
   const personal=personalRace.find(r=>r.status===201).body;
+  const card=outbound.at(-1);assert.equal(card.type,'interactive');assert.equal(card.interactive.action.parameters.url,draft.url);
+  const image=new URL(card.interactive.header.image.link);
+  const media=await fetch(base+image.pathname+image.search);assert.equal(media.status,200);assert.equal(media.headers.get('content-type'),'image/jpeg');
+  assert.deepEqual(Object.fromEntries(Object.entries(await sharp(Buffer.from(await media.arrayBuffer())).metadata()).filter(([key])=>['width','height','format'].includes(key))),{format:'jpeg',width:1200,height:630});
+  assert.equal((await fetch(base+image.pathname+'?signature='+'a'.repeat(64))).status,403);
+  console.log('PASS: actual signed image route produces the brand JPEG for a missing source; forged capabilities are denied');
+
   assert.equal((await post('/api/personal-saves',{...draft,title:'Changed'})).status,409);
   assert.equal((await post('/api/personal-saves',{...draft,url:'http://127.0.0.1',idempotencyKey:randomUUID()})).status,400);
   const strangerHeaders={...consumerHeaders,cookie:cookie(other)};

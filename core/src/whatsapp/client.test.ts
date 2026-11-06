@@ -65,3 +65,17 @@ describe('WhatsApp provider request outcome', () => {
     expect(request).toHaveBeenCalledTimes(1);
   });
 });
+
+it('the image card has one direct Open action and no extra text message', async () => {
+  const original=globalThis.fetch;
+  vi.stubEnv('WHATSAPP_TRANSPORT','direct');vi.stubEnv('META_WHATSAPP_TOKEN','fixture-token');vi.stubEnv('META_WHATSAPP_PHONE_ID','fixture-phone');
+  const requests: any[]=[];
+  globalThis.fetch=vi.fn(async(_url,options)=>{requests.push(JSON.parse(options?.body as string));return Response.json({messages:[{id:'wamid.card'}]})});
+  try {
+    const {sendLinkCard}=await import('./client.js');
+    expect(await sendLinkCard('447000000000',{title:'Original page',url:'https://example.com/page?q=1#part',imageUrl:'https://api.sor7ed.com/image'})).toBe('wamid.card');
+    expect(requests).toHaveLength(1);
+    expect(requests[0]).toMatchObject({type:'interactive',interactive:{type:'cta_url',header:{type:'image'},body:{text:'Original page\n\nexample.com'},action:{parameters:{display_text:'Open',url:'https://example.com/page?q=1#part'}}}});
+    expect(requests[0].text).toBeUndefined();
+  } finally {globalThis.fetch=original;vi.unstubAllEnvs()}
+});

@@ -9,6 +9,7 @@ import { webhookRoutes } from "./routes/webhook.js";
 import { connectRoutes } from "./routes/connect.js";
 import { saveRoutes } from "./routes/saves.js";
 import { itemLookupRoutes } from "./routes/item-lookup.js";
+import { cardImageRoutes } from "./routes/card-images.js";
 import { consumerRoutes } from "./routes/consumer.js";
 import { partnerRoutes } from "./routes/partner.js";
 import { UPLOAD_DIR, isUsingLocalDiskUploads, assertRequiredEnv, db } from "@sor7ed/core";
@@ -108,6 +109,7 @@ await app.register(webhookRoutes);
 await app.register(connectRoutes);
 await app.register(saveRoutes);
 await app.register(itemLookupRoutes);
+await app.register(cardImageRoutes);
 await app.register(partnerRoutes);
 await app.register(consumerRoutes);
 
