@@ -10,7 +10,7 @@ image location. Invalid signatures cannot trigger saved-item or source-image rea
 No saved URL, account data, cookies or browser screenshot is exposed by the media
 route. Missing/deleted rows or temporary image lookup failures use brand artwork.
 
-Source images use the existing public-address/redirect fetch guard. Only HTTPS
+Image downloads use a public-address guard with DNS addresses pinned to the TLS connection on every redirect; private, mapped and local targets are refused. Only HTTPS
 JPEG, PNG and WebP raster media are accepted, with a 3MiB streamed-byte cap,
 16-megapixel decoding cap, and a four-second deadline including DNS resolution.
 Images smaller than 600×315, extreme banners, animated, corrupt, unsupported,
