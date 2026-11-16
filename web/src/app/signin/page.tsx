@@ -2,7 +2,7 @@
 import { useEffect, useState } from "react";
 import Shell from "../_consumer/Shell";
 import styles from "../_consumer/consumer.module.css";
-import { request } from "../_consumer/api";
+import { ApiError, request } from "../_consumer/api";
 import { WhatsAppWindowLink } from "../_consumer/WhatsAppWindowLink";
 type Challenge = {
   id: string;
@@ -17,14 +17,40 @@ export default function Signin() {
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
   useEffect(() => {
-    try {
-      const saved = JSON.parse(
-        sessionStorage.getItem("sor7ed:signin") ?? "null",
-      );
-      if (saved && Date.parse(saved.expiresAt) > Date.now())
-        setChallenge(saved);
-    } catch {}
+    (async () => {
+      // Already signed in: skip the WhatsApp step entirely.
+      try {
+        await request("/api/auth/me");
+        goNext();
+        return;
+      } catch {}
+      let restored = false;
+      try {
+        const saved = JSON.parse(
+          sessionStorage.getItem("sor7ed:signin") ?? "null",
+        );
+        if (saved && Date.parse(saved.expiresAt) > Date.now()) {
+          setChallenge(saved);
+          restored = true;
+        }
+      } catch {}
+      // No live challenge to resume: start one straight away so the WhatsApp
+      // button is ready without an extra click. Failures fall back to the
+      // manual "Start sign-in" button.
+      if (!restored) void begin();
+    })();
   }, []);
+  function goNext() {
+    const next =
+      new URLSearchParams(location.search).get("next") ?? "/account";
+    const target = new URL(next, location.origin);
+    location.assign(
+      target.origin === location.origin &&
+        (["/account", "/save", "/save/extension", "/dashboard", "/dashboard/setup"].includes(target.pathname) || /^\/dashboard\/invite\/[a-f0-9]{16}$/.test(target.pathname))
+        ? target.pathname + target.search
+        : "/account",
+    );
+  }
   async function begin() {
     setBusy(true);
     setError("");
@@ -45,6 +71,12 @@ export default function Signin() {
   async function verify(event: React.FormEvent) {
     event.preventDefault();
     if (!challenge) return;
+    // The server can't tell an expired code from a mistyped one, but the
+    // page knows when this challenge was issued, so say so directly.
+    if (Date.parse(challenge.expiresAt) <= Date.now()) {
+      setError("This code has expired. Start again to get a new one.");
+      return;
+    }
     setBusy(true);
     setError("");
     try {
@@ -58,17 +90,16 @@ export default function Signin() {
         }),
       });
       sessionStorage.removeItem("sor7ed:signin");
-      const next =
-        new URLSearchParams(location.search).get("next") ?? "/account";
-      const target = new URL(next, location.origin);
-      location.assign(
-        target.origin === location.origin &&
-          (["/account", "/save", "/save/extension", "/dashboard", "/dashboard/setup"].includes(target.pathname) || /^\/dashboard\/invite\/[a-f0-9]{16}$/.test(target.pathname))
-          ? target.pathname + target.search
-          : "/account",
-      );
+      goNext();
     } catch (e) {
-      setError(e instanceof Error ? e.message : "Could not sign in.");
+      // The server returns one message for wrong, expired and locked codes.
+      // Keep it short and point to "Start again" as the way out.
+      const rejected = e instanceof ApiError && e.status === 401;
+      setError(
+        rejected
+          ? "That code didn’t work. Check it and try again, or start again for a new code."
+          : e instanceof Error ? e.message : "Could not sign in.",
+      );
     } finally {
       setBusy(false);
     }
