@@ -94,12 +94,15 @@ function deliveryCopy(result: SaveResponse): { title: string; detail: string } {
 
 function SaveFlow() {
   const params = useSearchParams();
-  const title = params.get("title") ?? "Untitled";
+  const isPlanetResource = params.get("source") === "planet-sorted";
+  const resourceSlug = params.get("slug") ?? "";
+  const resourceContext = params.get("context") ?? "";
+  const title = params.get("title") ?? (isPlanetResource ? "Your requested resource" : "Untitled");
   const description = params.get("description") ?? "";
   const url = params.get("url") ?? "";
   const apiKey = params.get("apiKey") ?? "";
   const image = imageForContent(params.get("image") ?? "", url);
-  const contentScope = JSON.stringify([apiKey, url, title, description, image ?? null]);
+  const contentScope = JSON.stringify([apiKey, url, title, description, image ?? null, isPlanetResource, resourceSlug, resourceContext]);
   const suppliedFlowId = params.get("flowId");
   const openerOrigin = params.get("openerOrigin");
   const returnTo = widgetReturnUrl(params.get("returnTo"), openerOrigin);
@@ -153,9 +156,9 @@ function SaveFlow() {
       setErrorMsg("");
       actionIdRef.current ??= actionIdForContent(contentScope, suppliedFlowId);
       try {
-        const res = await fetch(`${API_BASE}/api/saves`, {
+        const res = await fetch(`${API_BASE}${isPlanetResource ? "/api/planet-sorted/saves" : "/api/saves"}`, {
           method: "POST", credentials: "include", headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ partnerApiKey: apiKey, url, title, description, ...(image ? { imageUrl: image } : {}), idempotencyKey: actionIdRef.current }),
+          body: JSON.stringify(isPlanetResource ? { slug: resourceSlug, context: resourceContext, idempotencyKey: actionIdRef.current } : { partnerApiKey: apiKey, url, title, description, ...(image ? { imageUrl: image } : {}), idempotencyKey: actionIdRef.current }),
         });
         if (res.status === 401) {
           setErrorMsg("Your session expired. Sign in again to continue this save.");
@@ -183,7 +186,7 @@ function SaveFlow() {
     saveFlight.current = operation;
     void operation.finally(() => { saveFlight.current = null; });
     return operation;
-  }, [apiKey, url, suppliedFlowId, title, description, image, contentScope, recordResult]);
+  }, [apiKey, url, suppliedFlowId, title, description, image, contentScope, recordResult, isPlanetResource, resourceSlug, resourceContext]);
 
   const prepareConnection = useCallback((refresh = false): Promise<void> => {
     if (connectFlight.current) return connectFlight.current;
