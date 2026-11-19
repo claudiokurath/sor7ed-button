@@ -20,7 +20,8 @@ describe('consistent saved-image frames', () => {
     expect(await renderSavedCardImage('http://source.example/image.png')).toEqual(fallback);
     expect(mocks.safeFetch).not.toHaveBeenCalled();
     const pixel = await sharp(fallback).extract({left:600,top:138,width:1,height:1}).raw().toBuffer();
-    expect(pixel[0]).toBeGreaterThan(220);expect(pixel[1]).toBeGreaterThan(160);expect(pixel[2]).toBeLessThan(35);
+    // JPEG may round channels slightly; the fallback must use Gamma yellow.
+    [255, 186, 46].forEach((channel, index) => expect(Math.abs(pixel[index]! - channel)).toBeLessThanOrEqual(4));
   });
   it('preserves a portrait image without stretching or upscaling and pads it into the same landscape frame', async () => {
     const source = await sharp({create:{width:600,height:900,channels:3,background:'#ff0000'}}).png().toBuffer();
