@@ -47,3 +47,12 @@ Use #FFBA2E for the website, widget tick, saved-card mark and extension badge.
 The web token is --sor7ed-yellow. This matches the live Gamma theme. Rebuild
 extension icons with node scripts/build-extension-icons.mjs after changing
 the badge source, and package a new version for the Chrome Web Store.
+
+## Shared public-site layout
+
+The Button landing page matches Planet Sorted's centred wordmark, icon-only
+burger, Anton/Jost typography, moving hero mark, full-height introduction,
+yellow pill action and compact text footer. The hero mark is doubled to
+256–320px on desktop and 224px on phones, including its reduced-motion image. Its own account/sign-in links and
+interactive demo remain available. Both use #FFBA2E. The Button remains a
+separate service; this visual alignment does not change account/save delivery.
