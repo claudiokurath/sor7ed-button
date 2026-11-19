@@ -35,7 +35,7 @@ const nextConfig: NextConfig = {
   },
   async headers() {
     const api = new URL(process.env["NEXT_PUBLIC_API_BASE_URL"] ?? 'https://api.sor7ed.com').origin;
-    const csp = ["default-src 'self'", "base-uri 'self'", "object-src 'none'", "frame-ancestors 'none'", "frame-src 'none'",
+    const csp = ["default-src 'self'", "base-uri 'self'", "object-src 'none'", "frame-ancestors 'none'", "frame-src https://www.planetsorted.com",
       "script-src 'self' 'unsafe-inline'" + (process.env.NODE_ENV !== 'production' ? " 'unsafe-eval'" : ''),
       "style-src 'self' 'unsafe-inline'", "img-src 'self' data: https:", "font-src 'self'", `connect-src 'self' ${api}`, "form-action 'self'",
       ...(process.env.NODE_ENV === 'production' ? ['upgrade-insecure-requests'] : [])].join('; ');
@@ -47,7 +47,7 @@ const nextConfig: NextConfig = {
       ] },
       { source: '/fonts/:path*', headers: [{ key: 'Access-Control-Allow-Origin', value: '*' }] },
       { source: '/widget-font.css', headers: [{ key: 'Access-Control-Allow-Origin', value: '*' }] },
-      ...['/account/:path*','/dashboard/:path*','/signin','/save/:path*','/s/:path*'].map(source=>({source,headers:[{key:'X-Robots-Tag',value:'noindex, nofollow'}]})),
+      ...['/resource','/account/:path*','/dashboard/:path*','/signin','/save/:path*','/s/:path*'].map(source=>({source,headers:[{key:'X-Robots-Tag',value:'noindex, nofollow'}]})),
     ];
   },
   // The widget remains a public script; its save flow opens a top-level popup.
