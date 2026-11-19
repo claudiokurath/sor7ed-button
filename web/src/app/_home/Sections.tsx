@@ -1,4 +1,3 @@
-import { BrandLogo } from "../_brand/BrandLogo";
 
   const EMBED = `<!-- Optional: where the button should appear -->
 <div data-sor7ed data-title="Page title" data-url="https://example.com/page"></div>
@@ -164,15 +163,11 @@ import { BrandLogo } from "../_brand/BrandLogo";
     return (
       <footer className="s7-footer">
         <div className="s7-wrap s7-footer-inner">
-          <p className="s7-brandline">
-            <BrandLogo />
-          </p>
+          <p>© {new Date().getFullYear()} SOR7ED LIMITED</p>
           <nav aria-label="Footer" className="s7-footerlinks">
             <a href="#demo">Try the demo</a>
             <a href="#for-websites">For website owners</a>
-            <a href="#how-it-works">How it works</a>
             <a href="/account">Your account</a>
-            <a href="#privacy">Privacy summary</a>
             <a href="/privacy-policy">Privacy policy</a>
             <a href="/button-terms">Button terms</a>
             <a href="https://www.planetsorted.com" rel="noopener">PLANET SOR7ED: neurodivergent support and content ↗</a>
