@@ -40,3 +40,10 @@ members/saves into Neon, claim native tool result persistence, synchronize
 Notion CRM schemas, or publish a mobile app. Existing records are retained.
 The internal personal-save source enum remains `extension` for compatibility;
 resource URLs and titles distinguish these saves in the same member library.
+
+## Brand accent
+
+Use #FFBA2E for the website, widget tick, saved-card mark and extension badge.
+The web token is --sor7ed-yellow. This matches the live Gamma theme. Rebuild
+extension icons with node scripts/build-extension-icons.mjs after changing
+the badge source, and package a new version for the Chrome Web Store.

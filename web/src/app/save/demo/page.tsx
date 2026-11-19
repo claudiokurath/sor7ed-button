@@ -77,7 +77,7 @@ function DemoFlow() {
           textTransform: "uppercase",
           color: "#8a5a00",
           background: "#fff7e6",
-          border: "1px solid #f5c56b",
+          border: "1px solid #FFBA2E",
           borderRadius: 999,
           padding: "3px 10px",
           marginBottom: 16,

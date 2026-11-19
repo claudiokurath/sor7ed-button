@@ -33,7 +33,7 @@ export default function DemoPage() {
           textTransform: "uppercase",
           color: "#8a5a00",
           background: "#fff7e6",
-          border: "1px solid #f5c56b",
+          border: "1px solid #FFBA2E",
           borderRadius: 999,
           padding: "4px 12px",
           marginBottom: 24,

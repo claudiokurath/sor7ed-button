@@ -43,7 +43,7 @@
   margin: 0 0 16px;
 }
 .accent {
-  color: #ffba2e;
+  color: var(--sor7ed-yellow, #FFBA2E);
 }
 .panel {
   border: 1px solid #ffffff66;
@@ -69,9 +69,9 @@
 .button {
   cursor: pointer;
   display: inline-block;
-  background: #ffba2e;
+  background: var(--sor7ed-yellow, #FFBA2E);
   color: #000 !important;
-  border: 1px solid #ffba2e;
+  border: 1px solid var(--sor7ed-yellow, #FFBA2E);
   padding: 12px 18px;
   min-height: 46px;
   font: inherit;
@@ -84,7 +84,7 @@
   cursor: wait;
 }
 .root :is(a, button, input, summary):focus-visible {
-  outline: 3px solid #ffba2e;
+  outline: 3px solid var(--sor7ed-yellow, #FFBA2E);
   outline-offset: 4px;
 }
 .root .quiet {
