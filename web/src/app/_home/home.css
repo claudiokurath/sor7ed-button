@@ -1,6 +1,6 @@
 @font-face { font-family: Archivo; src: url('/fonts/Archivo-Variable.woff2') format('woff2'); font-weight: 100 900; font-display: swap; }
 @font-face { font-family: 'JetBrains Mono'; src: url('/fonts/JetBrainsMono-Variable.woff2') format('woff2'); font-weight: 100 800; font-display: swap; }
-.s7 { --s7-black:#000; --s7-ink:#fff; --s7-soft:#d4d4d4; --s7-muted:#a3a3a3; --s7-amber:#ffba2e; --s7-line:rgb(255 255 255 / .4); --s7-line-faint:rgb(255 255 255 / .14); --font-sans:Archivo,system-ui,sans-serif; --font-mono:'JetBrains Mono',monospace; --dur-ui:200ms; --dur-fast:160ms; --ease:cubic-bezier(.16,1,.3,1); }
+.s7 { --s7-black:#000; --s7-ink:#fff; --s7-soft:#d4d4d4; --s7-muted:#a3a3a3; --s7-amber:var(--sor7ed-yellow, #FFBA2E); --s7-line:rgb(255 255 255 / .4); --s7-line-faint:rgb(255 255 255 / .14); --font-sans:Archivo,system-ui,sans-serif; --font-mono:'JetBrains Mono',monospace; --dur-ui:200ms; --dur-fast:160ms; --ease:cubic-bezier(.16,1,.3,1); }
 /* SOR7ED — shared kit styles. Scoped under .s7 so nothing leaks.
 
    The marketing site is dark. Black ground, white hairlines, one amber accent.
@@ -50,11 +50,11 @@
 .s7-nav .s7-brand img { display:block; width:124px; height:auto; }
 .s7-navlinks { display:flex; align-items:center; gap:clamp(16px,2vw,28px); min-width:0; }
 .s7-navlink { display:inline-flex; align-items:center; min-height:44px; gap:6px; padding-block:8px; font:500 13px/1.4 var(--font-sans); text-decoration:none; white-space:nowrap; }
-.s7-navlink:hover { color:#ffd400; }
+.s7-navlink:hover { color:var(--sor7ed-yellow, #FFBA2E); }
 .s7-navlink--muted { color:#aaa; }
-.s7-navlink--signin { color:#ffd400; }
+.s7-navlink--signin { color:var(--sor7ed-yellow, #FFBA2E); }
 .s7-nav-toggle { display:none; }
-.s7-nav-reveal { position:fixed; left:-9999px; top:8px; z-index:60; padding:12px 18px; background:#ffd400; color:#000; border:0; font:600 14px var(--font-sans); }
+.s7-nav-reveal { position:fixed; left:-9999px; top:8px; z-index:60; padding:12px 18px; background:var(--sor7ed-yellow, #FFBA2E); color:#000; border:0; font:600 14px var(--font-sans); }
 .s7-nav-reveal:focus { left:16px; }
 .s7 .s7-skip { z-index:60; }
 .s7 :is(#how-it-works,#for-websites,#demo) { scroll-margin-top:88px; }
@@ -102,8 +102,8 @@
               color var(--dur-fast) var(--ease);
 }
 .s7-btn--primary { background: var(--s7-amber); border: 1px solid var(--s7-amber); color: #000; }
-.s7-btn--primary:hover { background: #ffc957; border-color: #ffc957; }
-.s7-btn--primary:active { background: #e8a51f; border-color: #e8a51f; }
+.s7-btn--primary:hover { background: var(--sor7ed-yellow, #FFBA2E); border-color: var(--sor7ed-yellow, #FFBA2E); }
+.s7-btn--primary:active { background: var(--sor7ed-yellow, #FFBA2E); border-color: var(--sor7ed-yellow, #FFBA2E); }
 .s7-btn--secondary { background: transparent; border: 1px solid var(--s7-line); color: #fff; }
 .s7-btn--secondary:hover { border-color: #fff; background: rgba(255,255,255,.06); }
 
@@ -193,7 +193,7 @@
 .hd {
   --hd-ease: cubic-bezier(0.16, 1, 0.3, 1);
   --hd-ink: #ffffff;
-  --hd-accent: #ffba2e;
+  --hd-accent: var(--sor7ed-yellow, #FFBA2E);
   --hd-muted: #a3a3a3;
   --hd-line: rgba(255, 255, 255, 0.4);
   --hd-mark: 56px;
@@ -466,9 +466,9 @@
 @media(max-width:800px) { .s7-editorial-grid { grid-template-columns:1fr; gap:12px; } .s7-partner-metrics { grid-template-columns:1fr; gap:32px; } }
 @media(max-width:480px) { .s7-h1 { font-size:clamp(2.7rem,11vw,3.4rem); } .s7-hero { gap:44px; } .s7-ctas { flex-direction:column; align-items:stretch; } }
 
-/* Alternating section surfaces from the supplied presentation (#FFD400). */
+/* Alternating section surfaces from the supplied presentation (var(--sor7ed-yellow, #FFBA2E)). */
 @media screen {
-  .s7 { --s7-yellow:#ffd400; }
+  .s7 { --s7-yellow:var(--sor7ed-yellow, #FFBA2E); }
   .s7-section--yellow {
     --s7-ink:#000; --s7-soft:#242000; --s7-muted:#383000;
     --s7-line:rgb(0 0 0 / .35); --s7-line-faint:rgb(0 0 0 / .14);
@@ -495,13 +495,13 @@
 .s7-hero-scribble :is(video,img) { display:block; width:100%; height:100%; object-fit:contain; }
 .s7-hero .s7-eyebrow { margin:0 0 18px; }
 .s7-hero .s7-h1 { max-width:18ch; margin-inline:auto; font-size:clamp(3rem,5vw,6.5rem); line-height:1.08; }
-.s7-hero .s7-h1 em { color:#ffd400; }
+.s7-hero .s7-h1 em { color:var(--sor7ed-yellow, #FFBA2E); }
 .s7-hero .s7-lede { max-width:46ch; margin:24px auto 0; font-size:clamp(1.125rem,1.4vw,1.5rem); color:#d4d4d4; }
 .s7-hero .s7-hero-detail { max-width:58ch; margin:16px auto 0; }
 .s7-hero .s7-ctas { justify-content:center; margin-top:28px; }
-.s7-hero .s7-btn--primary { background:#ffd400; border-color:#ffd400; color:#000; }
-.s7-hero .s7-btn--primary:hover { background:#ffe24d; border-color:#ffe24d; }
-.s7-hero .s7-btn--primary:active { background:#e6bf00; border-color:#e6bf00; }
+.s7-hero .s7-btn--primary { background:var(--sor7ed-yellow, #FFBA2E); border-color:var(--sor7ed-yellow, #FFBA2E); color:#000; }
+.s7-hero .s7-btn--primary:hover { background:var(--sor7ed-yellow, #FFBA2E); border-color:var(--sor7ed-yellow, #FFBA2E); }
+.s7-hero .s7-btn--primary:active { background:var(--sor7ed-yellow, #FFBA2E); border-color:var(--sor7ed-yellow, #FFBA2E); }
 .s7-home-demo { display:flex; justify-content:center; padding-bottom:clamp(48px,6vw,80px); }
 .s7-home-demo .hd { width:100%; max-width:600px; }
 @media(max-width:767px) {

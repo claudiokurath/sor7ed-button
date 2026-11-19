@@ -34,7 +34,7 @@ export function RotateKeyButton({ onRotated }: { onRotated: (newKey: string) => 
   }
 
   return (
-    <div style={{ padding: 16, background: "#fff8e1", border: "1px solid #f0c040", borderRadius: 8, marginTop: 12 }}>
+    <div style={{ padding: 16, background: "#fff8e1", border: "1px solid #FFBA2E", borderRadius: 8, marginTop: 12 }}>
       <p style={{ margin: "0 0 12px", fontSize: 13 }}>
         Any sites using your current key will stop working immediately. Update your embed snippet everywhere after rotating.
       </p>

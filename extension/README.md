@@ -2,7 +2,7 @@
 
 Build from the repository root: `npm run extension:package`.
 Extract `dist/send-to-sorted-extension.zip`, then choose **Load unpacked** in
-Chrome/Edge's extensions developer mode. Version 0.2.3 uses the original
+Chrome/Edge's extensions developer mode. Version 0.2.4 uses the original
 scribble on a yellow circular badge and a narrow host grant for `https://www.sor7ed.com/*`.
 
 Clicking the toolbar scribble or the context menu authorizes that selected page.
@@ -32,6 +32,6 @@ source is extension/brand/scribble-circle-yellow.svg; the icon builder exports i
 at every required toolbar/store size. Re-upload the ZIP under Package to update
 the listing name; editing the listing description does not change that name.
 
-The yellow badge uses #FFD400 with a black scribble and transparent corners.
+The yellow badge uses #FFBA2E with a black scribble and transparent corners.
 Small PNG sizes use optical stroke adjustments to retain legibility. The
 original standalone bold logo remains in extension/brand/scribble-bold.svg.

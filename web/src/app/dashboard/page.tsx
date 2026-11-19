@@ -93,7 +93,7 @@ export default async function DashboardPage() {
             alignItems: "center",
             gap: 12,
             background: "#fff7e6",
-            border: "1px solid #f5c56b",
+            border: "1px solid #FFBA2E",
             borderRadius: 8,
             padding: "12px 16px",
             marginBottom: 24,

@@ -48,7 +48,7 @@ export default async function SavedLinkPage({ params }: Props) {
           overflowWrap: "anywhere",
         }}
       >
-        <p style={{ fontSize: 13, color: "#FFD400" }}>SAVED WITH SOR7ED</p>
+        <p style={{ fontSize: 13, color: "#FFBA2E" }}>SAVED WITH SOR7ED</p>
         <h1 style={{ fontSize: "clamp(30px,6vw,46px)", lineHeight: 1.1 }}>
           Continue to this website?
         </h1>
@@ -67,7 +67,7 @@ export default async function SavedLinkPage({ params }: Props) {
             type="submit"
             style={{
               minHeight: 52,
-              background: "#FFD400",
+              background: "#FFBA2E",
               color: "#000",
               border: 0,
               padding: "14px 24px",

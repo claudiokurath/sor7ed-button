@@ -39,7 +39,7 @@
     var style = document.createElement("style");
     style.textContent = [
       ".s7-widget{",
-      "--s7-ink:#221e18;--s7-accent:#25D366;--s7-muted:#897f6e;--s7-line:#e1d8c6;",
+      "--s7-ink:#221e18;--s7-accent:#FFBA2E;--s7-muted:#897f6e;--s7-line:#e1d8c6;",
       "--s7-ease:cubic-bezier(0.16,1,0.3,1);--s7-mark:56px;--s7-t:0;--s7-td:0;",
       "display:inline-flex;align-items:center;justify-content:center;gap:14px;",
       "font-family:'JetBrains Mono',ui-monospace,'SFMono-Regular',Menlo,monospace;",
@@ -99,7 +99,7 @@
       // all. Marketing/sales entry point, not a real partner feature.
       isDemo: script ? script.getAttribute("data-demo") === "true" : false,
       leadLabel: script ? (script.getAttribute("data-label") || "Save this piece") : "Save this piece",
-      accentColor: script ? (script.getAttribute("data-color") || "#25D366") : "#25D366"
+      accentColor: script ? (script.getAttribute("data-color") || "#FFBA2E") : "#FFBA2E"
     };
   }
 
