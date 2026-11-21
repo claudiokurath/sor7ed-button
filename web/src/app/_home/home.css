@@ -1,7 +1,7 @@
 @font-face { font-family: Archivo; src: url('/fonts/Archivo-Variable.woff2') format('woff2'); font-weight: 100 900; font-display: swap; }
 @font-face { font-family: 'JetBrains Mono'; src: url('/fonts/JetBrainsMono-Variable.woff2') format('woff2'); font-weight: 100 800; font-display: swap; }
 .s7 { --s7-black:#000; --s7-ink:#fff; --s7-soft:#d4d4d4; --s7-muted:#a3a3a3; --s7-amber:var(--sor7ed-yellow, #FFBA2E); --s7-line:rgb(255 255 255 / .4); --s7-line-faint:rgb(255 255 255 / .14); --font-sans:Jost,system-ui,sans-serif; --font-mono:'JetBrains Mono',monospace; --dur-ui:200ms; --dur-fast:160ms; --ease:cubic-bezier(.16,1,.3,1); }
-/* SOR7ED — shared kit styles. Scoped under .s7 so nothing leaks.
+/* SORTED — shared kit styles. Scoped under .s7 so nothing leaks.
 
    The marketing site is dark. Black ground, white hairlines, one amber accent.
    All values reference ../colors_and_type.css tokens where a token exists. */

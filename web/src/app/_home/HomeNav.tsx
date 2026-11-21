@@ -9,7 +9,7 @@ export default function HomeNav() {
   const closeMenu = () => menuRef.current?.removeAttribute("open");
   return (
     <header className="s7-nav">
-      <a className="s7-brand" href="#top" aria-label="SOR7ED home" onClick={closeMenu}><BrandLogo /></a>
+      <a className="s7-brand" href="#top" aria-label="SORTED home" onClick={closeMenu}><BrandLogo /></a>
       <details ref={menuRef} className="s7-menu" onKeyDown={event => {
         if (event.key === "Escape") {
           closeMenu();
@@ -25,7 +25,7 @@ export default function HomeNav() {
           <a href="#demo">Try the demo</a>
           <a href="/account">Your Button account</a>
           <a href="/signin">Sign in</a>
-          <a href="https://www.planetsorted.com" rel="noopener">PLANET SOR7ED ↗</a>
+          <a href="https://www.planetsorted.com" rel="noopener">PLANET SORTED ↗</a>
         </nav>
       </details>
     </header>

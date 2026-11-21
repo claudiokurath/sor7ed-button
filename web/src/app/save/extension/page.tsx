@@ -118,7 +118,7 @@ export default function ExtensionSave() {
   }
   return (
     <Shell>
-      <p className={s.accent}>SOR7ED</p>
+      <p className={s.accent}>SORTED</p>
       <h1>{busy ? 'Saving your page…' : receipt ? 'Your saved page.' : 'Save to WhatsApp'}</h1>
       <section className={s.panel}>
         {draft ? <><h2>{draft.title}</h2><p style={{ overflowWrap: 'anywhere' }}>{draft.url}</p></> : null}

@@ -373,7 +373,7 @@ export async function getPartnerAnalytics(partnerId: string) {
   // saved, how many were ever re-opened via the WhatsApp link later? A
   // save with zero clicks is indistinguishable from a bookmark nobody
   // returns to; a click is a person coming back to the partner's site
-  // days later specifically because SOR7ED nudged them.
+  // days later specifically because SORTED nudged them.
   const [clickTotals] = await db
     .select({
       totalClicks: count(savedItemClicks.id),

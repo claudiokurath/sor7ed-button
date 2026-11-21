@@ -1,6 +1,6 @@
 {
   "manifest_version": 3,
-  "name": "SOR7ED \u2014 Save to WhatsApp",
+  "name": "SORTED \u2014 Save to WhatsApp",
   "version": "0.2.4",
   "host_permissions": [
     "https://www.sor7ed.com/*"
@@ -11,7 +11,7 @@
     "48": "icons/scribble-48.png",
     "128": "icons/scribble-128.png"
   },
-  "description": "Save articles, videos and web pages to your SOR7ED account and WhatsApp thread.",
+  "description": "Save articles, videos and web pages to your SORTED account and WhatsApp thread.",
   "permissions": [
     "activeTab",
     "scripting",
@@ -28,7 +28,7 @@
       "48": "icons/scribble-48.png",
       "128": "icons/scribble-128.png"
     },
-    "default_title": "Save this page with SOR7ED"
+    "default_title": "Save this page with SORTED"
   },
-  "short_name": "SOR7ED"
+  "short_name": "SORTED"
 }

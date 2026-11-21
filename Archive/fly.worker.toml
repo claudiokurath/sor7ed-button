@@ -1,4 +1,4 @@
-# Fly.io — SOR7ED BUTTON worker (no public HTTP)
+# Fly.io — SORTED BUTTON worker (no public HTTP)
 # Deploy:  fly deploy -c fly.worker.toml --app sor7ed-button-worker
 # Secrets: worker subset in DEPLOY.md (DB, Redis, Meta sending, shared R2, …)
 # First-time: fly apps create sor7ed-button-worker

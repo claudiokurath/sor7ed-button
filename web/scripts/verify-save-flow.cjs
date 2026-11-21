@@ -57,13 +57,13 @@ async function fixture(browser, { status = 'pending', verified = true, authStatu
   await context.route('https://fonts.googleapis.com/**', route => route.abort());
   const page = await context.newPage();
   await page.goto(`${host}/article`);
-  await page.getByRole('button', { name: 'Save this piece — SOR7ED' }).waitFor();
+  await page.getByRole('button', { name: 'Save this piece — SORTED' }).waitFor();
   return { context, page, state };
 }
 
 async function openPopup(page) {
   const popupPromise = page.waitForEvent('popup');
-  await page.getByRole('button', { name: 'Save this piece — SOR7ED' }).click();
+  await page.getByRole('button', { name: 'Save this piece — SORTED' }).click();
   const popup = await popupPromise;
   await popup.waitForLoadState('domcontentloaded');
   return popup;

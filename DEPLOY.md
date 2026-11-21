@@ -1,4 +1,4 @@
-# Deploy SOR7ED BUTTON to production
+# Deploy SORTED BUTTON to production
 
 **Current budget-conscious launch:** follow [LEAN_DEPLOY.md](./LEAN_DEPLOY.md). The instructions below describe the optional full stack; do not provision Redis, Fly machines or R2 for lean mode.
 
@@ -130,7 +130,7 @@ fly secrets set -a sor7ed-button-worker \
 
 fly deploy -c fly.worker.toml --app sor7ed-button-worker
 fly logs -a sor7ed-button-worker
-# expect: "SOR7ED BUTTON worker running (enrichment + reminders + monthly reset)"
+# expect: "SORTED BUTTON worker running (enrichment + reminders + monthly reset)"
 ```
 
 ### Uploads storage (Cloudflare R2)

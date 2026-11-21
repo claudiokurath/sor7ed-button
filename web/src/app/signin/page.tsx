@@ -84,9 +84,9 @@ export default function Signin() {
       <section className={styles.panel}>
         <h2>Sign in or create your account</h2>
         <p>
-          Open WhatsApp and send the prepared sign-in message. SOR7ED replies
+          Open WhatsApp and send the prepared sign-in message. SORTED replies
           with a six-digit code to enter here. No password or Google account
-          needed. New here? Your SOR7ED account is created after you verify your number.
+          needed. New here? Your SORTED account is created after you verify your number.
         </p>
         {!challenge ? (
           <button disabled={busy} onClick={begin}>

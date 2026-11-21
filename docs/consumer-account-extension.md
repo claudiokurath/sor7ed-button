@@ -121,7 +121,7 @@ The actual browser toolbar UI was not clicked, and no extension store was
 contacted. Handler tests and capture tests are not a claim of that verification.
 The API tests use real Postgres and a local Meta stand-in, not live WhatsApp.
 
-## SOR7ED-only chat account navigation — 4 November 2026
+## SORTED-only chat account navigation — 4 November 2026
 
 The shared number routes Hi/Hello/Hey and account/sign-in/sign-up/sign-out menu
 requests to this product. The reply is plain text without a link preview and

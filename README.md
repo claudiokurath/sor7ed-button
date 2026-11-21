@@ -1,9 +1,11 @@
-# Keeper
+# Sorted
 
-**Partner Save-to-WhatsApp product** (formerly SOR7ED BUTTON / LINKOMAT). Site owners embed one script; visitors save any page into their personal WhatsApp library.
+See it. Send it. Sorted.
+
+**Partner Save-to-WhatsApp product.** Site owners embed one script; visitors save any page into their personal WhatsApp library.
 
 > Standalone product. **Not** the [planetsorted.com](https://planetsorted.com) Lab site  
-> (`claudiokurath/planetsorted`). Different auth, database, and domain (`sor7ed.com` — domain rename pending).
+> (`claudiokurath/planetsorted`). Different auth, database, and domain (`sor7ed.com`).
 
 **Current launch path:** lean mode (Vercel + Neon, no worker/Redis/R2). See [LEAN_DEPLOY.md](./LEAN_DEPLOY.md) and the prioritized next steps in [ROADMAP.md](./ROADMAP.md).
 
@@ -184,7 +186,7 @@ Optional: place buttons with `<div data-sor7ed data-title="…" data-url="…"><
 
 ## Relationship to Planet Sorted
 
-| | Keeper (this repo) | planetsorted |
+| | Sorted (this repo) | planetsorted |
 |---|---|---|
 | Purpose | Partner save-any-URL → WA library | Lab tools/articles → WA |
 | Auth | Google OAuth | Magic link (Supabase) |

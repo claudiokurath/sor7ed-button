@@ -174,7 +174,7 @@ export const whatsappConnectionRequests = pgTable(
 // concrete "return visit" signal partners need to see ROI from the
 // product — a save that's never re-opened is just a bookmark; a save
 // that IS re-opened is a person coming back to the partner's site days
-// (or weeks) later because SOR7ED reminded them via WhatsApp.
+// (or weeks) later because SORTED reminded them via WhatsApp.
 export const savedItemClicks = pgTable(
   "saved_item_clicks",
   {

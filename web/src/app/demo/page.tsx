@@ -16,7 +16,7 @@ const DEMO_ARTICLE = {
 };
 
 export const metadata = {
-  title: "Live demo — SOR7ED BUTTON",
+  title: "Live demo — SORTED BUTTON",
   description: "Try the Save to WhatsApp button with no signup required.",
   openGraph: { title: DEMO_ARTICLE.title, description: DEMO_ARTICLE.description, images: [DEMO_ARTICLE.image] },
 };

@@ -47,7 +47,7 @@ export function capturePage() {
     imageUrl: image?.startsWith("https://") ? image : undefined,
   };
 }
-// Runs only inside the SOR7ED tab we just opened, using the narrow host grant.
+// Runs only inside the SORTED tab we just opened, using the narrow host grant.
 // A website can forge a capture URL, but cannot write this first-party approval.
 export function approveCapture(flowId, pageUrl, origin) {
   if (location.origin !== origin || location.pathname !== '/save/extension') return false;
@@ -95,7 +95,7 @@ export async function saveTab(tab, linkUrl) {
 chrome.runtime.onInstalled.addListener(() => {
   chrome.contextMenus.create({
     id: "sorted-save",
-    title: "Save with SOR7ED",
+    title: "Save with SORTED",
     contexts: ["page", "link"],
   });
 });

@@ -190,7 +190,7 @@ async function handleInboundMessage(app: FastifyInstance, message: InboundMessag
 
   if (command.startsWith("SIGNIN-")) {
     const code = await prepareSigninCode(command.slice(7), from);
-    if (code) await sendText(from, `Your SOR7ED sign-in code is ${code}. Enter it only in the SOR7ED window you opened. Never share this code. It expires in 10 minutes.`);
+    if (code) await sendText(from, `Your SORTED sign-in code is ${code}. Enter it only in the SORTED window you opened. Never share this code. It expires in 10 minutes.`);
     return;
   }
 
@@ -203,7 +203,7 @@ async function handleInboundMessage(app: FastifyInstance, message: InboundMessag
         "✓ WhatsApp connected. Go back to the page you were saving and try again — it'll land right here from now on."
       );
     } else {
-      await sendText(from, "That connection link has expired or was already used — go back to SOR7ED and tap 'Connect WhatsApp' again.");
+      await sendText(from, "That connection link has expired or was already used — go back to SORTED and tap 'Connect WhatsApp' again.");
     }
     return;
   }
@@ -235,7 +235,7 @@ async function handleInboundMessage(app: FastifyInstance, message: InboundMessag
   if (command === "LIBRARY" || command.startsWith("LIBRARY ")) {
     const [user] = await db.select({ id: users.id }).from(users).where(eq(users.whatsappNumber, from)).limit(1);
     if (!user) {
-      await sendText(from, "This number isn't connected to a SOR7ED account yet.");
+      await sendText(from, "This number isn't connected to a SORTED account yet.");
       return;
     }
 
@@ -247,7 +247,7 @@ async function handleInboundMessage(app: FastifyInstance, message: InboundMessag
         from,
         searchTerm
           ? `Nothing found for "${searchTerm}". Try a different word.`
-          : "Nothing saved yet. Save something from a SOR7ED partner site and it'll show up here."
+          : "Nothing saved yet. Save something from a SORTED partner site and it'll show up here."
       );
       return;
     }
@@ -266,7 +266,7 @@ async function handleInboundMessage(app: FastifyInstance, message: InboundMessag
     }
     const [user] = await db.select({ id: users.id }).from(users).where(eq(users.whatsappNumber, from)).limit(1);
     if (!user) {
-      await sendText(from, "This number isn't connected to a SOR7ED account yet.");
+      await sendText(from, "This number isn't connected to a SORTED account yet.");
       return;
     }
 

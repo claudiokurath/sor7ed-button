@@ -1,4 +1,4 @@
-# SOR7ED BUTTON
+# SORTED BUTTON
 
 **Partner Save-to-WhatsApp product.** Site owners embed one script; visitors save any page into their personal WhatsApp library.
 
@@ -181,7 +181,7 @@ Optional: place buttons with `<div data-sor7ed data-title="…" data-url="…"><
 
 ## Relationship to Planet Sorted
 
-| | SOR7ED BUTTON (this repo) | planetsorted |
+| | SORTED BUTTON (this repo) | planetsorted |
 |---|---|---|
 | Purpose | Partner save-any-URL → WA library | Lab tools/articles → WA |
 | Auth | Google OAuth | Magic link (Supabase) |
