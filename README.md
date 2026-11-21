@@ -5,6 +5,8 @@
 > Standalone product. **Not** the [planetsorted.com](https://planetsorted.com) Lab site  
 > (`claudiokurath/planetsorted`). Different auth, database, and domain (`sor7ed.com`).
 
+**Current launch path:** lean mode (Vercel + Neon, no worker/Redis/R2). See [LEAN_DEPLOY.md](./LEAN_DEPLOY.md) and the prioritized next steps in [ROADMAP.md](./ROADMAP.md).
+
 ---
 
 ## What it does
@@ -12,7 +14,7 @@
 1. Partner pastes an embed snippet from the dashboard  
 2. Visitor clicks **Save to WhatsApp** → popup `/save`  
 3. Google sign-in → one-time WhatsApp `CONNECT-<token>` → save lands in chat  
-4. Worker enriches the card (1200×630 image, AI summary/tags, embeddings)  
+4. Worker enriches the card (1200×630 image, AI summary/tags, embeddings) — skipped in lean mode  
 5. Visitor can text `LIBRARY`, `LIBRARY <word>`, `REMIND tomorrow`, `HELP`
    - `REMIND` resolves to the exact card if it's sent as a WhatsApp
      swipe-reply to that card's save message; otherwise falls back to
@@ -101,7 +103,8 @@ Template URL button base must match `BASE_URL` (e.g. `https://sor7ed.com/`).
 
 ## Production deploy
 
-**Full step-by-step:** see **[DEPLOY.md](./DEPLOY.md)** (Vercel + Fly.io + Neon + Upstash).
+**Full step-by-step:** see **[DEPLOY.md](./DEPLOY.md)** (Vercel + Fly.io + Neon + Upstash).  
+**Lean launch:** see **[LEAN_DEPLOY.md](./LEAN_DEPLOY.md)**.
 
 ### Recommended split
 
