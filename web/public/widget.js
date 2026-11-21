@@ -1,4 +1,4 @@
-// LINKOMAT save button — embeddable widget.
+// Keeper save button — embeddable widget.
 // Style-isolated (all rules scoped under .s7-widget), single self-hosted
 // font request (JetBrains Mono, non-blocking), otherwise dependency-free.
 //
@@ -320,7 +320,7 @@
     var btn = document.createElement("button");
     btn.type = "button";
     btn.className = "s7-widget__btn";
-    btn.setAttribute("aria-label", partnerMeta.leadLabel + " — LINKOMAT");
+    btn.setAttribute("aria-label", partnerMeta.leadLabel + " — Keeper");
 
     var mark = document.createElement("span");
     mark.className = "s7-widget__mark";
