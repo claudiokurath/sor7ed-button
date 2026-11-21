@@ -142,18 +142,23 @@
   }
 
   function newFlowId() {
-    if (typeof crypto === "undefined" || typeof crypto.getRandomValues !== "function") return null;
-    if (typeof crypto.randomUUID === "function") return crypto.randomUUID();
-    var bytes = new Uint8Array(16);
-    crypto.getRandomValues(bytes);
-    return Array.from(bytes, function (byte) { return byte.toString(16).padStart(2, "0"); }).join("");
+    if (typeof crypto !== "undefined") {
+      if (typeof crypto.randomUUID === "function") return crypto.randomUUID();
+      if (typeof crypto.getRandomValues === "function") {
+        var bytes = new Uint8Array(16);
+        crypto.getRandomValues(bytes);
+        return Array.from(bytes, function (b) { return b.toString(16).padStart(2, "0"); }).join("");
+      }
+    }
+    // Correlation/idempotency only: this is never an authentication secret.
+    return "f-" + Date.now().toString(36) + "-" + Math.random().toString(36).slice(2, 10);
   }
 
   // Only one save flow is ever in flight per widget instance at a time —
   // tracked per-button so multiple buttons on one page don't cross-wire
   // their popups or animations.
   function attachSaveFlow(root, btn, partnerMeta, target) {
-    var state = { popup: null, pollTimer: null, timeout: null, messageHandler: null, flowId: null, contentKey: null };
+    var state = { popup: null, pollStartedAt: null, pollTimer: null, timeout: null, messageHandler: null, flowId: null, contentKey: null };
 
     function cleanup(completed) {
       if (state.pollTimer) clearInterval(state.pollTimer);
@@ -237,8 +242,13 @@
       // way to know the user closed it without saving (no message ever
       // arrives) is polling .closed — there's no cross-origin unload
       // event available here.
+      state.pollStartedAt = Date.now();
       state.pollTimer = setInterval(function () {
-        if (state.popup && state.popup.closed) cleanup();
+        var expired = Date.now() - state.pollStartedAt > 10 * 60 * 1000;
+        if (!state.popup || state.popup.closed || expired) {
+          cleanup();
+          if (expired) setStatus(root, "timeout", "Save confirmation timed out. Check the save window or your WhatsApp thread; no message was retried.", "Check the save window");
+        }
       }, 500);
       state.timeout = setTimeout(function () {
         cleanup();

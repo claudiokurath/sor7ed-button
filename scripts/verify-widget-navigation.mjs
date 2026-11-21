@@ -25,7 +25,7 @@ function fixture(options = {}) {
   const location = { href: "https://publisher.test/article?chapter=2#section", origin: "https://publisher.test", assign: value => assigned.push(value) };
   const window = { location, screen: { width: 1440, height: 900 }, matchMedia: () => ({ matches: mobile }), open: (...args) => { opened.push(args); return blocked ? null : popup; }, addEventListener: (k, fn) => events.set(k, fn), removeEventListener: k => events.delete(k) };
   const document = { currentScript: script, title: "Useful article", readyState: "complete", head: new Element(), body: new Element(), createElement: () => new Element(), createElementNS: () => new Element(), querySelector: () => null, querySelectorAll: () => [target] };
-  vm.runInNewContext(code, { window, document, crypto, URL, URLSearchParams, Uint8Array, Array, matchMedia: () => ({ matches: true }), setInterval: (fn, ms) => { const k = ++id; intervals.set(k, { fn, ms }); return k; }, clearInterval: k => intervals.delete(k), setTimeout: (fn, ms) => { const k = ++id; timeouts.set(k, { fn, ms }); return k; }, clearTimeout: k => timeouts.delete(k) });
+  vm.runInNewContext(code, { Date: options.clock ?? Date, window, document, crypto, URL, URLSearchParams, Uint8Array, Array, matchMedia: () => ({ matches: true }), setInterval: (fn, ms) => { const k = ++id; intervals.set(k, { fn, ms }); return k; }, clearInterval: k => intervals.delete(k), setTimeout: (fn, ms) => { const k = ++id; timeouts.set(k, { fn, ms }); return k; }, clearTimeout: k => timeouts.delete(k) });
   const root = target.children[0], button = root.children[1];
   return { root, button, assigned, opened, popup, events, intervals, timeouts, head: document.head, click: () => button.listeners.click() };
 }
@@ -45,7 +45,17 @@ assert.equal(desktop.intervals.size, 1, "untrusted origin cannot confirm a send"
 desktop.click(); assert.equal(desktop.opened.length, 1, "second click reuses active popup");
 const timeout = [...desktop.timeouts.values()].find(t => t.ms === 600000); assert.ok(timeout); timeout.fn();
 assert.equal(desktop.intervals.size, 0); assert.equal(desktop.events.size, 0); assert.equal(desktop.button.getAttribute("aria-busy"), null);
-const missing = fixture({ crypto: undefined }); missing.click(); assert.equal(missing.opened.length, 0); assert.match(missing.root.querySelector("[data-s7-live]").textContent, /cannot start a secure save/);
+const missing = fixture({ crypto: undefined }); missing.click(); assert.equal(missing.opened.length, 1);
+assert.match(new URL(missing.opened[0][0]).searchParams.get("flowId"), /^f-[a-z0-9]+-[a-z0-9]+$/);
+const emptyCrypto = fixture({ crypto: {} }); emptyCrypto.click(); assert.equal(emptyCrypto.opened.length, 1);
+let clock = Date.now();
+const stalled = fixture({ clock: { now: () => clock } }); stalled.click();
+clock += 600001;
+[...stalled.intervals.values()][0].fn();
+assert.equal(stalled.intervals.size, 0); assert.equal(stalled.timeouts.size, 0); assert.equal(stalled.events.size, 0);
+assert.equal(stalled.root.getAttribute("data-status"), "timeout");
+assert.match(stalled.root.querySelector("[data-s7-live]").textContent, /timed out/);
+assert.ok(code.indexOf("color:var(--s7-muted);color:color-mix(") >= 0);
 const legacy = fixture({ crypto: { getRandomValues: a => webcrypto.getRandomValues(a) } }); legacy.click(); assert.equal(legacy.opened.length, 1);
 assert.equal(widgetReturnUrl("https://publisher.test/article#part", "https://publisher.test"), "https://publisher.test/article#part");
 for (const raw of ["javascript:alert(1)", "https://attacker.test/", "https://user:password@publisher.test/", "/relative", "not-a-url"]) assert.equal(widgetReturnUrl(raw, "https://publisher.test"), null);
