@@ -18,3 +18,7 @@ export * from "./personal-saves.js";
 export { relaySignature, verifyRelay } from './relay-auth.js';
 
 export * from "./whatsapp/card-images.js";
+
+export * from "./funnel-policy.js";
+export * from "./funnel.js";
+export * from "./nudge-copy.js";

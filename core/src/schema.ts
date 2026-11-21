@@ -1,5 +1,9 @@
 import {
   pgTable,
+  bigserial,
+  bigint,
+  date,
+  jsonb,
   uuid,
   text,
   boolean,
@@ -133,6 +137,9 @@ export const savedItems = pgTable(
     deliveryStatus: text("delivery_status").$type<SaveDeliveryStatus>().default("unknown").notNull(),
     deliveryReason: text("delivery_reason"),
     deliveryUpdatedAt: timestamp("delivery_updated_at", { withTimezone: true }).defaultNow().notNull(),
+    openedAt: timestamp("opened_at", { withTimezone: true }),
+    reopenDelayMs: bigint("reopen_delay_ms", { mode: "number" }),
+    reopenedWithin7d: boolean("reopened_within_7d"),
     createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
   },
   (t) => [
@@ -271,3 +278,23 @@ export const saveResendActions = pgTable('save_resend_actions', {
   actionKey: text('action_key').notNull(),
   createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
 }, t => [uniqueIndex('save_resend_action_key_idx').on(t.userId,t.actionKey)]);
+
+// Privacy-limited funnel telemetry; raw rows expire after 90 days.
+export const funnelEvents = pgTable('funnel_events', {
+  id: bigserial('id',{mode:'number'}).primaryKey(),
+  occurredAt: timestamp('occurred_at',{withTimezone:true}).defaultNow().notNull(),
+  event: text('event').notNull(),
+  flowId: uuid('flow_id'),
+  partnerKey: text('partner_key'),
+  pageUrl: text('page_url'),
+  meta: jsonb('meta').$type<Record<string,string | number>>().notNull().default({}),
+  dedupeKey: text('dedupe_key').notNull(),
+}, t => [uniqueIndex('funnel_events_dedupe_idx').on(t.dedupeKey),index('funnel_events_retention_idx').on(t.occurredAt),index('funnel_events_flow_idx').on(t.flowId,t.event)]);
+
+export const funnelDaily = pgTable('funnel_daily', {
+  day: date('day').notNull(), event: text('event').notNull(),
+  source: text('source').notNull().default('server'),
+  partnerKey: text('partner_key').notNull().default(''),
+  pageUrl: text('page_url').notNull().default(''),
+  count: bigint('count',{mode:'number'}).notNull().default(0),
+}, t => [uniqueIndex('funnel_daily_group_idx').on(t.day,t.event,t.source,t.partnerKey,t.pageUrl)]);

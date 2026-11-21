@@ -3,6 +3,7 @@ import fastifyStatic from "@fastify/static";
 import rateLimit from "@fastify/rate-limit";
 import { Redis } from "ioredis";
 import authPlugin from "./plugins/auth.js";
+import funnelPlugin from "./plugins/funnel.js";
 import { registerCors } from "./plugins/cors.js";
 import { authRoutes } from "./routes/auth.js";
 import { webhookRoutes } from "./routes/webhook.js";
@@ -35,7 +36,7 @@ const app = Fastify({
     // app.log.* calls elsewhere that pass PII directly — those need
     // fixing at the call site (see webhook.ts).
     redact: {
-      paths: ["req.headers.cookie", "req.headers.authorization", "req.body.whatsappNumber", "req.body.phoneNumber", "req.body.proof", "req.body.code", "req.body.token"],
+      paths: ["req.headers.cookie", "req.headers.authorization", "req.body.whatsappNumber", "req.body.phoneNumber", "req.body.proof", "req.body.code", "req.body.token", "req.body.partnerApiKey", "req.body.pageUrl"],
       censor: "[REDACTED]",
     },
   },
@@ -105,6 +106,7 @@ app.get("/health", async (_req, reply) => {
   };
   return reply.code(healthy ? 200 : 503).send(body);
 });
+await app.register(funnelPlugin);
 await app.register(authRoutes);
 await app.register(webhookRoutes);
 await app.register(connectRoutes);

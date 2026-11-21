@@ -50,7 +50,7 @@ export default async function SavedLinkPage({ params }: Props) {
       >
         <p style={{ fontSize: 13, color: "#FFBA2E" }}>SAVED WITH SORTED</p>
         <h1 style={{ fontSize: "clamp(30px,6vw,46px)", lineHeight: 1.1 }}>
-          Continue to this website?
+          You have arrived at your saved article.
         </h1>
         <p style={{ fontSize: 22, fontWeight: 600 }}>{url.hostname}</p>
         <p>{item.title}</p>

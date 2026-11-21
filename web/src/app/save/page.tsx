@@ -76,7 +76,7 @@ function notifyOpener(result: SaveResponse, flowId: string, openerOrigin: string
 function deliveryCopy(result: SaveResponse): { title: string; detail: string } {
   switch (result.deliveryStatus) {
     case "accepted":
-      return { title: "Message sent", detail: "Saved in your library. WhatsApp has accepted the message; delivery is not yet confirmed." };
+      return { title: "sent. sorted.", detail: "Saved in your library. WhatsApp has accepted the message; delivery is not yet confirmed." };
     case "pending":
       return { title: "Saved — sending to WhatsApp", detail: "The item is in your library. We’re still checking the send result." };
     case "failed":
@@ -315,7 +315,9 @@ function SaveFlow() {
   return (
     <main style={{ fontFamily: "system-ui,sans-serif", maxWidth: 400, margin: "0 auto", padding: 24, overflowWrap: "anywhere" }}>
       {image && <img src={image} alt="" style={{ width: "100%", borderRadius: 8, marginBottom: 16, objectFit: "cover", maxHeight: 200 }} />}
-      <h1 style={{ fontSize: 18, margin: "0 0 8px" }}>{title}</h1>
+      <h1 style={{ fontSize: 24, margin: "0 0 8px" }}>KEEP THIS</h1>
+      <p>Arrives in your WhatsApp thread. Yours only.</p>
+      <h2 style={{ fontSize:18 }}>{title}</h2>
       {description && <p style={{ color: "#555", fontSize: 14, margin: "0 0 24px" }}>{description}</p>}
 
       <div role="status" aria-live="polite" aria-atomic="true">

@@ -52,6 +52,7 @@
       ".s7-widget__label{font-size:11px;letter-spacing:0.1em;text-transform:uppercase;",
       "white-space:nowrap;color:var(--s7-muted);color:color-mix(in oklab,var(--s7-muted),var(--s7-accent) calc(var(--s7-td)*100%));",
       "transition:color 0.32s var(--s7-ease);}",
+      ".s7-widget[data-status=accepted] .s7-widget__label{text-transform:none;}",
       ".s7-widget__label--lead{text-align:right;}",
       ".s7-widget__btn{appearance:none;width:calc(var(--s7-mark) + 16px);height:calc(var(--s7-mark) + 16px);",
       "padding:0;border:none;background:transparent;border-radius:50%;display:inline-flex;",
@@ -113,7 +114,7 @@
       // which simulates the flow client-side with no backend calls at
       // all. Marketing/sales entry point, not a real partner feature.
       isDemo: script ? script.getAttribute("data-demo") === "true" : false,
-      leadLabel: script ? (script.getAttribute("data-label") || "Save this piece") : "Save this piece",
+      leadLabel: script ? (script.getAttribute("data-label") || "Keep in WhatsApp") : "Keep in WhatsApp",
       accentColor: script ? (script.getAttribute("data-color") || "#FFBA2E") : "#FFBA2E"
     };
   }
@@ -154,6 +155,27 @@
     return "f-" + Date.now().toString(36) + "-" + Math.random().toString(36).slice(2, 10);
   }
 
+  function funnelEvent(event, partnerMeta, pageMeta, flowId, navigation) {
+    if (partnerMeta.isDemo) return;
+    try {
+      var page = new URL(pageMeta.url);
+      var context = window.__sor7edFunnelPage;
+      if (!context) context = window.__sor7edFunnelPage = { id: newFlowId(), impressions: Object.create(null) };
+      if (event === "widget_impression") {
+        if (context.impressions[partnerMeta.apiKey]) return;
+        context.impressions[partnerMeta.apiKey] = true;
+      }
+      var meta = { page_load_id: context.id };
+      if (navigation) meta.navigation = navigation;
+      var body = JSON.stringify({ event: event, eventId: newFlowId(), flowId: flowId || undefined, partnerApiKey: partnerMeta.apiKey || undefined, pageUrl: page.origin + page.pathname, meta: meta });
+      var endpoint = "https://api.sor7ed.com/api/funnel-events";
+      if (typeof navigator !== "undefined" && navigator.sendBeacon && typeof Blob !== "undefined") {
+        if (navigator.sendBeacon(endpoint, new Blob([body], { type: "text/plain;charset=UTF-8" }))) return;
+      }
+      if (typeof fetch === "function") fetch(endpoint, { method: "POST", mode: "no-cors", credentials: "omit", keepalive: true, headers: { "Content-Type": "text/plain" }, body: body }).catch(function () {});
+    } catch (e) { /* Optional telemetry never prevents a save. */ }
+  }
+
   // Only one save flow is ever in flight per widget instance at a time —
   // tracked per-button so multiple buttons on one page don't cross-wire
   // their popups or animations.
@@ -180,6 +202,7 @@
       // Clicking again while a save is already in flight just refocuses
       // the existing popup instead of opening a duplicate window.
       if (state.popup && !state.popup.closed) {
+        funnelEvent("button_press", partnerMeta, getPageMeta(target), state.flowId);
         state.popup.focus();
         return;
       }
@@ -197,6 +220,7 @@
         return;
       }
       var saveUrl = buildSaveUrl(partnerMeta, pageMeta, state.flowId);
+      funnelEvent("button_press", partnerMeta, pageMeta, state.flowId);
 
       // Mobile and in-app browsers use the current tab. Confirmation stays
       // on /save, with an explicit return link rather than an opener animation.
@@ -216,11 +240,13 @@
 
       // A blocked popup uses the same reliable current-tab path as mobile.
       if (!popup) {
+        funnelEvent("popup_blocked_fallback", partnerMeta, pageMeta, state.flowId, "blocked");
         sameTab();
         return;
       }
 
       state.popup = popup;
+      funnelEvent("popup_opened", partnerMeta, pageMeta, state.flowId, "popup");
       btn.setAttribute("aria-busy", "true");
       setStatus(root, "open", "Save window opened. Complete the steps there.");
 
@@ -247,10 +273,12 @@
         var expired = Date.now() - state.pollStartedAt > 10 * 60 * 1000;
         if (!state.popup || state.popup.closed || expired) {
           cleanup();
+          if (expired) funnelEvent("save_timeout", partnerMeta, pageMeta, state.flowId);
           if (expired) setStatus(root, "timeout", "Save confirmation timed out. Check the save window or your WhatsApp thread; no message was retried.", "Check the save window");
         }
       }, 500);
       state.timeout = setTimeout(function () {
+        funnelEvent("save_timeout", partnerMeta, pageMeta, state.flowId);
         cleanup();
         setStatus(
           root,
@@ -297,8 +325,8 @@
       root,
       "accepted",
       isDemo ? "Demo simulation complete. Nothing was saved or sent." : "WhatsApp accepted your message. Delivery is not yet confirmed.",
-      "sorted.",
-      isDemo ? "Demo: message sent" : "Message sent"
+      "",
+      isDemo ? "demo: sent. sorted." : "sent. sorted."
     );
 
     run(1, 0, IN, function () {
@@ -373,6 +401,7 @@
     root.appendChild(live);
 
     attachSaveFlow(root, btn, partnerMeta, target);
+    funnelEvent("widget_impression", partnerMeta, getPageMeta(target));
 
     return root;
   }
