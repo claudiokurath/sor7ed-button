@@ -1,11 +1,11 @@
-# Agent notes — SOR7ED BUTTON
+# Agent notes — LINKOMAT
 
 ## Product boundary
-Standalone partner Save-to-WhatsApp product. **Not** planetsorted.com.
+Standalone partner Save-to-WhatsApp product (LINKOMAT, formerly SOR7ED BUTTON). **Not** planetsorted.com.
 Do not copy secrets from planetsorted. Do not merge into that monorepo without an explicit decision.
 
 ## Brand
-Use **SOR7ED** in product names, controls, taglines and brand references. Leave ordinary uses of “sorted” in prose and registered legal names unchanged.
+Use **LINKOMAT** in product names, controls, taglines and brand references. Leave ordinary uses of “sorted” in prose and registered legal names unchanged. Technical identifiers (repo name, package scopes, cookie names, domain `sor7ed.com`, Meta template names) may remain until an explicit rename migration.
 
 ## Layout
 - `api/` Fastify — public REST + Meta webhook
