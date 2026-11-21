@@ -1,6 +1,6 @@
-# SOR7ED BUTTON — Roadmap
+# LINKOMAT — Roadmap
 
-Prioritized next work. Lean mode is the current production path.
+Prioritized next work for the LINKOMAT Save-to-WhatsApp product (formerly SOR7ED BUTTON). Lean mode is the current production path.
 
 ## Now (high value, low risk)
 
@@ -8,6 +8,7 @@ Prioritized next work. Lean mode is the current production path.
 - **Partner analytics gap** — extension direct-saves skip `/s/[shortId]` return-click tracking. Document the limitation and consider an optional lightweight open ping or short-link opt-in so ROI signals are not lost.
 - **Lean-mode failure visibility** — structured logging (and simple alerting) for Meta webhook failures, ambiguous sends, and “unknown” delivery states. `waitUntil` is bounded; a dead-letter table or periodic reconciliation would help.
 - **Extension store readiness** — finish Chrome Web Store listing, privacy-policy alignment, and the real-device verification checklist already noted in the docs.
+- **Full brand rename** — continue replacing product-facing SOR7ED / SOR7ED BUTTON references with LINKOMAT (code identifiers, domains, and Meta templates can follow in a later pass).
 
 ## Next
 
