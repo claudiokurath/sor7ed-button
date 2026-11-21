@@ -86,13 +86,19 @@ export async function resolveItemFromQuotedMessage(
 
 // Records a genuine return visit: a person opening a saved item's short
 // link (via WhatsApp, days after the original save) and being redirected
-// back to the partner's page. Called from the /s/[shortId] lookup route
-// only when the request is confirmed NOT to be a link-preview crawler —
-// see web/src/app/s/[shortId]/page.tsx for that check. partnerId is
+// back to the partner's page. Called only by the signed, explicit Continue
+// POST action. Passive previews and crawler GETs never count. partnerId is
 // denormalized onto the click row at write time so analytics never needs
 // to join back through saved_items.
 export async function recordSavedItemClick(savedItemId: string, partnerId: string | null): Promise<void> {
-  await db.insert(savedItemClicks).values({ savedItemId, partnerId });
+  await db.transaction(async tx => {
+    await tx.update(savedItems).set({
+      openedAt: sql`coalesce(${savedItems.openedAt}, now())`,
+      reopenDelayMs: sql`coalesce(${savedItems.reopenDelayMs}, greatest(0, floor(extract(epoch from (now() - ${savedItems.createdAt})) * 1000))::bigint)`,
+      reopenedWithin7d: sql`coalesce(${savedItems.reopenedWithin7d}, now() >= ${savedItems.createdAt} and now() <= ${savedItems.createdAt} + interval '7 days')`,
+    }).where(eq(savedItems.id, savedItemId));
+    await tx.insert(savedItemClicks).values({ savedItemId, partnerId });
+  });
 }
 
 export async function getRecentSaves(userId: string, limit = 5) {

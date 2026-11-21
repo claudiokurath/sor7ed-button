@@ -1,5 +1,13 @@
 {
   "$schema": "https://openapi.vercel.sh/vercel.json",
   "framework": "fastify",
-  "regions": ["lhr1"]
+  "regions": [
+    "lhr1"
+  ],
+  "crons": [
+    {
+      "path": "/api/cron/funnel-retention",
+      "schedule": "15 3 * * *"
+    }
+  ]
 }

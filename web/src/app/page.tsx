@@ -36,6 +36,7 @@ export default function HomePage() {
           <section className="s7-wrap s7-hero" aria-labelledby="hero-title">
             <div className="s7-hero-copy">
               <HeroScribble />
+              <p className="s7-eyebrow">See it. Send it. Sorted.</p>
               <h1 id="hero-title" className="s7-h1">
                 Keep useful things
                 <em>in WhatsApp.</em>

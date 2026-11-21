@@ -27,6 +27,7 @@ jobs:
       SOR7ED_TEST_DATABASE_URL: postgresql://sor7ed_test:local-test-only@127.0.0.1:5432/sor7ed_save_tests
       SOR7ED_CONNECTION_TEST_DATABASE_URL: postgresql://sor7ed_test:local-test-only@127.0.0.1:5432/sor7ed_connect_tests
       SOR7ED_API_TEST_DATABASE_URL: postgresql://sor7ed_test:local-test-only@127.0.0.1:5432/sor7ed_api_tests
+      SORTED_FUNNEL_TEST_DATABASE_URL: postgresql://sor7ed_test:local-test-only@127.0.0.1:5432/sor7ed_funnel_tests
       SOR7ED_LEAN_TEST_DATABASE_URL: postgresql://sor7ed_test:local-test-only@127.0.0.1:5432/sor7ed_lean_tests
     steps:
       - uses: actions/checkout@v4

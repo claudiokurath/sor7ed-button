@@ -45,9 +45,14 @@ META_WHATSAPP_PHONE_ID=<Button sending phone ID>
 META_WHATSAPP_DISPLAY_NUMBER=<international digits without plus>
 META_WEBHOOK_VERIFY_TOKEN=<new random verification token>
 META_APP_SECRET=<Button Meta app secret>
+CRON_SECRET=<private random secret for the daily funnel-retention job>
 ```
 
 Vercel supplies NODE_ENV=production and VERCEL. Do not set dummy provider secrets to bypass boot checks. Google and Meta account configuration remains required before the API can go live.
+
+Apply the funnel migration before deploying the instrumented API. See
+[`docs/funnel-instrumentation.md`](docs/funnel-instrumentation.md) for rollout,
+90-day raw-event retention, measurement limits and the inactive weekly-nudge copy.
 
 Google OAuth redirect URI:
 `https://api.sor7ed.com/api/auth/google/callback`

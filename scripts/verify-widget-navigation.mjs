@@ -18,16 +18,18 @@ function fixture(options = {}) {
     querySelector(selector) { const key = selector.slice(1, -1); for (const c of this.children) { if (key in c.attrs) return c; const nested = c.querySelector(selector); if (nested) return nested; } return null; }
   }
   const target = new Element();
+  const second = new Element(); const reports = [];
   const script = new Element(); script.src = "https://www.sor7ed.com/widget.js"; script.nonce = "fixture-nonce"; script.attrs["data-api-key"] = "public-partner-key";
+  if(options.label)script.attrs["data-label"]=options.label;
   const intervals = new Map(), timeouts = new Map(), events = new Map(); let id = 0;
   const assigned = [], opened = [];
   const popup = { closed: false, focus() {} };
   const location = { href: "https://publisher.test/article?chapter=2#section", origin: "https://publisher.test", assign: value => assigned.push(value) };
   const window = { location, screen: { width: 1440, height: 900 }, matchMedia: () => ({ matches: mobile }), open: (...args) => { opened.push(args); return blocked ? null : popup; }, addEventListener: (k, fn) => events.set(k, fn), removeEventListener: k => events.delete(k) };
-  const document = { currentScript: script, title: "Useful article", readyState: "complete", head: new Element(), body: new Element(), createElement: () => new Element(), createElementNS: () => new Element(), querySelector: () => null, querySelectorAll: () => [target] };
-  vm.runInNewContext(code, { Date: options.clock ?? Date, window, document, crypto, URL, URLSearchParams, Uint8Array, Array, matchMedia: () => ({ matches: true }), setInterval: (fn, ms) => { const k = ++id; intervals.set(k, { fn, ms }); return k; }, clearInterval: k => intervals.delete(k), setTimeout: (fn, ms) => { const k = ++id; timeouts.set(k, { fn, ms }); return k; }, clearTimeout: k => timeouts.delete(k) });
+  const document = { currentScript: script, title: "Useful article", readyState: "complete", head: new Element(), body: new Element(), createElement: () => new Element(), createElementNS: () => new Element(), querySelector: () => null, querySelectorAll: () => options.twoTargets ? [target,second] : [target] };
+  vm.runInNewContext(code, { fetch: async (_url,init) => {reports.push(JSON.parse(init.body));return {};}, Date: options.clock ?? Date, window, document, crypto, URL, URLSearchParams, Uint8Array, Array, matchMedia: () => ({ matches: true }), setInterval: (fn, ms) => { const k = ++id; intervals.set(k, { fn, ms }); return k; }, clearInterval: k => intervals.delete(k), setTimeout: (fn, ms) => { const k = ++id; timeouts.set(k, { fn, ms }); return k; }, clearTimeout: k => timeouts.delete(k) });
   const root = target.children[0], button = root.children[1];
-  return { root, button, assigned, opened, popup, events, intervals, timeouts, head: document.head, click: () => button.listeners.click() };
+  return { reports, root, button, assigned, opened, popup, events, intervals, timeouts, head: document.head, click: () => button.listeners.click() };
 }
 
 for (const options of [{ mobile: true }, { blocked: true }]) {
@@ -61,3 +63,16 @@ assert.equal(widgetReturnUrl("https://publisher.test/article#part", "https://pub
 for (const raw of ["javascript:alert(1)", "https://attacker.test/", "https://user:password@publisher.test/", "/relative", "not-a-url"]) assert.equal(widgetReturnUrl(raw, "https://publisher.test"), null);
 assert.equal(widgetReturnUrl("https://publisher.test/", "https://publisher.test/path"), null);
 console.log("PASS mobile/blocked-popup navigation, stable flow, return-link validation, crypto compatibility, nonce, spoof rejection and ten-minute cleanup");
+
+const observed=fixture({twoTargets:true});
+assert.equal(observed.reports.filter(e=>e.event==='widget_impression').length,1);
+assert.equal(observed.reports[0].pageUrl,'https://publisher.test/article');
+assert.equal(JSON.stringify(observed.reports).includes('Useful article'),false);
+observed.click();
+const press=observed.reports.find(e=>e.event==='button_press');
+const opened=observed.reports.find(e=>e.event==='popup_opened');
+assert.equal(press.flowId,opened.flowId);
+assert.equal(observed.root.querySelector('[data-s7-lead]').textContent,'Keep in WhatsApp');
+const variant=fixture({label:'Keep'});assert.equal(variant.root.querySelector('[data-s7-lead]').textContent,'Keep');
+const blockedReport=fixture({blocked:true});blockedReport.click();assert.ok(blockedReport.reports.some(e=>e.event==='popup_blocked_fallback'));
+console.log('PASS impression deduplication, private-URL stripping, joined flow events and data-label copy variant');

@@ -64,6 +64,13 @@
       "when": 1792824747044,
       "tag": "0008_consumer_account_extension",
       "breakpoints": true
+    },
+    {
+      "idx": 9,
+      "version": "7",
+      "when": 1795267036885,
+      "tag": "0009_complete_texas_twister",
+      "breakpoints": true
     }
   ]
 }
