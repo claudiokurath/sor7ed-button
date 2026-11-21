@@ -2,7 +2,7 @@ import type { ReactNode } from "react";
 import type { Metadata } from "next";
 
 export const metadata: Metadata = {
-  title: "SOR7ED BUTTON",
+  title: "SORTED BUTTON",
   description: "Save it. Get it on WhatsApp.",
 };
 

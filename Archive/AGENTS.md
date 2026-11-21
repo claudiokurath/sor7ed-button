@@ -1,4 +1,4 @@
-# Agent notes — SOR7ED BUTTON
+# Agent notes — SORTED BUTTON
 
 ## Product boundary
 Standalone partner Save-to-WhatsApp product. **Not** planetsorted.com.

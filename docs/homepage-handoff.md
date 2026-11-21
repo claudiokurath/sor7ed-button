@@ -41,7 +41,7 @@ This branch is for preview/review. It does not itself activate live delivery.
 ## 24 October refinement from supplied audit transcript
 
 The later pasted export contains homepage suggestions and an audit discussion,
-not the missing `SOR7ED Save.html` consumer prototype. Applied the relevant
+not the missing `SORTED Save.html` consumer prototype. Applied the relevant
 homepage refinements without replacing the working app with untested sketches:
 
 - Mounted preview and image before interaction; state controls visibility.

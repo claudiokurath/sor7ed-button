@@ -1,17 +1,17 @@
 import Shell from "../_consumer/Shell";
 export const metadata = {
-  title: "Button terms | SOR7ED",
+  title: "Button terms | SORTED",
   description:
-    "Terms for saving links with SOR7ED and using its website widget.",
+    "Terms for saving links with SORTED and using its website widget.",
 };
 export default function Terms() {
   return (
     <Shell>
       <article style={{ maxWidth: 740, margin: "40px auto", lineHeight: 1.7 }}>
-        <h1>SOR7ED Button terms</h1>
+        <h1>SORTED Button terms</h1>
         <p>Effective 2 November 2026.</p>
         <p>
-          The Button at sor7ed.com is provided by SOR7ED LIMITED. These terms
+          The Button at sor7ed.com is provided by SORTED LIMITED. These terms
           cover Button accounts, saved links, WhatsApp delivery and the website
           widget. PlanetSorted&apos;s content website is a separate service.
         </p>
@@ -27,7 +27,7 @@ export default function Terms() {
         <h2>Saved links and external websites</h2>
         <p>
           You choose what to save. A saved title or image is not an endorsement
-          or verification by SOR7ED. Check the destination shown before
+          or verification by SORTED. Check the destination shown before
           continuing. We do not own external websites, guarantee their
           availability or bypass paywalls. Do not save or distribute unlawful
           material, impersonate a person or organisation, conceal a harmful
@@ -56,7 +56,7 @@ export default function Terms() {
           Our <a href="/privacy-policy">Button privacy policy</a> explains
           processing and your rights. Removing a saved item or account does not
           erase copies already delivered to WhatsApp or held by recipients.
-          Contact SOR7ED LIMITED through the{" "}
+          Contact SORTED LIMITED through the{" "}
           <a href="https://www.planetsorted.com/contact">contact page</a> and
           say your request concerns the Button.
         </p>

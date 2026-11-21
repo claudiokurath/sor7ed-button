@@ -1,7 +1,7 @@
 {
   "name": "sor7ed-button",
   "private": true,
-  "description": "SOR7ED BUTTON \u2014 partner Save-to-WhatsApp product (standalone)",
+  "description": "SORTED BUTTON \u2014 partner Save-to-WhatsApp product (standalone)",
   "workspaces": [
     "api",
     "web",

@@ -1,4 +1,4 @@
-# Fly.io — SOR7ED BUTTON API
+# Fly.io — SORTED BUTTON API
 # Deploy:  fly deploy -c fly.api.toml --app sor7ed-button-api
 # Secrets: fly secrets set -a sor7ed-button-api KEY=value ...
 # First-time: fly apps create sor7ed-button-api

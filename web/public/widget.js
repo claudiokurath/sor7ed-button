@@ -1,4 +1,4 @@
-// SOR7ED save button — embeddable widget.
+// SORTED save button — embeddable widget.
 // Style-isolated (all rules scoped under .s7-widget), single self-hosted
 // font request (JetBrains Mono, non-blocking), otherwise dependency-free.
 //
@@ -6,6 +6,9 @@
 // save, ported from sorted-button/sorted-button.html (v9). The animation
 // only plays after WhatsApp accepts a message (or an explicitly labelled
 // simulation). Provider acceptance is not a delivery receipt.
+//
+// Status is exposed via data-status on the root for testing/CSS and announced
+// via the polite live region.
 (function () {
   "use strict";
 
@@ -44,6 +47,8 @@
       "display:inline-flex;align-items:center;justify-content:center;gap:14px;",
       "font-family:'JetBrains Mono',ui-monospace,'SFMono-Regular',Menlo,monospace;",
       "}",
+      ".s7-widget[data-status='failed'] .s7-widget__label,",
+      ".s7-widget[data-status='unknown'] .s7-widget__label{color:var(--s7-muted);}",
       ".s7-widget__label{font-size:11px;letter-spacing:0.1em;text-transform:uppercase;",
       "white-space:nowrap;color:var(--s7-muted);color:color-mix(in oklab,var(--s7-muted),var(--s7-accent) calc(var(--s7-td)*100%));",
       "transition:color 0.32s var(--s7-ease);}",
@@ -83,6 +88,16 @@
     link.rel = "stylesheet";
     link.href = BASE + "/widget-font.css";
     document.head.appendChild(link);
+  }
+
+  function setStatus(root, status, liveText, trailText, leadText) {
+    root.setAttribute("data-status", status);
+    var lead = root.querySelector("[data-s7-lead]");
+    var trail = root.querySelector("[data-s7-trail]");
+    var live = root.querySelector("[data-s7-live]");
+    if (leadText !== undefined && lead) lead.textContent = leadText;
+    if (trailText !== undefined && trail) trail.textContent = trailText;
+    if (liveText !== undefined && live) live.textContent = liveText;
   }
 
   function getPartnerMeta() {
@@ -153,6 +168,7 @@
       // for and sending a second save after a lost response.
       if (completed) { state.flowId = null; state.contentKey = null; }
       btn.removeAttribute("aria-busy");
+      if (!completed) setStatus(root, "idle", "", undefined, undefined);
     }
 
     btn.addEventListener("click", function () {
@@ -172,8 +188,7 @@
         state.contentKey = contentKey;
       }
       if (!state.flowId) {
-        root.querySelector("[data-s7-live]").textContent = "This browser cannot start a secure save. Open this page in an up-to-date browser.";
-        root.querySelector("[data-s7-trail]").textContent = "Open in your browser";
+        setStatus(root, "error", "This browser cannot start a secure save. Open this page in an up-to-date browser.", "Open in your browser");
         return;
       }
       var saveUrl = buildSaveUrl(partnerMeta, pageMeta, state.flowId);
@@ -181,6 +196,7 @@
       // Mobile and in-app browsers use the current tab. Confirmation stays
       // on /save, with an explicit return link rather than an opener animation.
       function sameTab() {
+        setStatus(root, "navigating", "Opening save page…");
         window.location.assign(saveUrl + "&navigation=redirect");
       }
       if (window.matchMedia && (window.matchMedia("(max-width: 767px)").matches || window.matchMedia("(max-width: 1024px) and (pointer: coarse)").matches)) {
@@ -201,6 +217,7 @@
 
       state.popup = popup;
       btn.setAttribute("aria-busy", "true");
+      setStatus(root, "open", "Save window opened. Complete the steps there.");
 
       state.messageHandler = function (event) {
         if (event.origin !== BASE || event.source !== state.popup) return;
@@ -225,20 +242,20 @@
       }, 500);
       state.timeout = setTimeout(function () {
         cleanup();
-        root.querySelector("[data-s7-trail]").textContent = "Check the save window";
-        root.querySelector("[data-s7-live]").textContent = "Save confirmation timed out. Check the save window or your WhatsApp thread; no message was retried.";
+        setStatus(
+          root,
+          "timeout",
+          "Save confirmation timed out. Check the save window or your WhatsApp thread; no message was retried.",
+          "Check the save window"
+        );
       }, 10 * 60 * 1000);
     });
   }
 
   function showSaveStatus(root, status) {
-    var lead = root.querySelector("[data-s7-lead]");
-    var trail = root.querySelector("[data-s7-trail]");
-    var live = root.querySelector("[data-s7-live]");
     var detail = status === "pending" ? "sending…" : status === "failed" ? "send failed" : status === "skipped" ? "not sent" : "send unconfirmed";
-    lead.textContent = "Saved in your library";
-    trail.textContent = detail;
-    if (live) live.textContent = "Saved in your library. WhatsApp " + detail + ".";
+    var live = "Saved in your library. WhatsApp " + detail + ".";
+    setStatus(root, status, live, detail, "Saved in your library");
   }
 
   function runDoneAnimation(root, isDemo) {
@@ -266,15 +283,20 @@
       })(performance.now());
     }
 
-    lead.textContent = isDemo ? "Demo: message sent" : "Message sent";
-    trail.textContent = "sorted.";
-    if (live) live.textContent = isDemo ? "Demo simulation complete. Nothing was saved or sent." : "WhatsApp accepted your message. Delivery is not yet confirmed.";
+    setStatus(
+      root,
+      "accepted",
+      isDemo ? "Demo simulation complete. Nothing was saved or sent." : "WhatsApp accepted your message. Delivery is not yet confirmed.",
+      "sorted.",
+      isDemo ? "Demo: message sent" : "Message sent"
+    );
 
     run(1, 0, IN, function () {
       setTimeout(function () {
         run(0, 1, OUT, function () {
-          lead.textContent = restLead;
-          trail.textContent = restTrail;
+          if (lead) lead.textContent = restLead;
+          if (trail) trail.textContent = restTrail;
+          root.setAttribute("data-status", "idle");
         });
       }, HOLD);
     });
@@ -286,6 +308,7 @@
 
     var root = document.createElement("div");
     root.className = "s7-widget";
+    root.setAttribute("data-status", "idle");
     root.style.setProperty("--s7-accent", partnerMeta.accentColor);
 
     var lead = document.createElement("span");
@@ -297,7 +320,7 @@
     var btn = document.createElement("button");
     btn.type = "button";
     btn.className = "s7-widget__btn";
-    btn.setAttribute("aria-label", partnerMeta.leadLabel + " — SOR7ED");
+    btn.setAttribute("aria-label", partnerMeta.leadLabel + " — SORTED");
 
     var mark = document.createElement("span");
     mark.className = "s7-widget__mark";

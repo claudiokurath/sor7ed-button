@@ -28,4 +28,4 @@ enrichmentWorker.on("completed", (job) => console.log(`Enrichment job ${job?.id}
 void reminderWorker;
 void monthlyResetWorker;
 
-console.log("SOR7ED BUTTON worker running (enrichment + reminders + monthly reset)");
+console.log("SORTED BUTTON worker running (enrichment + reminders + monthly reset)");

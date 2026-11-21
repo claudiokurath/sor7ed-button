@@ -10,7 +10,7 @@ export async function generateMetadata({ params }: Props) {
   const item = await getSaveCard(shortId);
   if (!item)
     return {
-      title: "Saved link not found | SOR7ED",
+      title: "Saved link not found | SORTED",
       robots: { index: false, follow: false },
     };
   const host = destination(item.url)!.hostname;
@@ -25,11 +25,11 @@ export async function generateMetadata({ params }: Props) {
     robots: { index: false, follow: false },
     openGraph: {
       title,
-      siteName: "SOR7ED",
+      siteName: "SORTED",
       type: "article",
       // External artwork is often cropped, text-heavy or missing. Keep the
       // card consistent; the real destination and saved title stay below it.
-      images: [{ url: '/whatsapp-thumbnail-v3.png', width: 320, height: 320, alt: 'SOR7ED scribble on black' }],
+      images: [{ url: '/whatsapp-thumbnail-v3.png', width: 320, height: 320, alt: 'SORTED scribble on black' }],
     },
   };
 }
@@ -48,7 +48,7 @@ export default async function SavedLinkPage({ params }: Props) {
           overflowWrap: "anywhere",
         }}
       >
-        <p style={{ fontSize: 13, color: "#FFBA2E" }}>SAVED WITH SOR7ED</p>
+        <p style={{ fontSize: 13, color: "#FFBA2E" }}>SAVED WITH SORTED</p>
         <h1 style={{ fontSize: "clamp(30px,6vw,46px)", lineHeight: 1.1 }}>
           Continue to this website?
         </h1>

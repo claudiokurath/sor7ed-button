@@ -1,4 +1,4 @@
-# SOR7ED browser extension (unreleased)
+# SORTED browser extension (unreleased)
 
 Build from the repository root: `npm run extension:package`.
 Extract `dist/send-to-sorted-extension.zip`, then choose **Load unpacked** in
@@ -14,7 +14,7 @@ Sending uses the original website URL, so WhatsApp resolves its native preview.
 A site's missing/private metadata can still prevent a thumbnail from appearing.
 
 After replacing an older extracted folder, press **Reload** on its card in
-`chrome://extensions` (or `edge://extensions`), accept the SOR7ED-domain access
+`chrome://extensions` (or `edge://extensions`), accept the SORTED-domain access
 request if shown, then pin the scribble. Manually loaded copies do not update
 from the website. This is not a browser-store release.
 
@@ -27,7 +27,7 @@ To rebuild icon files: `node scripts/build-extension-icons.mjs`.
 See `docs/consumer-account-extension.md` for account handling and the explicit
 development-only origin override used by local verification.
 
-The Chrome Web Store package name is SOR7ED — Save to WhatsApp; its short name is SOR7ED. The approved toolbar vector
+The Chrome Web Store package name is SORTED — Save to WhatsApp; its short name is SORTED. The approved toolbar vector
 source is extension/brand/scribble-circle-yellow.svg; the icon builder exports its PNGs
 at every required toolbar/store size. Re-upload the ZIP under Package to update
 the listing name; editing the listing description does not change that name.

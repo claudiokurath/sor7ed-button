@@ -1,4 +1,4 @@
-# Deploy SOR7ED BUTTON to production
+# Deploy SORTED BUTTON to production
 
 **Target stack (default):**
 
@@ -128,7 +128,7 @@ fly secrets set -a sor7ed-button-worker \
 
 fly deploy -c fly.worker.toml --app sor7ed-button-worker
 fly logs -a sor7ed-button-worker
-# expect: "SOR7ED BUTTON worker running (enrichment + reminders + monthly reset)"
+# expect: "SORTED BUTTON worker running (enrichment + reminders + monthly reset)"
 ```
 
 ### Uploads storage (Cloudflare R2)

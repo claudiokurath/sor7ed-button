@@ -29,7 +29,7 @@ function validate(raw: string): URL {
 }
 function fetchOnce(url: URL,signal: AbortSignal): Promise<Response> {
   return new Promise((resolve,reject)=>{
-    const req=request(url,{method:'GET',signal,lookup:imageLookup,headers:{accept:'image/jpeg, image/png, image/webp', 'user-agent':'SOR7ED/1.0 (+https://www.sor7ed.com)'}},res=>{
+    const req=request(url,{method:'GET',signal,lookup:imageLookup,headers:{accept:'image/jpeg, image/png, image/webp', 'user-agent':'SORTED/1.0 (+https://www.sor7ed.com)'}},res=>{
       const headers=new Headers();
       for(const [key,value] of Object.entries(res.headers)) if(value!==undefined) headers.set(key,Array.isArray(value)?value.join(', '):value);
       // Native streams preserve cancellation and transfer backpressure. No page
