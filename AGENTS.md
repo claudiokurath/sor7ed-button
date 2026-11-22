@@ -1,11 +1,13 @@
 # Agent notes — SORTED
 
 ## Product boundary
-Standalone partner Save-to-WhatsApp product (Sorted). **Not** planetsorted.com.
+Sorted's main hub is sor7ed.com: central member account, Button and SOR7ED Links extension. PlanetSorted remains a separate public tools/guidebooks website, with no separate member sign-in.
 Do not copy secrets from planetsorted. Do not merge into that monorepo without an explicit decision.
 
 ## Brand
 Use **SORTED** in product names, controls, taglines and brand references. Leave ordinary uses of “sorted” in prose and registered legal names unchanged. Technical identifiers (repo name, package scopes, cookie names, domain `sor7ed.com`, Meta template names) may remain until an explicit rename migration.
+
+The extension's customer-facing name is **SOR7ED Links**, pronounced **Sorted Links**. Its /links page and store package use the stylized spelling; include the normal spelling in searchable descriptions. The hub uses Sorted in prose and the original SOR7ED logo. See docs/sorted-hub.md for the current public/member boundary.
 
 ## Layout
 - `api/` Fastify — public REST + Meta webhook

@@ -5,7 +5,7 @@ import type { NextConfig } from "next";
 const websitePaths = [
   "/go/:slug", "/r/:path*", "/tools/:path*", "/intelligence/:path*",
   "/protocols/:path*", "/category/:path*",
-  "/about", "/brain-type", "/start", "/membership", "/signup", "/login",
+  "/brain-type", "/start", "/membership", "/signup", "/login",
   "/connect", "/privacy", "/terms", "/cookies", "/contact", "/faq", "/sounds",
   "/auth/whatsapp-confirm", "/auth/callback", "/auth/confirm",
   "/brain-dump-sorter", "/financial-autopilot", "/decision-paralysis-solver",
@@ -20,6 +20,7 @@ const websitePaths = [
 const nextConfig: NextConfig = {
   output: "standalone",
   outputFileTracingIncludes: {
+    '/links-preview.png': ['./public/static/tangle-white.png', './public/static/sor7ed-logo-white.png', './public/fonts/Anton-Regular.ttf'],
     '/whatsapp-card-v2.png': ['./public/static/tangle-white.png'],
     '/whatsapp-thumbnail-v3.png': ['./public/static/tangle-white.png'],
   },
