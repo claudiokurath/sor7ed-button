@@ -2,7 +2,7 @@
 
 Build from the repository root: `npm run extension:package`.
 Extract `dist/send-to-sorted-extension.zip`, then choose **Load unpacked** in
-Chrome/Edge's extensions developer mode. Version 0.2.5 uses the original
+Chrome/Edge's extensions developer mode. Version 0.2.7 uses the original
 scribble on a yellow circular badge and a narrow host grant for `https://www.sor7ed.com/*`.
 
 Clicking the toolbar scribble or the context menu authorizes that selected page.
