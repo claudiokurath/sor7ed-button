@@ -6,12 +6,21 @@ type WindowHost = {
   } | null;
 };
 
-/** Open synchronously from the click, keeping the code/draft in its own tab. */
-export function openWhatsAppWindow(host: WindowHost, raw: string): boolean {
+/**
+ * Accept only https://wa.me/<number> links. Shared by the popup, the phone
+ * button and the desktop QR so none of them can point anywhere else.
+ */
+export function parseWhatsAppUrl(raw: string): URL {
   const url = new URL(raw);
   if (url.protocol !== 'https:' || url.hostname !== 'wa.me' || url.port || url.username || url.password || !/^\/\d{7,15}\/?$/.test(url.pathname)) {
     throw new Error('This WhatsApp link is invalid. Start sign-in again.');
   }
+  return url;
+}
+
+/** Open synchronously from the click, keeping the code/draft in its own tab. */
+export function openWhatsAppWindow(host: WindowHost, raw: string): boolean {
+  const url = parseWhatsAppUrl(raw);
   const child = host.open('about:blank', '_blank', 'popup=yes,width=760,height=800,resizable=yes,scrollbars=yes');
   if (!child) return false;
   try {
