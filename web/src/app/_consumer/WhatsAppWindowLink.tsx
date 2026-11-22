@@ -2,7 +2,7 @@
 import { useState } from 'react';
 import { openWhatsAppWindow } from '../../lib/whatsapp-window';
 
-export function WhatsAppWindowLink({ url, className }: { url: string; className?: string | undefined }) {
+export function WhatsAppWindowLink({ url, className, label = 'Open WhatsApp in another window' }: { url: string; className?: string | undefined; label?: string }) {
   const [error, setError] = useState('');
   function open() {
     setError('');
@@ -13,7 +13,7 @@ export function WhatsAppWindowLink({ url, className }: { url: string; className?
     } catch (e) { setError(e instanceof Error ? e.message : 'Could not open WhatsApp. Please try again.'); }
   }
   return <>
-    <button type="button" className={className} onClick={open}>Open WhatsApp in another window</button>
+    <button type="button" className={className} onClick={open}>{label}</button>
     {error ? <p role="alert">{error}</p> : null}
   </>;
 }
