@@ -1,8 +1,8 @@
-# SORTED browser extension (unreleased)
+# SOR7ED Links browser extension
 
 Build from the repository root: `npm run extension:package`.
 Extract `dist/send-to-sorted-extension.zip`, then choose **Load unpacked** in
-Chrome/Edge's extensions developer mode. Version 0.2.4 uses the original
+Chrome/Edge's extensions developer mode. Version 0.2.7 uses the original
 scribble on a yellow circular badge and a narrow host grant for `https://www.sor7ed.com/*`.
 
 Clicking the toolbar scribble or the context menu authorizes that selected page.
@@ -27,10 +27,15 @@ To rebuild icon files: `node scripts/build-extension-icons.mjs`.
 See `docs/consumer-account-extension.md` for account handling and the explicit
 development-only origin override used by local verification.
 
-The Chrome Web Store package name is SORTED — Save to WhatsApp; its short name is SORTED. The approved toolbar vector
+The Chrome Web Store package name is SOR7ED Links — Save to WhatsApp; its short name is SOR7ED Links. It is pronounced “Sorted Links”. Both spellings appear in the supplied store copy; search matching is controlled by the store, not a manifest alias. The approved toolbar vector
 source is extension/brand/scribble-circle-yellow.svg; the icon builder exports its PNGs
 at every required toolbar/store size. Re-upload the ZIP under Package to update
 the listing name; editing the listing description does not change that name.
+
+`STORE-LISTING.txt` contains the title, short description and full description to
+paste into the Chrome Web Store listing. The package updates its manifest title
+and summary; uploading a ZIP does not replace the separately edited full store
+description. The archive contains `manifest.json` directly at its root.
 
 The yellow badge uses #FFBA2E with a black scribble and transparent corners.
 Small PNG sizes use optical stroke adjustments to retain legibility. The

@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
-  "name": "SORTED \u2014 Save to WhatsApp",
-  "version": "0.2.4",
+  "name": "SOR7ED Links \u2014 Save to WhatsApp",
+  "version": "0.2.7",
   "host_permissions": [
     "https://www.sor7ed.com/*"
   ],
@@ -11,7 +11,7 @@
     "48": "icons/scribble-48.png",
     "128": "icons/scribble-128.png"
   },
-  "description": "Save articles, videos and web pages to your SORTED account and WhatsApp thread.",
+  "description": "Meet Sorted Links: keep articles, videos and useful pages in WhatsApp. See it. Send it. SOR7ED.",
   "permissions": [
     "activeTab",
     "scripting",
@@ -28,7 +28,7 @@
       "48": "icons/scribble-48.png",
       "128": "icons/scribble-128.png"
     },
-    "default_title": "Save this page with SORTED"
+    "default_title": "Keep this page with SOR7ED Links"
   },
-  "short_name": "SORTED"
+  "short_name": "SOR7ED Links"
 }

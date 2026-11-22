@@ -64,8 +64,8 @@
             or manage.
           </p>
           <h3 className="s7-h3" id="extension">The browser extension</h3>
-          <p className="s7-prose">The desktop extension preview lets you choose a page in Chrome or Edge and open its SORTED save window. One click saves the selected page when you are signed in and your WhatsApp conversation is active. It does not continuously read your browsing history.</p>
-          <p className="s7-prose"><a href="/downloads/send-to-sorted-extension.zip" download>Download the extension preview (ZIP)</a></p>
+          <p className="s7-prose">SOR7ED Links lets you keep useful pages from desktop Chrome in WhatsApp. One click saves the selected page when you are signed in and your WhatsApp conversation is active. It does not continuously read your browsing history.</p>
+          <p className="s7-prose"><a href="/links">Explore SOR7ED Links and add it to Chrome →</a></p>
           <ol className="s7-facts">
             <li>Extract the ZIP into a folder.</li>
             <li>Open your browser's Extensions settings and enable Developer mode.</li>
@@ -165,6 +165,8 @@
         <div className="s7-wrap s7-footer-inner">
           <p>© {new Date().getFullYear()} SORTED LIMITED</p>
           <nav aria-label="Footer" className="s7-footerlinks">
+            <a href="/links">SOR7ED Links</a>
+            <a href="/about">About and vision</a>
             <a href="#demo">Try the demo</a>
             <a href="#for-websites">For website owners</a>
             <a href="/account">Your account</a>

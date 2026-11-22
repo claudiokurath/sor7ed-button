@@ -95,7 +95,7 @@ export async function saveTab(tab, linkUrl) {
 chrome.runtime.onInstalled.addListener(() => {
   chrome.contextMenus.create({
     id: "sorted-save",
-    title: "Save with SORTED",
+    title: "Keep with SOR7ED Links",
     contexts: ["page", "link"],
   });
 });

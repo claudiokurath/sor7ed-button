@@ -502,3 +502,22 @@
   .s7-hero .s7-btn--primary { min-height:72px; padding:16px 18px 16px 24px; font-size:1.3rem; gap:18px; width:auto; }
 }
 @media print { .s7-nav { display:none; } }
+
+/* Main hub: public content and central membership remain distinct destinations. */
+.s7-hub { padding-block: 28px 80px; scroll-margin-top: 140px; }
+.s7-hub > .s7-h2 { margin-inline: auto; text-align: center; }
+.s7-hub > .s7-eyebrow { text-align: center; }
+.s7-hub-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 24px; }
+.s7-hub-card { display: flex; flex-direction: column; align-items: flex-start; border: 1px solid #FFBA2E88; padding: clamp(22px, 3vw, 36px); color: #fff; text-decoration: none; }
+.s7-hub-card:hover { background: #FFBA2E0d; border-color: var(--sor7ed-yellow); }
+.s7-hub-card:focus-visible { outline: 3px solid var(--sor7ed-yellow); outline-offset: 5px; }
+.s7-hub-card h3 { font: 400 clamp(26px, 2.8vw, 36px)/1.2 Anton, sans-serif; text-transform: uppercase; margin: 0 0 18px; }
+.s7-hub-card p { margin: 0 0 28px; color: #d4d4d4; }
+.s7-hub-card .s7-eyebrow { margin: 0 0 18px; color: var(--sor7ed-yellow); }
+.s7-hub-link { margin-top: auto; text-decoration: underline; text-underline-offset: 5px; }
+.s7-hub-perks, .s7-hub-about { text-align: center; }
+.s7-hub-perks > :is(.s7-h2,.s7-prose), .s7-hub-about > :is(.s7-h2,.s7-prose) { margin-inline: auto; }
+.s7-hub-perks .s7-btn { margin-top: 24px; }
+.s7-hub-about { padding-block: 80px; }
+.s7-hub-about > a { display: inline-block; padding: 14px 0; text-underline-offset: 5px; }
+@media (max-width: 800px) { .s7-hub-grid { grid-template-columns: 1fr; } .s7-hub { padding-bottom: 56px; } }

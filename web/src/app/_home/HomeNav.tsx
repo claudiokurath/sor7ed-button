@@ -20,11 +20,15 @@ export default function HomeNav() {
         <nav aria-label="Primary navigation" className="s7-menu-links" onClick={event => {
           if ((event.target as HTMLElement).closest("a")) closeMenu();
         }}>
+          <a href="/#choose">Sorted hub</a>
+          <a href="/links">SOR7ED Links</a>
+          <a href="/about">About Sorted</a>
+          <a href="/about#vision">Our vision</a>
           <a href="#how-it-works">How it works</a>
           <a href="#for-websites">For websites</a>
           <a href="#demo">Try the demo</a>
-          <a href="/account">Your Button account</a>
-          <a href="/signin">Sign in</a>
+          <a href="/account">Your Sorted account</a>
+          <a href="/signin">Member sign-in</a>
           <a href="https://www.planetsorted.com" rel="noopener">PLANET SORTED ↗</a>
         </nav>
       </details>
