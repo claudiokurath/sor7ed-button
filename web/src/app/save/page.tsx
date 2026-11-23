@@ -76,7 +76,7 @@ function notifyOpener(result: SaveResponse, flowId: string, openerOrigin: string
 function deliveryCopy(result: SaveResponse): { title: string; detail: string } {
   switch (result.deliveryStatus) {
     case "accepted":
-      return { title: "sent. sorted.", detail: "Saved in your library. WhatsApp has accepted the message; delivery is not yet confirmed." };
+      return { title: "sent. SOR7ED.", detail: "Saved in your library. WhatsApp has accepted the message; delivery is not yet confirmed." };
     case "pending":
       return { title: "Saved — sending to WhatsApp", detail: "The item is in your library. We’re still checking the send result." };
     case "failed":
@@ -84,7 +84,7 @@ function deliveryCopy(result: SaveResponse): { title: string; detail: string } {
     case "skipped":
       if (result.deliveryReason === "session_closed") return {
         title: "Saved — WhatsApp conversation needs reopening",
-        detail: "No message was sent. Message SORTED in WhatsApp, then reply LIBRARY to find this item. No paid template was requested.",
+        detail: "No message was sent. Message SOR7ED in WhatsApp, then reply LIBRARY to find this item. No paid template was requested.",
       };
       return { title: "Saved in your library", detail: result.deliveryReason === "opted_out" ? "WhatsApp messages are paused for your account." : "A WhatsApp message could not be sent for this save." };
     default:

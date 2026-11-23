@@ -29,7 +29,7 @@ async function canvas(image: Buffer): Promise<Buffer> {
     .composite([{ input: image, gravity: 'centre' }]).jpeg({ quality: 88 }).toBuffer();
 }
 export function brandCardImage(): Promise<Buffer> {
-  brand ??= sharp(Buffer.from(CARD_BRAND_MARK), { density: 288 }).resize(400, 400).png().toBuffer().then(canvas);
+  brand ??= sharp(Buffer.from(CARD_BRAND_MARK), { density: 144 }).resize(1200, 630, { fit: 'contain', background: '#000000' }).png().toBuffer().then(canvas);
   return brand;
 }
 

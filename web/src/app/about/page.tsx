@@ -2,9 +2,9 @@ import type { Metadata } from "next";
 import styles from "../links/links.module.css";
 
 export const metadata: Metadata = {
-  title: "About Sorted — Our company and vision",
+  title: "About SOR7ED — Our company and vision",
   description:
-    "Why Sorted exists: practical support for everyday life, and a simpler way to keep useful things close.",
+    "Why SOR7ED exists: practical support for everyday life, and a simpler way to keep useful things close.",
   alternates: { canonical: "https://www.sor7ed.com/about" },
 };
 
@@ -15,7 +15,7 @@ export default function AboutPage() {
         Skip to content
       </a>
       <header className={styles.header}>
-        <a href="/" aria-label="Sorted home">
+        <a href="/" aria-label="SOR7ED home">
           <img
             src="/static/sor7ed-logo-white.png"
             alt="SOR7ED"
@@ -30,7 +30,7 @@ export default function AboutPage() {
       </header>
       <main id="about-main">
         <section className={styles.hero} aria-labelledby="about-heading">
-          <p className={styles.eyebrow}>About Sorted</p>
+          <p className={styles.eyebrow}>About SOR7ED</p>
           <h1
             id="about-heading"
             style={{
@@ -46,7 +46,7 @@ export default function AboutPage() {
             Less friction.
           </h1>
           <p className={styles.intro}>
-            Sorted brings our products and your member account together in one
+            SOR7ED brings our products and your member account together in one
             place. We make practical tools and ways to keep useful information
             close, so it’s easier to return to what helps.
           </p>
@@ -77,10 +77,10 @@ export default function AboutPage() {
             <h2 id="products-heading">Choose what helps today.</h2>
             <p>
               <a href="/links">SOR7ED Links</a> keeps useful web links in your
-              WhatsApp thread, with a backup in your Sorted account.
+              WhatsApp thread, with a backup in your SOR7ED account.
             </p>
             <p>
-              <a href="https://www.planetsorted.com">Planet Sorted</a> is our
+              <a href="https://www.planetsorted.com">Planet SOR7ED</a> is our
               public website for practical tools and guidebooks across Mind,
               Wealth, Body, Tech, Connection, Impression and Growth.
             </p>
@@ -94,7 +94,7 @@ export default function AboutPage() {
               extension.
             </p>
             <p>
-              Planet Sorted is public. There is no separate Planet Sorted login
+              Planet SOR7ED is public. There is no separate Planet SOR7ED login
               to read its guidebooks or explore tool explanations.
             </p>
             <a className={styles.primary} href="/signin">
@@ -104,7 +104,7 @@ export default function AboutPage() {
         </section>
       </main>
       <footer className={styles.footer}>
-        <a href="/">Sorted hub</a>
+        <a href="/">SOR7ED hub</a>
         <a href="/links">SOR7ED Links</a>
         <a href="/privacy-policy">Privacy</a>
         <a href="/button-terms">Terms</a>

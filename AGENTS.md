@@ -5,9 +5,9 @@ Sorted's main hub is sor7ed.com: central member account, Button and SOR7ED Links
 Do not copy secrets from planetsorted. Do not merge into that monorepo without an explicit decision.
 
 ## Brand
-Use **SORTED** in product names, controls, taglines and brand references. Leave ordinary uses of “sorted” in prose and registered legal names unchanged. Technical identifiers (repo name, package scopes, cookie names, domain `sor7ed.com`, Meta template names) may remain until an explicit rename migration.
+Use **SOR7ED** in visible product names, controls, taglines and brand references. Display headings in capitals using Anton. Use black backgrounds, #141414 charcoal panels, white/light-grey text and #FFBA2E yellow accents. Leave ordinary uses of “sorted” in prose and registered legal names unchanged. Technical identifiers (repo name, package scopes, cookie names, domain `sor7ed.com`, Meta template names) remain unchanged.
 
-The extension's customer-facing name is **SOR7ED Links**, pronounced **Sorted Links**. Its /links page and store package use the stylized spelling; include the normal spelling in searchable descriptions. The hub uses Sorted in prose and the original SOR7ED logo. See docs/sorted-hub.md for the current public/member boundary.
+The extension's customer-facing name is **SOR7ED Links**, pronounced **Sorted Links**. Its /links page and store package use the stylized spelling; the normal spelling may remain as a search alias in store copy. The hub uses SOR7ED in visible prose and the original SOR7ED logo. See docs/sorted-hub.md for the current public/member boundary.
 
 ## Layout
 - `api/` Fastify — public REST + Meta webhook

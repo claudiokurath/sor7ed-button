@@ -19,7 +19,7 @@
   justify-content: space-between;
   align-items: center;
   gap: 20px;
-  border-bottom: 1px solid #ffffff66;
+  border-bottom: 1px solid #FFBA2E88;
   padding-bottom: 18px;
   margin-bottom: 44px;
   flex-wrap: wrap;
@@ -35,18 +35,24 @@
 .root h1 {
   font-size: clamp(2rem, 5vw, 3.8rem);
   line-height: 1.06;
-  letter-spacing: -0.04em;
+  letter-spacing: 0;
   margin: 12px 0 24px;
 }
 .root h2 {
   font-size: 1.6rem;
   margin: 0 0 16px;
+  color: var(--sor7ed-yellow);
 }
+.root :is(h1,h2,h3,h4,h5,h6) { font-family: SOR7EDAnton, Impact, sans-serif; font-weight: 400; text-transform: uppercase; letter-spacing: .01em; }
+.nav nav a { color: var(--sor7ed-yellow); }
 .accent {
   color: var(--sor7ed-yellow, #FFBA2E);
+  text-transform: uppercase;
 }
 .panel {
-  border: 1px solid #ffffff66;
+  border: 1px solid #FFBA2E66;
+  border-top: 3px solid var(--sor7ed-yellow);
+  background: var(--sor7ed-surface);
   padding: 24px;
   margin: 24px 0;
   max-width: 720px;
@@ -101,15 +107,18 @@
   gap: 16px;
 }
 .card {
-  border: 1px solid #ffffff66;
+  border: 1px solid var(--sor7ed-border);
+  background: var(--sor7ed-surface);
   padding: 16px;
   min-width: 0;
 }
 .card img {
   width: 100%;
   aspect-ratio: 16/9;
-  object-fit: cover;
+  object-fit: contain;
+  background: #000;
 }
+.root .remove { background: var(--sor7ed-yellow); color: #000; border-color: var(--sor7ed-yellow); text-transform: uppercase; }
 .card h3 {
   margin: 12px 0 8px;
   font-size: 1.25rem;

@@ -220,7 +220,8 @@
 }
 .questions details {
   border-top: 1px solid #ffffff40;
-  padding: 14px 0;
+  padding: 14px;
+  background: var(--sor7ed-surface);
 }
 .questions summary {
   cursor: pointer;

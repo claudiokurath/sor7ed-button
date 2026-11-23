@@ -5,7 +5,7 @@ export default function Shell({ children }: { children: ReactNode }) {
   return (
     <div className={styles.root}>
       <header className={styles.nav}>
-        <a href="/" className={styles.brand} aria-label="SORTED home">
+        <a href="/" className={styles.brand} aria-label="SOR7ED home">
           <BrandLogo />
         </a>
         <nav className={styles.row}>

@@ -73,7 +73,7 @@ export default function AccountPage() {
   async function remove(item: Item) {
     if (
       !confirm(
-        "Remove this page from your SORTED history? Messages already in WhatsApp stay there.",
+        "Remove this page from your SOR7ED history? Messages already in WhatsApp stay there.",
       )
     )
       return;
@@ -139,7 +139,7 @@ export default function AccountPage() {
   async function deleteAccount() {
     if (
       !confirm(
-        "Permanently delete your SORTED account and saved history? This does not delete messages already in WhatsApp.",
+        "Permanently delete your SOR7ED account and saved history? This does not delete messages already in WhatsApp.",
       )
     )
       return;
@@ -161,7 +161,7 @@ export default function AccountPage() {
     : [];
   return (
     <Shell>
-      <p className={s.accent}>Your SORTED account</p>
+      <p className={s.accent}>Your SOR7ED account</p>
       <h1>{name ? `Welcome back, ${name}.` : "All your useful things."}</h1>
       <p>
         Your WhatsApp thread is the main home for your saves. This history is
@@ -193,7 +193,7 @@ export default function AccountPage() {
             )}
             <p className={s.small}>Based on your latest 100 saves.</p>
             <a href="/#demo">
-              See how to save a page with SORTED
+              See how to save a page with SOR7ED
             </a>
           </section>
           <h2>Recent history</h2>
@@ -201,14 +201,18 @@ export default function AccountPage() {
             <div className={s.cards}>
               {data.items.map((item) => (
                 <article className={s.card} key={item.shortId}>
-                  {item.imageUrl ? (
                     <img
-                      src={item.imageUrl}
+                      src={item.imageUrl || '/static/sor7ed-card-fallback.png'}
                       alt=""
                       loading="lazy"
                       referrerPolicy="no-referrer"
+                      onError={event => {
+                        const image = event.currentTarget;
+                        if (image.dataset.fallback === 'true') return;
+                        image.dataset.fallback = 'true';
+                        image.src = '/static/sor7ed-card-fallback.png';
+                      }}
                     />
-                  ) : null}
                   <h3>
                     <a
                       href={publicPage(item.url)?.href ?? undefined}
@@ -232,7 +236,7 @@ export default function AccountPage() {
                       Request another send
                     </button>
                   ) : null}
-                  <button className={s.quiet} onClick={() => remove(item)}>
+                  <button className={s.remove} onClick={() => remove(item)}>
                     Remove
                   </button>
                 </article>

@@ -1,2 +1,4 @@
 /* Shared product accent; matches the Notion Gamma presentation theme. */
-:root { --sor7ed-yellow: #FFBA2E; }
+:root { --sor7ed-yellow: #FFBA2E; --sor7ed-surface: #141414; --sor7ed-border: #383838; }
+@font-face { font-family: SOR7EDAnton; src: url('/fonts/Anton-Regular.ttf') format('truetype'); font-weight: 400; font-display: swap; }
+:where(h1,h2,h3,h4,h5,h6) { text-transform: uppercase; font-family: SOR7EDAnton, Impact, sans-serif; font-weight: 400; }
