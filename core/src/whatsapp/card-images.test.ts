@@ -8,7 +8,7 @@ afterEach(() => { vi.unstubAllEnvs(); vi.useRealTimers(); mocks.safeFetch.mockRe
 const response = (bytes: Buffer, type = 'image/png') => new Response(new Uint8Array(bytes), { headers: { 'content-type': type } });
 
 describe('consistent saved-image frames', () => {
-  it('produces a sharp yellow/black 1200×630 fallback for missing, small, corrupt, blocked and non-image sources', async () => {
+  it('produces the white/gold SOR7ED wordmark on a black 1200×630 fallback for unusable sources', async () => {
     const fallback = await brandCardImage();
     expect(await sharp(fallback).metadata()).toMatchObject({width:1200,height:630,format:'jpeg'});
     const small = await sharp({create:{width:64,height:64,channels:3,background:'red'}}).png().toBuffer();
@@ -19,9 +19,17 @@ describe('consistent saved-image frames', () => {
     mocks.safeFetch.mockReset();expect(await renderSavedCardImage(null)).toEqual(fallback);
     expect(await renderSavedCardImage('http://source.example/image.png')).toEqual(fallback);
     expect(mocks.safeFetch).not.toHaveBeenCalled();
-    const pixel = await sharp(fallback).extract({left:600,top:138,width:1,height:1}).raw().toBuffer();
-    // JPEG may round channels slightly; the fallback must use Gamma yellow.
-    [255, 186, 46].forEach((channel, index) => expect(Math.abs(pixel[index]! - channel)).toBeLessThanOrEqual(4));
+    const pixels = await sharp(fallback).removeAlpha().raw().toBuffer();
+    let white = 0, gold = 0, black = 0;
+    for (let i = 0; i < pixels.length; i += 3) {
+      const r = pixels[i]!, g = pixels[i + 1]!, b = pixels[i + 2]!;
+      if (r > 210 && g > 210 && b > 210) white++;
+      if (r > 170 && g > 100 && g < 225 && b < 100) gold++;
+      if (r < 15 && g < 15 && b < 15) black++;
+    }
+    expect(white).toBeGreaterThan(500);
+    expect(gold).toBeGreaterThan(500);
+    expect(black).toBeGreaterThan(1200 * 630 * .7);
   });
   it('preserves a portrait image without stretching or upscaling and pads it into the same landscape frame', async () => {
     const source = await sharp({create:{width:600,height:900,channels:3,background:'#ff0000'}}).png().toBuffer();

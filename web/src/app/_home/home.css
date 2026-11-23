@@ -508,7 +508,7 @@
 .s7-hub > .s7-h2 { margin-inline: auto; text-align: center; }
 .s7-hub > .s7-eyebrow { text-align: center; }
 .s7-hub-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 24px; }
-.s7-hub-card { display: flex; flex-direction: column; align-items: flex-start; border: 1px solid #FFBA2E88; padding: clamp(22px, 3vw, 36px); color: #fff; text-decoration: none; }
+.s7-hub-card { display: flex; flex-direction: column; align-items: flex-start; border: 1px solid #FFBA2E88; background:var(--sor7ed-surface); padding: clamp(22px, 3vw, 36px); color: #fff; text-decoration: none; }
 .s7-hub-card:hover { background: #FFBA2E0d; border-color: var(--sor7ed-yellow); }
 .s7-hub-card:focus-visible { outline: 3px solid var(--sor7ed-yellow); outline-offset: 5px; }
 .s7-hub-card h3 { font: 400 clamp(26px, 2.8vw, 36px)/1.2 Anton, sans-serif; text-transform: uppercase; margin: 0 0 18px; }

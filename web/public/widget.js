@@ -326,7 +326,7 @@
       "accepted",
       isDemo ? "Demo simulation complete. Nothing was saved or sent." : "WhatsApp accepted your message. Delivery is not yet confirmed.",
       "",
-      isDemo ? "demo: sent. sorted." : "sent. sorted."
+      isDemo ? "demo: sent. SOR7ED." : "sent. SOR7ED."
     );
 
     run(1, 0, IN, function () {
@@ -358,7 +358,7 @@
     var btn = document.createElement("button");
     btn.type = "button";
     btn.className = "s7-widget__btn";
-    btn.setAttribute("aria-label", partnerMeta.leadLabel + " — SORTED");
+    btn.setAttribute("aria-label", partnerMeta.leadLabel + " — SOR7ED");
 
     var mark = document.createElement("span");
     mark.className = "s7-widget__mark";

@@ -5,9 +5,9 @@ const storeUrl =
   "https://chromewebstore.google.com/detail/plljajhlkagokdjdmajiichjcjhmnhef";
 
 export const metadata: Metadata = {
-  title: "SOR7ED Links (Sorted Links) — Save to WhatsApp",
+  title: "SOR7ED Links (SOR7ED Links) — Save to WhatsApp",
   description:
-    "That article you meant to read. That video worth another look. Keep useful links in WhatsApp with SOR7ED Links, pronounced Sorted Links.",
+    "That article you meant to read. That video worth another look. Keep useful links in WhatsApp with SOR7ED Links, pronounced SOR7ED Links.",
   alternates: { canonical: "https://www.sor7ed.com/links" },
   openGraph: {
     type: "website",
@@ -38,7 +38,7 @@ export default function LinksPage() {
         Skip to content
       </a>
       <header className={styles.header}>
-        <a href="/" aria-label="Sorted home">
+        <a href="/" aria-label="SOR7ED home">
           <img
             src="/static/sor7ed-logo-white.png"
             width="1832"
@@ -47,7 +47,7 @@ export default function LinksPage() {
           />
         </a>
         <nav aria-label="Links navigation">
-          <a href="/about">About Sorted</a>
+          <a href="/about">About SOR7ED</a>
           <a href="/signin">Member sign-in</a>
         </nav>
       </header>
@@ -56,7 +56,7 @@ export default function LinksPage() {
           <h1
             className={styles.lockup}
             id="links-heading"
-            aria-label="SOR7ED Links, pronounced Sorted Links"
+            aria-label="SOR7ED Links, pronounced SOR7ED Links"
           >
             <img
               className={styles.scribble}
@@ -87,7 +87,7 @@ export default function LinksPage() {
             Add to Chrome <span aria-hidden="true">↗</span>
           </a>
           <p className={styles.requirements}>
-            For desktop Chrome. A Sorted account and WhatsApp connection are
+            For desktop Chrome. A SOR7ED account and WhatsApp connection are
             required.
           </p>
         </section>
@@ -119,7 +119,7 @@ export default function LinksPage() {
                 <span aria-hidden="true">03</span>
                 <h3>Find it in your thread.</h3>
                 <p>
-                  Receive the link in WhatsApp. Your Sorted account keeps a
+                  Receive the link in WhatsApp. Your SOR7ED account keeps a
                   backup history too.
                 </p>
               </li>
@@ -134,7 +134,7 @@ export default function LinksPage() {
             <p>
               Keep the useful things that otherwise disappear into open tabs,
               screenshots and “I’ll find it later”. Revisit or remove saved
-              links from your central Sorted account.
+              links from your central SOR7ED account.
             </p>
             <a className={styles.secondary} href="/account">
               Go to your account <span aria-hidden="true">→</span>
@@ -144,9 +144,9 @@ export default function LinksPage() {
             <details>
               <summary>Do I need an account?</summary>
               <p>
-                Yes. Sign in to Sorted and connect WhatsApp when prompted. You
+                Yes. Sign in to SOR7ED and connect WhatsApp when prompted. You
                 may occasionally need to reconnect before sending. Planet
-                Sorted’s tools and guidebooks website has no separate member
+                SOR7ED’s tools and guidebooks website has no separate member
                 sign-in.
               </p>
             </details>
@@ -178,10 +178,10 @@ export default function LinksPage() {
         </section>
       </main>
       <footer className={styles.footer}>
-        <a href="/">Sorted hub</a>
+        <a href="/">SOR7ED hub</a>
         <a href="/privacy-policy">Privacy</a>
         <a href="/button-terms">Terms</a>
-        <a href="https://www.planetsorted.com">Planet Sorted ↗</a>
+        <a href="https://www.planetsorted.com">Planet SOR7ED ↗</a>
       </footer>
     </div>
   );

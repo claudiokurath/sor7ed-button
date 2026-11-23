@@ -4,7 +4,7 @@ import type { Metadata } from "next";
 
 export const metadata: Metadata = {
   metadataBase: new URL("https://www.sor7ed.com"),
-  title: "SORTED BUTTON",
+  title: "SOR7ED BUTTON",
   description: "Save it. Get it on WhatsApp.",
 };
 
