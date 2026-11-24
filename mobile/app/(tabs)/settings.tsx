@@ -34,7 +34,7 @@ export default function SettingsScreen() {
           Settings
         </Text>
         <Text style={[screenStyles.subtitle, { color: colors.mutedForeground }]}>
-          Make your local library work the way you do.
+          Preferences for links stored on this device. Your member account is in the Account tab.
         </Text>
       </View>
 
@@ -105,7 +105,7 @@ export default function SettingsScreen() {
       <View style={[styles.infoCard, { backgroundColor: colors.card, borderColor: colors.border }]}>
         <Feather name="info" size={18} color={colors.primary} />
         <Text style={[styles.infoText, { color: colors.mutedForeground }]}>
-          Google sign-in and cloud sync are not connected in this prototype.
+          These device-only links are separate from your SOR7ED account.
           Export a backup before changing or replacing this device.
         </Text>
       </View>

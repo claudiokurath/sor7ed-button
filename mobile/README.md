@@ -1,14 +1,62 @@
-# SOR7ED Mobile Prototype
+# SOR7ED mobile
 
-Standalone Expo app for managing a personal saved-links library. It is intentionally local-only: links are stored on the device with AsyncStorage, and backup export/restore is handled by the app. It does not currently connect to Google sign-in, the SOR7ED API, or cloud sync.
+The Account tab opens the **existing https://www.sor7ed.com/account** inside the native app. It uses the same account, history, settings and delivery system as the website and extension. No second member database, API keys or Replit service is needed.
 
-## Run
+The original local prototype is preserved under **On device**, Backups and Settings. Those links are device-only and are **not automatically uploaded or merged** into the member account. Export them before replacing the device. Clearing local links does not delete the member account.
 
-Use Node.js 20 or newer and run these commands from this directory:
+## Run without Replit
 
-    npm install
-    npm run start
+Install Node.js 22 LTS and Git, then:
 
-Use `npm run android`, `npm run ios`, or `npm run web` to launch a platform target. Run `npm run typecheck` for TypeScript validation.
+    git clone https://github.com/claudiokurath/sor7ed-button.git
+    cd sor7ed-button
+    git checkout mobile/local-library-prototype
+    cd mobile
+    npm ci
+    npx expo start --go
 
-This folder is a standalone Expo package and is not part of the repository's existing npm workspaces.
+Install Expo Go on your phone and scan the QR code (compatible Expo SDK required). The phone and computer should be on the same network. `npx expo start --go --tunnel` is an optional alternative when local networking is blocked; Expo may prompt to install its tunnel helper. No Mac is needed for Expo Go on iPhone.
+
+This is a standalone package: run its commands **inside mobile/**. It has its own lockfile and is intentionally outside the root npm workspaces.
+
+## Real account and WhatsApp sign-in
+
+1. Open Account. The real SOR7ED sign-in page appears if you are not already signed in inside the app.
+2. Start sign-in, open WhatsApp, send the prepared message, then return to the app and enter the received code.
+3. Your existing account history loads. Account changes use the existing web/API routes.
+
+The native bridge handles only the existing `about:blank` → `wa.me` popup. Cookies remain in the WebView; no session tokens or proof values are copied into AsyncStorage or messages. Android Back goes back inside the account before leaving the app. External HTTPS links open outside the account view; untrusted schemes are blocked.
+
+The **Open in browser** control is a fallback, including for any Google sign-in route that disallows embedded browsers. Browser and WebView sessions are separate: logging in in the browser does not automatically sign in the WebView. The supported embedded flow is the existing WhatsApp sign-in, without changing authentication.
+
+Web preview (`npm run web`) links to the real account in the browser, because the production site intentionally blocks framing. An internet connection is required for account access. This build does **not** include an Android incoming-share target or an iOS Share Extension.
+
+## Build Android / iPhone with Expo EAS
+
+You need your own Expo account. From `mobile/`:
+
+    npx eas-cli@latest login
+    npx eas-cli@latest init
+    npx eas-cli@latest build --platform android --profile preview
+
+`eas init` links this package to your Expo project and adds its project ID to app.json. Commit that project ID afterward; no project belonging to someone else is preconfigured. The preview profile creates an installable Android APK. EAS provides the build/download URL when complete; it does not place a file in Downloads automatically.
+
+For store builds:
+
+    npx eas-cli@latest build --platform android --profile production
+    npx eas-cli@latest build --platform ios --profile production
+
+EAS can build iOS in the cloud without a local Mac. Apple signing/TestFlight distribution requires an Apple Developer membership. An iOS internal preview also needs registered test devices. A native development build uses the `development` profile, then `npx expo start --dev-client`.
+
+Identifiers are `com.sor7ed.mobile` on both platforms. Confirm availability in your developer accounts before the first store release. Store submission/review is separate from building; a minimal website container is not guaranteed acceptance. No store submission or paid cloud build is performed by the repository checks.
+
+## Verify
+
+    npm run typecheck
+    npm test
+    npx expo install --check
+    npx expo export --platform all
+
+CI runs dependency installation, typecheck, navigation/WhatsApp bridge tests and all-platform JavaScript export. These checks do not replace a physical-device test: verify WhatsApp → app return, code entry, persistent login, saved links, external destinations, Android Back, sign-out, network failure/retry and iOS safe areas before distribution. Do not use real customer links or send WhatsApp messages in automated tests.
+
+Brand: black, #141414 panels, #FFBA2E accents, uppercase Anton headings. Anton's licence is in assets/fonts/Anton-OFL.txt.

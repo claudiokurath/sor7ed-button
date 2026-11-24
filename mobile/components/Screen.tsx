@@ -52,19 +52,23 @@ export const screenStyles = StyleSheet.create({
     textTransform: 'uppercase',
   },
   title: {
+    fontFamily: 'Anton',
+    textTransform: 'uppercase',
     fontSize: 34,
     lineHeight: 39,
-    fontWeight: '700',
-    letterSpacing: -1.2,
+    fontWeight: '400',
+    letterSpacing: 0,
   },
   subtitle: {
     fontSize: 15,
     lineHeight: 22,
   },
   sectionTitle: {
+    fontFamily: 'Anton',
+    textTransform: 'uppercase',
     fontSize: 19,
-    fontWeight: '700',
-    letterSpacing: -0.3,
+    fontWeight: '400',
+    letterSpacing: 0,
   },
 });
 

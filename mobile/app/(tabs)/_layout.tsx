@@ -29,16 +29,17 @@ export default function TabLayout() {
       <Tabs.Screen
         name="index"
         options={{
-          title: 'Library',
+          title: 'Account',
           tabBarIcon: ({ focused }) => (
             <Feather
-              name="bookmark"
+              name="user"
               size={21}
               color={focused ? colors.primary : colors.mutedForeground}
             />
           ),
         }}
       />
+      <Tabs.Screen name="local" options={{ title: 'On device', tabBarIcon: ({ focused }) => <Feather name="smartphone" size={21} color={focused ? colors.primary : colors.mutedForeground} /> }} />
       <Tabs.Screen
         name="backups"
         options={{
