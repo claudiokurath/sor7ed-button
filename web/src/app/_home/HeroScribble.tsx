@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 
-/** The original moving mark, with a still image for reduced motion/autoplay limits. */
+/** The supplied yellow moving mark, with a still image for reduced motion/autoplay limits. */
 export default function HeroScribble() {
   const [motion, setMotion] = useState(false);
   const [playbackFailed, setPlaybackFailed] = useState(false);
@@ -26,10 +26,10 @@ export default function HeroScribble() {
     <div className="s7-hero-scribble" aria-hidden="true">
       {motion && !playbackFailed ? (
         <video ref={videoRef} autoPlay muted loop playsInline preload="metadata"
-          poster="/static/tangle-white.png" tabIndex={-1} onError={() => setPlaybackFailed(true)}>
-          <source src="/media/tangle-loop-256.mp4" type="video/mp4" />
+          poster="/media/scribble-yellow-loop-poster.jpg" tabIndex={-1} onError={() => setPlaybackFailed(true)}>
+          <source src="/media/scribble-yellow-loop.mp4" type="video/mp4" />
         </video>
-      ) : <img src="/static/tangle-white.png" alt="" width={160} height={160} />}
+      ) : <img src="/media/scribble-yellow-loop-poster.jpg" alt="" width={160} height={160} />}
     </div>
   );
 }

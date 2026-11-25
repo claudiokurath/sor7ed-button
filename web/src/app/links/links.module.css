@@ -42,114 +42,56 @@
   left: 16px;
   top: 16px;
 }
-.header {
-  max-width: 1200px;
-  margin: auto;
-  padding: 24px;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 24px;
-  border-bottom: 1px solid #ffffff24;
-}
-.header img {
-  display: block;
-  width: 140px;
-  max-width: 100%;
-  height: auto;
-}
-.header nav {
-  display: flex;
-  gap: 24px;
-  font-size: 15px;
-}
-.header nav a,
-.footer a {
-  padding-block: 12px;
-  text-underline-offset: 5px;
-}
 .hero {
-  max-width: 960px;
-  margin: auto;
-  padding: clamp(56px, 8vw, 108px) 24px 80px;
-  text-align: center;
+  width:100%;
+  max-width:1440px;
+  min-height:100svh;
+  margin:auto;
+  padding:clamp(24px,3vw,56px) clamp(20px,5vw,64px) 32px;
+  text-align:center;
 }
-.lockup {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  gap: clamp(16px, 3vw, 32px);
-  margin: 0 auto 48px;
-  max-width: 760px;
-  font-weight: 400;
+.heading {
+  margin:0;
+  font:400 clamp(3rem,5vw,6.5rem)/1.08 LinksAnton, Impact, sans-serif;
+  text-transform:uppercase;
+  letter-spacing:0;
 }
-.scribble {
-  width: 31%;
-  height: auto;
-  flex: none;
-}
-.logoText {
-  display: flex;
-  flex-direction: column;
-  width: min-content;
-  min-width: 0;
-  text-align: left;
-}
-.links {
-  font-family: LinksAnton, Impact, sans-serif;
-  color: var(--yellow);
-  font-size: clamp(78px, 16vw, 208px);
-  line-height: 1;
-  letter-spacing: -0.025em;
-}
-.tagline {
-  display: flex;
-  align-items: center;
-  justify-content: flex-start;
-  gap: 8px;
-  margin-top: 14px;
-  white-space: nowrap;
-  font-size: clamp(12px, 1.7vw, 21px);
-  line-height: 1.2;
-}
-.tagline img {
-  display: block;
-  width: 40%;
-  height: auto;
-}
+.heading > span { display:block; }
+.heading em { color:var(--yellow); font:inherit; }
 .page h2 {
-  font-family: LinksAnton, Impact, sans-serif;
-  font-weight: 400;
-  font-size: clamp(36px, 5vw, 58px);
-  line-height: 1.15;
-  margin: 0 0 24px;
-  text-wrap: balance;
+  font-family:LinksAnton, Impact, sans-serif;
+  font-weight:400;
+  font-size:clamp(36px,5vw,58px);
+  line-height:1.15;
+  margin:0 0 24px;
+  text-wrap:balance;
 }
 .intro {
-  max-width: 620px;
-  margin: 0 auto 30px;
-  font-size: clamp(18px, 2.4vw, 22px);
+  max-width: 52ch;
+  margin: 24px auto 32px;
+  font-size: clamp(1.125rem, 1.4vw, 1.5rem);
   color: #d4d4d4;
 }
 .primary {
-  display: inline-flex;
-  justify-content: center;
-  align-items: center;
-  gap: 44px;
-  background: var(--yellow);
-  color: #000 !important;
-  border: 2px solid var(--yellow);
-  border-radius: 8px;
-  min-height: 56px;
-  padding: 14px 28px;
-  text-decoration: none;
-  font-size: 19px;
-  font-weight: 600;
+  display:inline-flex;
+  justify-content:center;
+  align-items:center;
+  gap:24px;
+  background:var(--yellow);
+  color:#000 !important;
+  border:2px solid var(--yellow);
+  border-radius:999px;
+  max-width:100%;
+  min-height:76px;
+  padding:18px 24px 18px 32px;
+  text-decoration:none;
+  font:400 clamp(1.3rem,2vw,1.75rem)/1.25 LinksAnton, Impact, sans-serif;
+  text-transform:uppercase;
+  box-shadow:0 0 0 6px #FFBA2E14;
+  transition:transform .18s;
 }
-.primary:hover {
-  background: #fff;
-  border-color: #fff;
-}
+.primary:hover { transform:translateY(-2px); }
+.arrow { display:flex; align-items:center; justify-content:center; flex:0 0 36px; width:36px; height:36px; border-radius:50%; background:#000; color:var(--yellow); }
 .requirements {
   max-width: 480px;
   margin: 18px auto 0;
@@ -249,19 +191,10 @@
     grid-template-columns: 1fr;
     gap: 36px;
   }
-  .header {
-    flex-direction: column;
-    gap: 8px;
-  }
-  .header nav {
-    gap: 28px;
-  }
-  .hero {
-    padding-top: 48px;
-  }
-  .lockup {
-    margin-bottom: 40px;
-  }
+  .hero { padding-top:24px; }
+  .heading { font-size:clamp(2.5rem,10.5vw,4.6rem); }
+  .intro { margin-top:20px; font-size:1.0625rem; }
+  .primary { min-height:72px; padding:16px 18px 16px 24px; font-size:1.3rem; gap:18px; }
   .stepsSection {
     padding-block: 52px;
   }
@@ -270,7 +203,7 @@
   }
 }
 @media (prefers-reduced-motion: reduce) {
-  .page {
-    scroll-behavior: auto;
-  }
+  .page { scroll-behavior:auto; }
+  .primary { transition:none; }
+  .primary:hover { transform:none; }
 }

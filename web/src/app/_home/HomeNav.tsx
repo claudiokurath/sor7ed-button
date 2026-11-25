@@ -4,12 +4,12 @@ import { useRef } from "react";
 import { BrandLogo } from "../_brand/BrandLogo";
 
 /** Shared centred wordmark and icon-only burger layout with Planet SOR7ED. */
-export default function HomeNav() {
+export default function HomeNav({ linksPage = false }: { linksPage?: boolean }) {
   const menuRef = useRef<HTMLDetailsElement>(null);
   const closeMenu = () => menuRef.current?.removeAttribute("open");
   return (
     <header className="s7-nav">
-      <a className="s7-brand" href="#top" aria-label="SOR7ED home" onClick={closeMenu}><BrandLogo /></a>
+      <a className="s7-brand" href={linksPage ? "/" : "#top"} aria-label="SOR7ED home" onClick={closeMenu}><BrandLogo /></a>
       <details ref={menuRef} className="s7-menu" onKeyDown={event => {
         if (event.key === "Escape") {
           closeMenu();
@@ -24,9 +24,9 @@ export default function HomeNav() {
           <a href="/links">SOR7ED Links</a>
           <a href="/about">About SOR7ED</a>
           <a href="/about#vision">Our vision</a>
-          <a href="#how-it-works">How it works</a>
-          <a href="#for-websites">For websites</a>
-          <a href="#demo">Try the demo</a>
+          <a href={linksPage ? "#how-it-works" : "#values"}>{linksPage ? "How it works" : "What we stand for"}</a>
+          <a href="/demo">For websites</a>
+          <a href={linksPage ? "#demo" : "/links#demo"}>Try the demo</a>
           <a href="/account">Your SOR7ED account</a>
           <a href="/signin">Member sign-in</a>
           <a href="https://www.planetsorted.com" rel="noopener">PLANET SOR7ED ↗</a>
