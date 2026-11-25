@@ -26,6 +26,7 @@
     "experiments": {
       "typedRoutes": true,
       "reactCompiler": true
-    }
+    },
+    "owner": "sor7ed"
   }
 }
