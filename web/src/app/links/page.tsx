@@ -1,13 +1,17 @@
 import type { Metadata } from "next";
+import HomeNav from "../_home/HomeNav";
+import HeroScribble from "../_home/HeroScribble";
+import HeroDemo from "../_home/HeroDemo";
+import "../_home/home.css";
 import styles from "./links.module.css";
 
 const storeUrl =
   "https://chromewebstore.google.com/detail/plljajhlkagokdjdmajiichjcjhmnhef";
 
 export const metadata: Metadata = {
-  title: "SOR7ED Links (SOR7ED Links) — Save to WhatsApp",
+  title: "SOR7ED Links — Save to WhatsApp",
   description:
-    "That article you meant to read. That video worth another look. Keep useful links in WhatsApp with SOR7ED Links, pronounced SOR7ED Links.",
+    "That article you meant to read. That video worth another look. Keep useful links in WhatsApp with SOR7ED Links.",
   alternates: { canonical: "https://www.sor7ed.com/links" },
   openGraph: {
     type: "website",
@@ -33,58 +37,25 @@ export const metadata: Metadata = {
 
 export default function LinksPage() {
   return (
-    <div className={styles.page}>
+    <div className={`${styles.page} s7`} id="top">
       <a className={styles.skip} href="#links-main">
         Skip to content
       </a>
-      <header className={styles.header}>
-        <a href="/" aria-label="SOR7ED home">
-          <img
-            src="/static/sor7ed-logo-white.png"
-            width="1832"
-            height="430"
-            alt="SOR7ED"
-          />
-        </a>
-        <nav aria-label="Links navigation">
-          <a href="/about">About SOR7ED</a>
-          <a href="/signin">Member sign-in</a>
-        </nav>
-      </header>
+      <HomeNav linksPage />
       <main id="links-main">
         <section className={styles.hero} aria-labelledby="links-heading">
-          <h1
-            className={styles.lockup}
-            id="links-heading"
-            aria-label="SOR7ED Links, pronounced SOR7ED Links"
-          >
-            <img
-              className={styles.scribble}
-              src="/static/tangle-white.png"
-              alt=""
-              width="724"
-              height="748"
-            />
-            <span className={styles.logoText}>
-              <span className={styles.links}>LINKS</span>
-              <span className={styles.tagline}>
-                See it. Send it.{" "}
-                <img
-                  src="/static/sor7ed-logo-white.png"
-                  alt="SOR7ED."
-                  width="1832"
-                  height="430"
-                />
-              </span>
-            </span>
+          <HeroScribble />
+          <p className={styles.eyebrow}>SOR7ED Links</p>
+          <h1 className={styles.heading} id="links-heading">
+            <span>Keep the good stuff.</span>
+            <span>In your <em>WhatsApp.</em></span>
           </h1>
-          <h2>Keep the good stuff.</h2>
           <p className={styles.intro}>
             That article you meant to read. That video worth another look. Give
             it a place you’ll remember to check: your WhatsApp thread.
           </p>
           <a className={styles.primary} href={storeUrl}>
-            Add to Chrome <span aria-hidden="true">↗</span>
+            Add to Chrome <span className={styles.arrow} aria-hidden="true">↗</span>
           </a>
           <p className={styles.requirements}>
             For desktop Chrome. A SOR7ED account and WhatsApp connection are
@@ -92,7 +63,7 @@ export default function LinksPage() {
           </p>
         </section>
 
-        <section className={styles.stepsSection} aria-labelledby="how-heading">
+        <section id="how-it-works" className={styles.stepsSection} aria-labelledby="how-heading">
           <div className={styles.inner}>
             <p className={styles.eyebrow}>
               Keep it now. Come back when you’re ready.
@@ -127,6 +98,9 @@ export default function LinksPage() {
           </div>
         </section>
 
+        <section id="demo" className="s7-wrap s7-home-demo" aria-label="Try saving a sample link">
+          <HeroDemo />
+        </section>
         <section className={styles.details} aria-labelledby="yours-heading">
           <div>
             <p className={styles.eyebrow}>Your thread. Your links.</p>

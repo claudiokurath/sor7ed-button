@@ -17,7 +17,23 @@
 - Saved interactive tool results were suggested as a possible future member
   perk. They are not advertised as available or implemented by this change.
 
-The home demo and existing Button information remain available below the hub.
+The interactive Button demo is available on the Links page, alongside the extension information.
 The extension source and upload-ready v0.2.7 package are in `extension/`; its
 store title/summary and separately editable full listing copy are documented
 there. Publishing the website does not approve or publish a Chrome Store update.
+
+## 25 November 2026 — mission-led hub and shared hero
+
+The homepage leads with making life easier for brains that work differently:
+practical help, no judgement or shame, and progress at the person's pace. Values
+come before product cards. Extension-specific demonstration content lives on
+`/links`, with the company hub retaining its product, membership and vision links.
+Home, Links and Planet Sorted use the owner's new yellow five-second video,
+optimised for web playback, at 192px desktop / 144px mobile. The poster comes from
+that same clip and is used for reduced motion and playback failure. Links matches
+Planet Sorted's centred header, burger, stacked hero and yellow rounded CTA.
+
+The hub includes a manually browsed, mobile-swipeable carousel of the three
+existing public campaign reflections (Hidden Strength featured, Brain Type and
+Self-Perception Gap). Live-text web editions of the three supplied individual yellow posters (excluding the combined all-three poster, QR blocks and Scan me copy) link directly to Planet
+Sorted. No automatic monthly selection or Notion publication override is claimed.
