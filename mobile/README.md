@@ -33,7 +33,7 @@ Web preview (`npm run web`) links to the real account in the browser, because th
 
 ## Build Android / iPhone with Expo EAS
 
-The Expo owner is **sor7ed**: https://expo.dev/accounts/sor7ed. The app is configured for that owner; the linked EAS project ID is `e8a6eb2d-c938-4b5f-b6ed-71aa52741509`. Sign in as an owner/admin of that account. From `mobile/`:
+The Expo owner is **sor7ed**: https://expo.dev/accounts/sor7ed. The app is configured for that owner; the existing project is https://expo.dev/accounts/sor7ed/projects/sor7ed and the linked EAS project ID is `e8a6eb2d-c938-4b5f-b6ed-71aa52741509`. Sign in as an owner/admin of that account. From `mobile/`:
 
     npx eas-cli@latest login
     npx eas-cli@latest init --id e8a6eb2d-c938-4b5f-b6ed-71aa52741509

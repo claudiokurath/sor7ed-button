@@ -1,7 +1,7 @@
 {
   "expo": {
     "name": "SOR7ED",
-    "slug": "sor7ed-mobile",
+    "slug": "sor7ed",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
