@@ -31,3 +31,6 @@ If secrets appear in a zip or chat, treat as compromised and rotate.
 See **LEAN_DEPLOY.md** for the current lean launch (Vercel API + web, Neon, no worker/Redis/R2). **DEPLOY.md** documents the optional full stack. Quick map: web → Vercel; api+worker → Fly (`fly.api.toml` / `fly.worker.toml`); Postgres → Neon + pgvector; Redis → Upstash.
 When web/api are on sibling subdomains, `COOKIE_DOMAIN=.sor7ed.com` must be set on the API.
 Production uploads require shared R2 storage for api and worker. Local-disk uploads are development-only; do not add Fly upload volumes.
+
+## Mobile
+`mobile/` is a standalone Expo package with its own lockfile, outside the root npm workspaces. Replit is not required. The Account tab displays the existing hosted account using its browser session and WhatsApp sign-in; it must not introduce a second user database or extract session cookies into JavaScript. Original local links remain separate under On device and must not be silently uploaded or deleted. Run mobile typecheck, tests, SDK compatibility and all-platform JS export from `mobile/`. See `mobile/README.md` for Expo/EAS setup and physical-device checks. Incoming share extensions are not implemented yet.
