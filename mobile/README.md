@@ -33,13 +33,13 @@ Web preview (`npm run web`) links to the real account in the browser, because th
 
 ## Build Android / iPhone with Expo EAS
 
-The Expo owner is **sor7ed**: https://expo.dev/accounts/sor7ed. The app is configured for that owner; an EAS project ID still needs linking. Sign in as an owner/admin of that account. From `mobile/`:
+The Expo owner is **sor7ed**: https://expo.dev/accounts/sor7ed. The app is configured for that owner; the linked EAS project ID is `e8a6eb2d-c938-4b5f-b6ed-71aa52741509`. Sign in as an owner/admin of that account. From `mobile/`:
 
     npx eas-cli@latest login
-    npx eas-cli@latest init
+    npx eas-cli@latest init --id e8a6eb2d-c938-4b5f-b6ed-71aa52741509
     npx eas-cli@latest build --platform android --profile preview
 
-`eas init` links this package to your Expo project and adds its project ID to app.json. Commit that project ID afterward; no EAS project ID is preconfigured. The preview profile creates an installable Android APK. EAS provides the build/download URL when complete; it does not place a file in Downloads automatically.
+`app.json` already contains the supplied project ID. The `eas init --id` command above verifies the link after login; it should not create another project. The preview profile creates an installable Android APK. EAS provides the build/download URL when complete; it does not place a file in Downloads automatically.
 
 For store builds:
 

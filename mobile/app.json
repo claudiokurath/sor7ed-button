@@ -27,6 +27,11 @@
       "typedRoutes": true,
       "reactCompiler": true
     },
-    "owner": "sor7ed"
+    "owner": "sor7ed",
+    "extra": {
+      "eas": {
+        "projectId": "e8a6eb2d-c938-4b5f-b6ed-71aa52741509"
+      }
+    }
   }
 }
