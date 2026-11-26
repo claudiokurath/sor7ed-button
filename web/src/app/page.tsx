@@ -68,6 +68,7 @@ export default function HomePage() {
               <a className="s7-hub-card" href="/links"><span className="s7-eyebrow">Keep useful links</span><h3>SOR7ED Links</h3><p>Articles, videos and pages worth another look. Keep them in your WhatsApp thread with the Chrome extension.</p><span className="s7-hub-link">Get the extension ↗</span></a>
               <a className="s7-hub-card" href="https://www.planetsorted.com"><span className="s7-eyebrow">Explore freely</span><h3>Planet SOR7ED</h3><p>Practical tools and plain-language guidebooks for brains that work differently. No website account needed.</p><span className="s7-hub-link">Explore tools and guidebooks ↗</span></a>
               <a className="s7-hub-card" href="/account"><span className="s7-eyebrow">Your member space</span><h3>Your SOR7ED account</h3><p>Revisit saved links and protocols. One central account for the Button and extension, with WhatsApp connected.</p><span className="s7-hub-link">Go to your account →</span></a>
+              <a className="s7-hub-card" href="/household"><span className="s7-eyebrow">Share the load</span><h3>SOR7ED Household</h3><p>Make household responsibilities visible and find a fairer balance between two people.</p><span className="s7-hub-link">Balance the invisible work →</span></a>
             </div>
           </section>
           <section className="s7-section s7-section--yellow" aria-labelledby="member-perks-heading"><div className="s7-wrap s7-hub-perks">
